@@ -1,0 +1,47 @@
+
+# Maven
+
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+.flattened-pom.xml
+
+# jupyter
+new_model_independent/.ipynb_checkpoints/
+GNN/.ipynb_checkpoints
+evaluation/.ipynb_checkpoints/
+mar-crawlers/common/__pycache__/
+
+# Repositories
+repo-ecore
+repo-uml
+repo-json
+
+#evaluation files
+evaluation/.ipynb_checkpoints/MARvsWHOOSH-checkpoint.ipynb
+evaluation/index
+
+#utils 
+utils/.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# Backup files
+*~
+
+.output
+.test_docker_running
+external-resources
+
+thirdparty/archimate/com.archimatetool.jdom.jar
+thirdparty/archimate/com.archimatetool.model.jar
+thirdparty/archimate/jaxen-1.1.3.jar
+thirdparty/archimate/jdom-2.0.5.jar
+thirdparty/lilypond/
+mar-restservice/lib/

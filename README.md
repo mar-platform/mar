@@ -1,2 +1,4 @@
-# mar
-A platform for storing and searching modelling artefacts
+# MAR - A search engine for models
+
+A search engine of models built over Apache HBase.
+

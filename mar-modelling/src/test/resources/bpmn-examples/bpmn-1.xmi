@@ -1,0 +1,142 @@
+<bpmn2:Definitions xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL-XMI" xmi:id="_qNJeEJH3EeqcytSjwrQ0Dg" name="model" targetNamespace="http://genmymodel.com/bpmn2">
+  <eAnnotations xmi:id="_qNJeEZH3EeqcytSjwrQ0Dg" source="genmymodel">
+    <details xmi:id="_qNJeEpH3EeqcytSjwrQ0Dg" key="uuid" value="ffa66c8a-6278-4c02-931c-2c476f3ac018"/>
+    <details xmi:id="_qNJeE5H3EeqcytSjwrQ0Dg" key="author" value="teomaximo"/>
+  </eAnnotations>
+  <rootElements xsi:type="bpmn2:Process" xmi:id="_qNJeFJH3EeqcytSjwrQ0Dg" name="Process" isClosed="true">
+    <eAnnotations xmi:id="_qNJeFZH3EeqcytSjwrQ0Dg" source="genmymodel">
+      <details xmi:id="_qNJeFpH3EeqcytSjwrQ0Dg" key="uuid" value="_TLtZ0Z1yEemddr62D2Sizg"/>
+    </eAnnotations>
+    <flowElements xsi:type="bpmn2:StartEvent" xmi:id="_qNJeF5H3EeqcytSjwrQ0Dg" name="Begin of the work" outgoing="_qNJeO5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeGJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeGZH3EeqcytSjwrQ0Dg" key="uuid" value="_-qHR0H-gEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeGpH3EeqcytSjwrQ0Dg" name="Definition of the research questions" incoming="_qNJeO5H3EeqcytSjwrQ0Dg" outgoing="_qNJeI5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeG5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeHJH3EeqcytSjwrQ0Dg" key="uuid" value="_JdxosH-hEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeHZH3EeqcytSjwrQ0Dg" name="Literature review and related work" incoming="_qNJeI5H3EeqcytSjwrQ0Dg" outgoing="_qNJeOJH3EeqcytSjwrQ0Dg _qNJeSpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeHpH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeH5H3EeqcytSjwrQ0Dg" key="uuid" value="_NbCvgH-hEDeUJugHQIosCw"/>
+      </eAnnotations>
+      <documentation xmi:id="_qNJeIJH3EeqcytSjwrQ0Dg" text="&lt;h1&gt;&lt;strong&gt;Literature Review&lt;/strong&gt;&lt;/h1&gt;&#xA;">
+        <eAnnotations xmi:id="_qNJeIZH3EeqcytSjwrQ0Dg" source="genmymodel">
+          <details xmi:id="_qNJeIpH3EeqcytSjwrQ0Dg" key="uuid" value="_113bsH-lEDevsbZS8e9JNQ"/>
+        </eAnnotations>
+&lt;h1&gt;&lt;strong&gt;Literature Review&lt;/strong&gt;&lt;/h1&gt;
+      </documentation>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeI5H3EeqcytSjwrQ0Dg" name="" sourceRef="_qNJeGpH3EeqcytSjwrQ0Dg" targetRef="_qNJeHZH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeJJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeJZH3EeqcytSjwrQ0Dg" key="uuid" value="_NbDWkH-hEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeJpH3EeqcytSjwrQ0Dg" name="Analize how the subjects activities fit the research" incoming="_qNJeTZH3EeqcytSjwrQ0Dg" outgoing="_qNJePpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeJ5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeKJH3EeqcytSjwrQ0Dg" key="uuid" value="_64F8QH-hEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeKZH3EeqcytSjwrQ0Dg" name="Conclude on the research questions of the thesis" incoming="_qNJeRJH3EeqcytSjwrQ0Dg _qNJeUJH3EeqcytSjwrQ0Dg" outgoing="_qNJeL5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeKpH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeK5H3EeqcytSjwrQ0Dg" key="uuid" value="_CSeDIH-iEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:EndEvent" xmi:id="_qNJeLJH3EeqcytSjwrQ0Dg" name="End" incoming="_qNJeL5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeLZH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeLpH3EeqcytSjwrQ0Dg" key="uuid" value="_MBz2QX-iEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeL5H3EeqcytSjwrQ0Dg" sourceRef="_qNJeKZH3EeqcytSjwrQ0Dg" targetRef="_qNJeLJH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeMJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeMZH3EeqcytSjwrQ0Dg" key="uuid" value="_NEYtkH-iEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeMpH3EeqcytSjwrQ0Dg" name="SBPM and Quality (Posibilities and insuficiencies)" incoming="_qNJeOJH3EeqcytSjwrQ0Dg _qNJeU5H3EeqcytSjwrQ0Dg" outgoing="_qNJeTZH3EeqcytSjwrQ0Dg _qNJeUJH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeM5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeNJH3EeqcytSjwrQ0Dg" key="uuid" value="_QY4O8IEoEDe_qoZE03i-Pw"/>
+      </eAnnotations>
+      <resources xmi:id="_qNJeNZH3EeqcytSjwrQ0Dg" name="">
+        <eAnnotations xmi:id="_qNJeNpH3EeqcytSjwrQ0Dg" source="genmymodel">
+          <details xmi:id="_qNJeN5H3EeqcytSjwrQ0Dg" key="uuid" value="_23iXIIExEDe_qoZE03i-Pw"/>
+        </eAnnotations>
+      </resources>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeOJH3EeqcytSjwrQ0Dg" sourceRef="_qNJeHZH3EeqcytSjwrQ0Dg" targetRef="_qNJeMpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeOZH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeOpH3EeqcytSjwrQ0Dg" key="uuid" value="_7V1dgIEoEDe_qoZE03i-Pw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeO5H3EeqcytSjwrQ0Dg" sourceRef="_qNJeF5H3EeqcytSjwrQ0Dg" targetRef="_qNJeGpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJePJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJePZH3EeqcytSjwrQ0Dg" key="uuid" value="_rAcuAIEpEDe_qoZE03i-Pw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJePpH3EeqcytSjwrQ0Dg" sourceRef="_qNJeJpH3EeqcytSjwrQ0Dg" targetRef="_qNJeQZH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeP5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeQJH3EeqcytSjwrQ0Dg" key="uuid" value="_5258MYYcEDePtbKFrRV-Ng"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeQZH3EeqcytSjwrQ0Dg" name="Analize the subjects processes in regards to SBPM" incoming="_qNJePpH3EeqcytSjwrQ0Dg" outgoing="_qNJeRJH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeQpH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeQ5H3EeqcytSjwrQ0Dg" key="uuid" value="_WPGg0IYdEDePtbKFrRV-Ng"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeRJH3EeqcytSjwrQ0Dg" sourceRef="_qNJeQZH3EeqcytSjwrQ0Dg" targetRef="_qNJeKZH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeRZH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeRpH3EeqcytSjwrQ0Dg" key="uuid" value="_ZwHwgIYdEDePtbKFrRV-Ng"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:Task" xmi:id="_qNJeR5H3EeqcytSjwrQ0Dg" name="SBPM approaches and technologies" incoming="_qNJeSpH3EeqcytSjwrQ0Dg" outgoing="_qNJeU5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeSJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeSZH3EeqcytSjwrQ0Dg" key="uuid" value="_qYdkkJHKEDeUYJP04MEPUw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeSpH3EeqcytSjwrQ0Dg" sourceRef="_qNJeHZH3EeqcytSjwrQ0Dg" targetRef="_qNJeR5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeS5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeTJH3EeqcytSjwrQ0Dg" key="uuid" value="_2Y6esZHKEDeUYJP04MEPUw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeTZH3EeqcytSjwrQ0Dg" sourceRef="_qNJeMpH3EeqcytSjwrQ0Dg" targetRef="_qNJeJpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeTpH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeT5H3EeqcytSjwrQ0Dg" key="uuid" value="_3ua5EZHKEDeUYJP04MEPUw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeUJH3EeqcytSjwrQ0Dg" sourceRef="_qNJeMpH3EeqcytSjwrQ0Dg" targetRef="_qNJeKZH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeUZH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeUpH3EeqcytSjwrQ0Dg" key="uuid" value="_Qg4GEJHLEDeUYJP04MEPUw"/>
+      </eAnnotations>
+    </flowElements>
+    <flowElements xsi:type="bpmn2:SequenceFlow" xmi:id="_qNJeU5H3EeqcytSjwrQ0Dg" sourceRef="_qNJeR5H3EeqcytSjwrQ0Dg" targetRef="_qNJeMpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeVJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeVZH3EeqcytSjwrQ0Dg" key="uuid" value="_aJPugJHLEDeUYJP04MEPUw"/>
+      </eAnnotations>
+    </flowElements>
+    <artifacts xsi:type="bpmn2:Group" xmi:id="_qNJeVpH3EeqcytSjwrQ0Dg" categoryValueRef="_qNJeX5H3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeV5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeWJH3EeqcytSjwrQ0Dg" key="uuid" value="_QDR9EX-hEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </artifacts>
+    <artifacts xsi:type="bpmn2:Group" xmi:id="_qNJeWZH3EeqcytSjwrQ0Dg" categoryValueRef="_qNJeYpH3EeqcytSjwrQ0Dg">
+      <eAnnotations xmi:id="_qNJeWpH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeW5H3EeqcytSjwrQ0Dg" key="uuid" value="_I-vt4H-iEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </artifacts>
+  </rootElements>
+  <rootElements xsi:type="bpmn2:Category" xmi:id="_qNJeXJH3EeqcytSjwrQ0Dg">
+    <eAnnotations xmi:id="_qNJeXZH3EeqcytSjwrQ0Dg" source="genmymodel">
+      <details xmi:id="_qNJeXpH3EeqcytSjwrQ0Dg" key="uuid" value="_QDSkIX-hEDeUJugHQIosCw"/>
+    </eAnnotations>
+    <categoryValue xmi:id="_qNJeX5H3EeqcytSjwrQ0Dg" value="Background Research">
+      <eAnnotations xmi:id="_qNJeYJH3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeYZH3EeqcytSjwrQ0Dg" key="uuid" value="_QDTLMH-hEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </categoryValue>
+    <categoryValue xmi:id="_qNJeYpH3EeqcytSjwrQ0Dg" value="Case study">
+      <eAnnotations xmi:id="_qNJeY5H3EeqcytSjwrQ0Dg" source="genmymodel">
+        <details xmi:id="_qNJeZJH3EeqcytSjwrQ0Dg" key="uuid" value="_I-z_UH-iEDeUJugHQIosCw"/>
+      </eAnnotations>
+    </categoryValue>
+  </rootElements>
+</bpmn2:Definitions>

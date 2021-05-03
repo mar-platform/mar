@@ -1,0 +1,23 @@
+{
+    repositories: {       
+	"repo-ecore-all" : {
+	    type: "ecore",	
+	    repo_root  : "$(REPO_ROOT)/repo-ecore-all",
+	    file_list : "$(REPO_ROOT)/repo-ecore-all/analysis/valid.txt",
+        
+	    graph_length : 4,
+	    graph_filter: EcoreFilter,
+	    graph_factory: EcoreFactory 
+	},
+	"repo-genmymodel-bpmn2" : {
+	    type: "genmymodel-bpmn",
+	    repo_root : "$(REPO_ROOT)/repo-genmymodel-bpmn2",
+	    file_list : "$(REPO_ROOT)/repo-genmymodel-bpmn2/analysis/valid.txt",
+	    
+	    model_loader: BPMNLoader,
+	    
+	    graph_length : 3,
+	    graph_filter: BPMNFilter
+	}
+    }
+}

@@ -1,0 +1,50 @@
+package mar.analysis.smells;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
+
+import com.google.common.base.Preconditions;
+
+/**
+ * An smell that has been detected.
+ * 
+ * @author jesus
+ *
+ */
+public class Smell {
+
+	private final EObject[] smellyObjects;
+	private final String smellId;
+	
+	public Smell(@Nonnull SmellDetector detector, EObject... smellyObjects) {
+		Preconditions.checkArgument(smellyObjects.length >= 1);
+		this.smellId = detector.getSmellId();
+		this.smellyObjects = Arrays.copyOf(smellyObjects, smellyObjects.length);		
+	}
+	
+	@Nonnull
+	public String getSmellId() {
+		return smellId;
+	}
+	
+	@Nonnull
+	protected EObject[] getSmellyObjects_() {
+		return smellyObjects;
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected <T extends EObject>  T getSmellyObject(int idx, Class<T> klazz) {
+		return (T) smellyObjects[idx];
+	}
+
+	@Nonnull
+	protected List<EObject> getSmellyObjects() {
+		return Arrays.asList(smellyObjects);
+	}
+
+}

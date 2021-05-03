@@ -1,0 +1,5 @@
+package mar.paths;
+
+public enum NodeType {
+	ATTRIBUTE, REFERENCE, CLASS, ATTRIBUTE_VALUE_STRING, ATTRIBUTE_VALUE_OTHER;
+}

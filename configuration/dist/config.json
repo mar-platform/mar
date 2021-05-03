@@ -1,0 +1,157 @@
+{
+    types: {
+	"ecore": {
+	    mrank: {
+		similarity: 0.5472,
+		UninstantiableClassSmell: -0.0625,
+		IsolatedClassSmell: -0.2567,
+		OverLoadedClassSmell: -0.2553,
+		ReferredAlotClassSmell: -0.2145,
+		RefersAlotClassSmell: -0.1213,
+		DepthHierarchySmell: -0.0958,
+		OnlyOneClassSuperSmell: -0.0785,
+		TooManyChildrenSmell: -0.1368,
+		TooLongNamesSmell: -0.0276,
+		IrrelevantClassSmell: -0.3061
+            }
+	}
+    },
+    repositories: {    
+	"repo-ecore-all" : {
+	    type: "ecore",
+	    origin: "github",
+	    repo_root  : "$(REPO_ROOT)/download/repo-github-ecore",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-ecore/crawler.db",
+	    model_db   : "$(ANALYSIS_TARGET)/repo-github-ecore/analysis.db",
+            
+	    graph_length : 3,
+	    graph_filter: EcoreFilter,
+	    graph_factory: EcoreFactory
+	},
+	"repo-genmymodel-ecore" : {
+	    type: "ecore",
+	    origin: "genmymodel",
+	    repo_root : "$(REPO_ROOT)/download/repo-genmymodel-ecore/data",
+	    crawler_db : "$(REPO_ROOT)/download/repo-genmymodel-ecore/crawler.db",
+	    model_db : "$(ANALYSIS_TARGET)/repo-genmymodel-ecore/analysis.db",
+	    
+	    graph_length : 3,
+	    graph_filter: EcoreFilter,
+	    graph_factory: EcoreFactory
+	},
+	"repo-atlanmod-ecore" : {
+	    type: "ecore",
+	    origin: "atlanmod",
+	    repo_root : "$(REPO_ROOT)/download/repo-atlanmod-ecore/data",
+	    crawler_db : "$(REPO_ROOT)/download/repo-atlanmod-ecore/crawler.db",
+	    model_db : "$(ANALYSIS_TARGET)/repo-atlanmod-ecore/analysis.db",
+	    
+	    graph_length : 3,
+	    graph_filter: EcoreFilter,
+	    graph_factory: EcoreFactory
+	},	
+	"repo-genmymodel-uml" : {
+	    type: "uml",
+	    origin: "genmymodel",
+	    repo_root : "$(REPO_ROOT)/download/repo-genmymodel-uml/data",
+	    crawler_db : "$(REPO_ROOT)/download/repo-genmymodel-uml/crawler.db",
+	    model_db : "$(ANALYSIS_TARGET)/repo-genmymodel-uml/analysis.db",
+	    
+	    model_loader: UML,
+	    
+	    graph_length : 2,
+	    graph_filter: UMLFilter
+	},
+	"repo-github-uml" : {
+	    type: "uml",
+	    origin: "github",
+	    repo_root : "$(REPO_ROOT)/download/repo-github-uml",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-uml/crawler.db",
+	    model_db : "$(ANALYSIS_TARGET)/repo-github-uml/analysis.db",
+	    
+	    model_loader: UML,
+	    
+	    graph_length : 2,
+	    graph_filter: UMLFilter
+	},	
+	"repo-genmymodel-bpmn2" : {
+	    type: "genmymodel-bpmn",
+	    origin: "genmymodel",
+	    repo_root : "$(REPO_ROOT)/download/repo-genmymodel-bpmn2/data",
+	    crawler_db : "$(REPO_ROOT)/download/repo-genmymodel-bpmn2/crawler.db",
+	    model_db : "$(ANALYSIS_TARGET)/repo-genmymodel-bpmn2/analysis.db",
+	    
+	    model_loader: BPMNLoader,
+	    
+	    graph_length : 3,
+	    graph_filter: BPMNFilter
+	},
+	"repo-github-pnml" : {
+	    type: "pnml",
+	    repo_root : "$(REPO_ROOT)/download/repo-github-pnml",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-pnml/crawler.db",  
+	    model_db : "$(ANALYSIS_TARGET)/repo-github-pnml/analysis.db",
+	    
+	    model_loader: PNML,
+	    
+	    graph_length : 3
+	},
+	"repo-github-sculptor" : {
+	    type: "sculptor",
+	    origin: "github",
+	    repo_root : "$(REPO_ROOT)/download/repo-github-sculptor",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-sculptor/crawler.db",  
+	    model_db : "$(ANALYSIS_TARGET)/repo-github-sculptor/analysis.db",
+	    
+	    model_loader: SCULPTOR,
+	    
+	    graph_length : 3
+	},
+	"repo-github-archimate" : {
+	    type: "archimate",
+	    origin: "github",
+	    repo_root : "$(REPO_ROOT)/download/repo-github-archimate",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-archimate/crawler.db",  
+	    model_db : "$(ANALYSIS_TARGET)/repo-github-archimate/analysis.db",
+	    
+	    model_loader: ARCHIMATE,
+	    
+	    graph_length : 3
+	},
+	"repo-github-lilypond" : {
+	    type: "lilypond",
+	    origin: "github",
+	    repo_root : "$(REPO_ROOT)/download/repo-github-lilypond",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-lilypond/crawler.db",  
+	    model_db : "$(ANALYSIS_TARGET)/repo-github-lilypond/analysis.db",
+	    
+	    model_loader: LILYPOND,
+	    
+	    graph_length : 2
+	},
+	"repo-simulink-emf" : {
+	    type: "simulink",
+	    origin: "simulink-dataset",
+	    repo_root  : "$(REPO_ROOT)/download/repo-simulink-emf",
+	    crawler_db : "$(REPO_ROOT)/download/repo-simulink-emf/crawler.db",
+	    model_db   : "$(ANALYSIS_TARGET)/repo-simulink-emf/analysis.db",
+
+	    model_loader: SIMULINK,
+	    
+	    graph_length : 2
+	},
+	"repo-genmymodel-rds" : {
+	    type: "rds",
+	    origin: "genmymodel",
+	    repo_root  : "$(REPO_ROOT)/download/repo-genmymodel-rds/data",
+	    crawler_db : "$(REPO_ROOT)/download/repo-genmymodel-rds/crawler.db",
+	    model_db   : "$(ANALYSIS_TARGET)/repo-genmymodel-rds/analysis.db",
+
+	    model_loader: RDS,
+	    
+	    graph_length : 3
+	}
+
+
+    }
+}

@@ -1,0 +1,11 @@
+{ 
+   "genmymodel-bpmn" : {
+      repo_root : "$(REPO_ROOT)/repo-genmymodel-bpmn2",
+      file_list : "$(REPO_MAR)/mar-spark-indexer/src/test/resources/repo-genmymodel-bpmn2.filelist",
+      
+      model_loader: BPMNLoader,
+        
+      graph_length : 3,
+      graph_filter: BPMNFilter
+   }
+ }

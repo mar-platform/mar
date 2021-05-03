@@ -1,0 +1,15 @@
+{
+    repositories: {    
+	"repo-ecore-test" : {
+	    type: "ecore",
+	    origin: "test-data",    
+	    repo_root  : "$(REPO_MAR)/external-resources/data",
+	    crawler_db : "$(REPO_MAR)/test-files/target/crawler.db",
+	    model_db   : "$(REPO_MAR)/test-files/target/analysis.db",
+	    
+	    graph_length : 3,
+	    graph_filter: EcoreFilter,
+	    graph_factory: EcoreFactory
+	}
+    }
+}

@@ -1,0 +1,105 @@
+package mar.indexer.lucene.main;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.uml2.uml.UMLPackage;
+import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
+
+import mar.indexer.lucene.core.Indexer;
+import mar.model2graph.MetaFilter;
+import mar.paths.PathFactory;
+
+/** For this to work a dependence with mar-indexer-spark is needed for HBase */
+public class HBase2Lucene {
+
+	public static void main(String[] args) throws IOException {
+		
+		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap( ).put("*", new XMIResourceFactoryImpl());
+		EPackage.Registry.INSTANCE.put(UMLPackage.eINSTANCE.getNsURI(), UMLPackage.eINSTANCE);
+		
+		//create indexer
+		if (args.length != 1) {
+			System.err.println("The inverted index path is needed");
+			return;
+		}
+		String pathIndex = args[0];
+		Indexer indexer = new Indexer(pathIndex);
+		MetaFilter mfEcore = MetaFilter.getEcoreFilterNames();
+	    PathFactory pfEcore = new PathFactory.EcoreTokenizer();
+	    MetaFilter mfUML = MetaFilter.getUMLEasyFilter();
+        PathFactory pfUML =new PathFactory.EcoreTokenizer();
+		
+		
+		//get connection object
+		Configuration conf = HBaseConfiguration.create();
+		conf.set("hbase.zookeeper.quorum", "zoo");
+		conf.set("hbase.rpc.timeout", "1800000");
+		conf.set("hbase.client.scanner.timeout.period", "1800000");
+		Connection con = ConnectionFactory.createConnection(conf);
+		
+		//Ecore
+		Table docs_info_ecore = con.getTable(TableName.valueOf("docs_info_ecore"));
+		Scan scan= new Scan();
+		scan.addColumn("CONTENT".getBytes(), "content".getBytes());
+		
+		
+		ResultScanner scanner = docs_info_ecore.getScanner(scan);
+		for (Result result = scanner.next(); result != null; result = scanner.next()) {
+			
+			byte[] content = result.getValue("CONTENT".getBytes(), "content".getBytes());
+			ResourceSet rs = new ResourceSetImpl();
+			Resource resource = rs.createResource(URI.createFileURI("ex.ecore"));
+	    	try {
+	    		resource.load(new ByteArrayInputStream(content), null);
+	    	} catch (Exception e) { 
+	    		e.printStackTrace();
+	            continue;
+	        }
+	    	indexer.indexModel(Bytes.toString(result.getRow()), "ecore", resource, mfEcore, pfEcore);
+		}
+		
+		//UML
+		Table docs_info_uml = con.getTable(TableName.valueOf("docs_info_uml"));
+		Scan scan_uml= new Scan();
+		scan_uml.addColumn("CONTENT".getBytes(), "content".getBytes());
+		
+		ResultScanner scanner_uml = docs_info_uml.getScanner(scan_uml);
+		for (Result result = scanner_uml.next(); result != null; result = scanner_uml.next()) {
+			byte[] content = result.getValue("CONTENT".getBytes(), "content".getBytes());
+			
+			UMLResourceFactoryImpl factory = new UMLResourceFactoryImpl();
+			Resource resource = factory.createResource(URI.createFileURI("ex.uml"));
+    		try {
+	    		resource.load(new ByteArrayInputStream(content), null);
+	    	} catch (Exception e) { 
+	    		e.printStackTrace();
+	            continue;
+	        }
+    		indexer.indexModel(Bytes.toString(result.getRow()), "uml", resource, mfUML, pfUML);
+			
+		}
+		
+		indexer.close();
+		
+		
+		
+	}
+}

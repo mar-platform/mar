@@ -1,0 +1,17 @@
+@namespace(uri="http://mm-query", prefix="query")
+package query;
+
+class Statemachine {
+  val State[*] states;
+  val Edge[*] edges;
+}
+
+class State {
+  attr String[1] name;
+}
+
+class Edge {
+  attr String[1] name;
+  attr String[1] trigger;
+}
+
