@@ -6,6 +6,7 @@ import static spark.Spark.post;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +32,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.ModelLoader;
 import mar.indexer.lucene.core.LuceneUtils;
@@ -38,8 +40,10 @@ import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
 import mar.renderers.ecore.EcorePlantUMLRenderer;
 import mar.restservice.HBaseGetInfo;
+import mar.restservice.HBaseLog;
 import mar.restservice.HBaseModelAccessor;
 import mar.restservice.swagger.SwaggerParser;
+import mar.restservice.HBaseStats;
 import spark.Request;
 import spark.Response;
 
@@ -47,6 +51,10 @@ import spark.Response;
 @Path("/v1/search")
 @Produces("application/json")
 public class API extends AbstractService {
+	@NonNull
+	private final HBaseStats stats = new HBaseStats();
+	@NonNull
+	private final HBaseLog hbaseLog = new HBaseLog();	
 	
 	public API(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);
@@ -60,7 +68,9 @@ public class API extends AbstractService {
         post("/v1/search/example", this::searchList);
         get("/v1/search/metadata", this::metadata);
         
-        get("/v1/search/swagger", this::swagger);                
+        get("/v1/search/swagger", this::swagger);
+
+        get("/status", this::doStatus);
 	}
 	
 	// Build swagger json description
@@ -90,11 +100,8 @@ public class API extends AbstractService {
 			try(HBaseGetInfo info = new HBaseGetInfo()) {
 				info.updateInformation(items);
 			}
-			
-		    ObjectMapper mapperObj = new ObjectMapper();	    
-			String jsonResp = mapperObj.writeValueAsString(items);
-			res.type("text/json");
-			return jsonResp;
+		
+			return toJson(res, items);
 		} catch (ParseException e) {
 			e.printStackTrace();
 			// TODO: Return an error
@@ -121,20 +128,14 @@ public class API extends AbstractService {
 			item.setMrankScore(mrankScore);
 		}
 		
-	    ObjectMapper mapperObj = new ObjectMapper();	    
-		String jsonResp = mapperObj.writeValueAsString(items);
-		res.type("text/json");
-		return jsonResp;
+		return toJson(res, items);
     }
 	
     public Object search(Request req, Response res) throws IOException, InvalidMarRequest {
     	Map<String, Double> scores = doSearch(req, res);
     	//Map<String,List<Double>> new_scores = obtainSmells(scores);
-	    ObjectMapper mapperObj = new ObjectMapper();
-		String jsonResp = mapperObj.writeValueAsString(scores);	
-		res.type("text/json");	    
-	    return jsonResp;
-    }   
+	    return toJson(res, scores);
+    }
     
     public Map<String, Double> doSearch(Request req, Response res) throws IOException, InvalidMarRequest {
 		SearchOptions options = SearchOptions.get(req);
@@ -152,7 +153,7 @@ public class API extends AbstractService {
     		
     		double value = entry.getValue();
     		total = total + Math.log(value + 1) * smellWeight;
-		}
+		}	
     	return total;
     }
     
@@ -206,6 +207,20 @@ public class API extends AbstractService {
 		raw.setContentType("image/png");
 		
 		return res;
+	}
+	
+	public Object doStatus(Request req, Response res) throws IOException {	
+		Map<? extends String, Integer> models = stats.getStats().getCounters();
+		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, Object>> modelList = new ArrayList<>();
+		models.forEach((m, v) -> {
+			Map<String, Object> model = new HashMap<>();
+			model.put("name", m);
+			model.put("count", v);
+			modelList.add(model);
+		});
+		result.put("models", modelList);
+		return toJson(res, result);
 	}
 	
 }

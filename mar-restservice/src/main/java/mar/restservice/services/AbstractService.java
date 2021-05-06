@@ -18,6 +18,9 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.MarChatBotConfiguration;
 import mar.MarConfiguration;
@@ -28,6 +31,7 @@ import mar.models.bpmn.BPMNLoader;
 import mar.restservice.emfatic.EmfaticReader;
 import mar.restservice.services.SearchOptions.ModelType;
 import mar.restservice.services.SearchOptions.SyntaxType;
+import spark.Response;
 
 public abstract class AbstractService {
 
@@ -157,5 +161,11 @@ public abstract class AbstractService {
 		}
 		return result;
 	}
-	 
+
+	protected Object toJson(Response res, Object value) throws JsonProcessingException {
+		ObjectMapper mapperObj = new ObjectMapper();
+		String jsonResp = mapperObj.writeValueAsString(value);	
+		res.type("text/json");	    
+	    return jsonResp;
+	}   
 }

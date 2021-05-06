@@ -8,4 +8,7 @@ window.MAR = {
     toImageURL: function(modelId) {
         return 'http://localhost:8080/render?id=' + modelId;
     },
+    toStatusURL: function() {
+        return 'http://localhost:8080/status'
+    }
 };	

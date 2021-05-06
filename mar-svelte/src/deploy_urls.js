@@ -7,7 +7,10 @@ window.MAR = {
     },
     toImageURL: function(modelId) {
         return '/render?id=' + modelId;
-    },
+    }, 
+    toStatusURL: function() {
+        return '/status'
+    }
 };	
 
 $.getScript("https://www.googletagmanager.com/gtag/js?id=G-JCTEZJPPM9", function() {
