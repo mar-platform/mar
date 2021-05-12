@@ -23,6 +23,14 @@ export class ItemHelper {
             return null;
         return item.metadata.category;
     }
+
+    static modelType(item) {
+        return item.modelType;
+    }
+
+    static origin(item) {
+        return item.origin;
+    }
 }
 
 export function intCompare(a, b) {

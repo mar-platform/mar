@@ -22,9 +22,13 @@
 
       this.topics = [...new Set(items.flatMap(item => ItemHelper.topics(item).filter(i => i.length != 0)))]
       this.categories = [...new Set(items.map(item => ItemHelper.category(item)).filter(c => c != null))]
+      this.modelTypes = [...new Set(items.map(item => ItemHelper.modelType(item)).filter(c => c != null))]
+      this.origins = [...new Set(items.map(item => ItemHelper.origin(item)).filter(c => c != null))]
       
       this.selectedTopics = []
       this.selectedCategories = []
+      this.selectedModelTypes = []
+      this.selectedOrigins = []
       
       this.sortByRelevance();
     }    
@@ -63,6 +67,25 @@
         this.selectedCategories.splice(index, 1);
       } else {
         this.selectedCategories.push(category)
+      }
+    }
+
+    addModelType(topic) {
+      var index = this.selectedModelTypes.indexOf(topic);
+      if (index > -1) {
+        this.selectedModelTypes.splice(index, 1);
+      } else {
+        this.selectedModelTypes.push(topic)
+      }
+    }
+
+
+    addOrigin(topic) {
+      var index = this.selectedOrigins.indexOf(topic);
+      if (index > -1) {
+        this.selectedOrigins.splice(index, 1);
+      } else {
+        this.selectedOrigins.push(topic)
       }
     }
 
@@ -107,6 +130,20 @@
           return false;
       }
 
+      const origin = ItemHelper.origin(item);
+      if (this.selectedOrigins.length > 0 && origin != undefined) {
+        let found = this.selectedOrigins.includes(origin);
+        if (! found) 
+          return false;
+      }
+
+      const modelType = ItemHelper.modelType(item);
+      if (this.selectedModelTypes.length > 0 && modelType != undefined) {
+        let found = this.selectedModelTypes.includes(modelType);
+        if (! found) 
+          return false;
+      }
+
       return true;
     }
   }
@@ -147,11 +184,47 @@
         </div>
       </div>
 
-
       <div class="row">
+        <div class="col">          
+          <div class="button-group">
+            <button
+              type="button"
+              class="btn btn-default btn-sm dropdown-toggle"
+              data-toggle="dropdown"
+              ><span class="glyphicon glyphicon-cog" />
+              <span class="caret" />Model type</button>
+            <ul class="dropdown-menu">
+              {#each facets.modelTypes as item}
+                <li>
+                  <!-- <a href="#/" class="small" data-value="{item}" tabIndex="-1"> -->
+                  <!-- <input type="checkbox" style="margin-left: 5px" bind:group={facets.selectedTopics} />&nbsp;{item} -->
+                  <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addModelType(item); facets = facets} } />&nbsp;{item}
+                  <!-- </a> -->
+                </li>
+              {/each}              
+            </ul>
+          </div>
+        </div>
+  
+        <div class="col">          
+          <div class="button-group">
+            <button
+              type="button"
+              class="btn btn-default btn-sm dropdown-toggle"
+              data-toggle="dropdown"
+              ><span class="glyphicon glyphicon-cog" />
+              <span class="caret" />Origin</button>
+            <ul class="dropdown-menu">
+              {#each facets.origins as item}
+                <li>
+                  <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addOrigin(item); facets = facets} } />&nbsp;{item}
+                </li>
+              {/each}              
+            </ul>
+          </div>
+        </div>
+
         <div class="col">
-          <!-- Dropdown with checkbox -->
-          <!-- https://codepen.io/bseth99/pen/fboKH?html-preprocessor=pug -->
           <div class="button-group">
             <button
               type="button"
@@ -180,10 +253,7 @@
             <ul class="dropdown-menu">
               {#each facets.topics as item}
                 <li>
-                  <!-- <a href="#/" class="small" data-value="{item}" tabIndex="-1"> -->
-                  <!-- <input type="checkbox" style="margin-left: 5px" bind:group={facets.selectedTopics} />&nbsp;{item} -->
                   <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addTopic(item); facets = facets} } />&nbsp;{item}
-                  <!-- </a> -->
                 </li>
               {/each}              
             </ul>

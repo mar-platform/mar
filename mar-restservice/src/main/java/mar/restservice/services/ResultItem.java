@@ -1,5 +1,8 @@
 package mar.restservice.services;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,10 +16,16 @@ public class ResultItem implements IModelResult {
 	
 	@JsonProperty("metadata")
 	private AnalysisMetadataDocument metadata;
-	
-	public ResultItem(String name, double score) {
+	private String explicitType;
+
+	public ResultItem(@Nonnull String name, double score) {
 		this.name = name;
 		this.score = score;
+	}
+
+	public ResultItem(@Nonnull String name, double score, @Nonnull String type) {
+		this(name, score);
+		this.explicitType = type;
 	}
 
 	@JsonGetter("id")
@@ -53,14 +62,11 @@ public class ResultItem implements IModelResult {
 		return metadata == null ? this.name : this.metadata.getURL();
 	}
 	
-//	@JsonGetter("metadata")
-//	public String getMetadataAsJSON() {
-//		try {
-//			return metadata.toJSON();
-//		} catch (JsonProcessingException e) {
-//			return "null";
-//		}
-//	}
+	@CheckForNull
+	@JsonGetter("modelType")
+	public String getModelType() {
+		return explicitType == null ? getImplicitType() : explicitType;
+	}
 	
 	public String getURLHumanName() { 
 		return getURL();
@@ -82,6 +88,7 @@ public class ResultItem implements IModelResult {
 	 *    github:ecore:/repo/jesus/model.xmi
 	 * @return
 	 */
+	@CheckForNull
 	public String getImplicitType() {
 		String[] parts = getId().split(":");
 		if (parts.length < 3) {
@@ -90,6 +97,17 @@ public class ResultItem implements IModelResult {
 		return parts[1];
 	}
 
+	@CheckForNull
+	@JsonGetter("origin")
+	public String getOrigin() {
+		String[] parts = getId().split(":");
+		if (parts.length < 3) {
+			return null;
+		}
+		return parts[0];
+	}
+
+	
 	public void setMrankScore(double mrankScore) {
 		this.mrankScore = mrankScore;
 	}

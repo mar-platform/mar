@@ -93,10 +93,9 @@ public class CreateIndex {
 			try {
 				String id = ids.get(f);
 				resource = loader.load(f);
-				String modelType  = repoName;
 				PathFactory pf = repoConf.getPathFactory();
 				IMetaFilter mf = repoConf.getTextMetaFilter();
-				indexer.indexModel(id, modelType, resource, mf, pf);
+				indexer.indexModel(id, repoConf.getType(), resource, mf, pf);
 				resource.unload();
 			} catch (Exception e) {
 				e.printStackTrace();

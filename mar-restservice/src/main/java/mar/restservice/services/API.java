@@ -91,7 +91,8 @@ public class API extends AbstractService {
 			for (ScoreDoc doc : docs.scoreDocs) {
 				Document document = searcher.getDoc(doc.doc);
 				String id = document.getField(LuceneUtils.ID).stringValue();
-				items.add(new ResultItem(id, doc.score));				
+				String type = document.getField(LuceneUtils.TYPE).stringValue();
+				items.add(new ResultItem(id, doc.score, type));				
 			}
 
 			// Update the information of each model in batch
