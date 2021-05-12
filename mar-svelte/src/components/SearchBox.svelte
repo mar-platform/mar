@@ -52,41 +52,14 @@
     </div>
     
     <div class="row">
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <button
-                        class="btn btn-outline-secondary dropdown-toggle"
-                        type="button"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">Any model</button>
-                    <div class="dropdown-menu">
-                        <a
-                            class="dropdown-item"
-                            on:click={() => notifyEvent('ecore')}
-                            href="#/">Ecore</a>
-                        <a
-                            class="dropdown-item"
-                            on:click={() => notifyEvent('uml')}
-                            href="#/">UML</a>
-                        <a
-                            class="dropdown-item"
-                            on:click={() => notifyEvent('bpmn')}
-                            href="#/">BPMN</a>
-                        <div role="separator" class="dropdown-divider" />
-                        <a
-                            class="dropdown-item"
-                            on:click={() => notifyEvent('all')}
-                            href="#/">All</a>
-                    </div>
-                </div>
-                <input
-                    bind:value={searchText}
-                    type="text"
-                    id="searchText"
-                    class="form-control"
-                    placeholder="Search for any type of model"
-                    aria-label="Relevant keywords for your model" />
+        <div class="input-group mb-3">
+            <input
+                bind:value={searchText}
+                type="text"
+                id="searchText"
+                class="form-control"
+                placeholder="Search for any type of model"
+                aria-label="Relevant keywords for your model" />
         </div>
     </div>
     <div class="row justify-content-end">
