@@ -26,10 +26,15 @@ public class IndexReader implements AutoCloseable {
 	private Map<String, String> idToDocument;
 	private int countPaths;
 	private int countDocs;
+	private boolean isAvailable = true;
 
 	public IndexReader(String modelType) throws IOException {
 		this.modelType = modelType;
 		doRead();
+	}
+	
+	public boolean isIndexAvailable() throws IOException {
+		return isAvailable;
 	}
 	
 	private void doRead() throws IOException {
@@ -37,6 +42,11 @@ public class IndexReader implements AutoCloseable {
 		conf.set("hbase.zookeeper.quorum", "zoo");
 		Connection connection = ConnectionFactory.createConnection(conf);
 
+		if (! connection.getAdmin().tableExists(TableName.valueOf(TableNameUtils.getDocsInfo(modelType)))) {
+			this.isAvailable = false;
+			return;
+		}
+		
 		countDocs = countTable(connection.getTable(TableName.valueOf(TableNameUtils.getDocsInfo(modelType))));
 		countPaths = countTable(connection.getTable(TableName.valueOf(TableNameUtils.getInvertedIndex(modelType))));
 		idToDocument = new HashMap<>();

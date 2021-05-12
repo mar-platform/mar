@@ -24,15 +24,13 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.eclipse.emf.ecore.resource.Resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.ModelLoader;
 import mar.indexer.lucene.core.LuceneUtils;
@@ -42,8 +40,8 @@ import mar.renderers.ecore.EcorePlantUMLRenderer;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.HBaseLog;
 import mar.restservice.HBaseModelAccessor;
-import mar.restservice.swagger.SwaggerParser;
 import mar.restservice.HBaseStats;
+import mar.restservice.swagger.SwaggerParser;
 import spark.Request;
 import spark.Response;
 
@@ -209,7 +207,7 @@ public class API extends AbstractService {
 		return res;
 	}
 	
-	public Object doStatus(Request req, Response res) throws IOException {	
+	public Object doStatus(Request req, Response res) throws Exception {	
 		Map<? extends String, Integer> models = stats.getStats().getCounters();
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> modelList = new ArrayList<>();

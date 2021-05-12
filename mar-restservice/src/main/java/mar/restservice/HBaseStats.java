@@ -1,22 +1,41 @@
 package mar.restservice;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
-
 import edu.umd.cs.findbugs.annotations.NonNull;
+import mar.restservice.services.SearchOptions.ModelType;
+import mar.spark.indexer.validation.IndexReader;
 
 public class HBaseStats extends HBaseModelAccessor {
 
+	private Stats stats = null;
+	
+	public synchronized Stats getStats() throws Exception {
+		if (stats != null) {
+			return stats;
+		}
+		
+		Map<String, Integer> counters = new HashMap<>();
+		for (ModelType modelType : ModelType.values()) {
+			try(IndexReader reader = new IndexReader(modelType.name())) {
+				int countDocs = 0;
+				int countPaths = 0;
+				if (reader.isIndexAvailable()) {
+					countDocs = reader.getCountDocs();
+					countPaths = reader.getCountPaths();
+				}
+				// Map<String, String> docs = reader.getDocuments();
+				counters.put(modelType.name(), countDocs);
+				//System.out.println("Total documents: " + countDocs);
+				//System.out.println("Total path-index: " + countPaths);
+			}			
+		}		
+		this.stats = new Stats(counters);
+		return this.stats;
+	}
+	
+	/*
 	public Stats getStats() throws IOException {
 		Table docs = getDocsInfo();
 		Scan scan = new Scan();
@@ -43,7 +62,7 @@ public class HBaseStats extends HBaseModelAccessor {
 
 		return new Stats(counters);
 	}
-
+	*/
 	public static class Stats {
 		@NonNull
 		private final Map<String, Integer> counters;
