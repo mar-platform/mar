@@ -30,7 +30,8 @@
       this.selectedModelTypes = []
       this.selectedOrigins = []
       
-      this.sortByRelevance();
+      // this.sortByRelevance();
+      this.sortBySimilarity();
     }    
 
     
@@ -266,7 +267,9 @@
               Sorted by {sortType}
             </button>
             <div class="dropdown-menu">
+              <!--
               <a class="dropdown-item" href="#/" on:click={() => { facets.sortByRelevance(); facets = facets }}>MRank relevance</a>
+              -->
               <a class="dropdown-item" href="#/" on:click={() => { facets.sortBySimilarity(); facets = facets }}>Similarity</a>
               <a class="dropdown-item" href="#/" on:click={() => { facets.sortByQuality(); facets = facets }}>Quality</a>
               <a class="dropdown-item" href="#/" on:click={() => { facets.sortByPopularity(); facets = facets }}>Popularity</a>

@@ -25,7 +25,7 @@
           </p>  
         </div>
         <div class="col-0">
-          <p><small>{item.score.toFixed(2)}</small>/<small>{item.mrankScore.toFixed(2)}</small></p>
+          <p><small>{item.score.toFixed(2)}</small></p>
           <!-- svelte-ignore missing-declaration because MAR is defined in index.html -->
           <p><a href="{MAR.toImageURL(item.id)}"><img src="img/iconfinder_Artboard_37_3952964.png" alt="See diagram" width=24 height=24></a></p>
           
