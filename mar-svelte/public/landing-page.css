@@ -44,7 +44,7 @@
     background-size: cover;
     padding-top: 20px;
     padding-left: 20px;
-    height: 100vh;
+    min-height: 100vh;
     /* padding-bottom: 8rem; */
   }
   
