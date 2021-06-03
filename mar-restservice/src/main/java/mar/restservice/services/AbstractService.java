@@ -119,6 +119,9 @@ public abstract class AbstractService {
 		case simulink:
 			r = ModelLoader.SIMULINK.load(new ByteArrayInputStream(model.getBytes()));
 			break;
+		case xtext:
+			r = ModelLoader.XTEXT.load(new ByteArrayInputStream(model.getBytes()));
+			break;			
 		default:
 			throw new IllegalStateException();
 		}

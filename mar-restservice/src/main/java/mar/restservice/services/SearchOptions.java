@@ -23,7 +23,7 @@ import spark.utils.IOUtils;
 public class SearchOptions {
 
 	public static enum ModelType {
-		ecore, uml, bpmn2, sculptor, pnml, archimate, rds, simulink
+		ecore, uml, bpmn2, sculptor, pnml, archimate, rds, simulink, xtext
 	}
 	
 	public static enum SyntaxType {

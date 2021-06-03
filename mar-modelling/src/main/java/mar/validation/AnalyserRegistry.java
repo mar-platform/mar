@@ -23,6 +23,7 @@ public class AnalyserRegistry {
 			put(mar.analysis.archimate.ArchimateAnalyser.ID, new mar.analysis.archimate.ArchimateAnalyser.Factory()).
 			put(mar.analysis.lilypond.LilypondAnalyser.ID, new mar.analysis.lilypond.LilypondAnalyser.Factory()).
 			put(mar.analysis.simulink.SimulinkAnalyser.ID, new mar.analysis.simulink.SimulinkAnalyser.Factory()).
+			put(mar.analysis.xtext.XtextAnalyser.ID, new mar.analysis.xtext.XtextAnalyser.Factory()).
 			put(mar.analysis.rds.RdsAnalyser.ID, new mar.analysis.rds.RdsAnalyser.Factory()).
 			build();
 

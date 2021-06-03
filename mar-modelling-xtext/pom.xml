@@ -42,20 +42,27 @@
 
 			<!-- It seems that this guava version was taken precedence because of 
 				the provided flag... -->
-<!-- 			<exclusions> -->
-<!-- 				<exclusion> -->
-<!-- 					<groupId>com.google.guava</groupId> -->
-<!-- 					<artifactId>guava</artifactId> -->
-<!-- 				</exclusion> -->
-<!-- 			</exclusions> -->
+			<!-- <exclusions> -->
+			<!-- <exclusion> -->
+			<!-- <groupId>com.google.guava</groupId> -->
+			<!-- <artifactId>guava</artifactId> -->
+			<!-- </exclusion> -->
+			<!-- </exclusions> -->
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.eclipse.xtext</groupId>
+			<artifactId>org.eclipse.xtext.generator</artifactId>
+			<version>2.24.0</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>elysium</groupId>
 			<artifactId>elysium</artifactId>
 			<version>0.6.0</version>
 		</dependency>
-		
+
 		<!-- Needed for Elysium for Lilypond -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -67,7 +74,7 @@
 			<artifactId>log4j-core</artifactId>
 			<version>2.10.0</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>

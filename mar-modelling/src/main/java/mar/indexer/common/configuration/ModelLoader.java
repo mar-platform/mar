@@ -1,12 +1,9 @@
 package mar.indexer.common.configuration;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 
 import javax.annotation.Nonnull;
 
@@ -23,6 +20,7 @@ import mar.models.elysium.LilypondLoader;
 import mar.models.pnml.PnmlLoader;
 import mar.models.pnml.SculptorLoader;
 import mar.models.simulink.SimulinkLoader;
+import mar.models.xtext.XtextLoader;
 
 public enum ModelLoader {
 
@@ -82,6 +80,14 @@ public enum ModelLoader {
 		}
 	},
 
+	XTEXT {		
+		@Override
+		public Resource load(File file) throws IOException {
+			XtextLoader loader = new XtextLoader();			
+			return loader.load(file);
+		}
+	},
+	
 	SIMULINK {		
 		@Override
 		public Resource load(File file) throws IOException {
