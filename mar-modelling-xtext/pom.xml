@@ -9,8 +9,8 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>mar-modelling-lilypond</artifactId>
-	<name>mar-modelling-lilypond</name>
+	<artifactId>mar-modelling-xtext</artifactId>
+	<name>mar-modelling-xtext</name>
 	<packaging>jar</packaging>
 
 	<properties>

@@ -43,7 +43,7 @@
     <module>mar-ml</module>
     <module>mar-modelling</module>
     <module>mar-modelling-pnml</module>
-    <module>mar-modelling-lilypond</module>    
+    <module>mar-modelling-xtext</module>    
     <module>mar-modelling-eclipse</module>
 
     <module>mar-indexer-lucene</module>
