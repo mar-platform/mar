@@ -38,8 +38,13 @@ public class XtextAnalyser extends SingleEMFFileAnalyser {
 	
 	@Override
 	protected Resource loadModel(IFileInfo f) throws IOException {
-		XtextLoader loader = new XtextLoader();
-		return loader.load(f.getFullFile());
+		try {
+			XtextLoader loader = new XtextLoader();
+			return loader.load(f.getFullFile());
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IOException(e);
+		}
 	}
 
 }

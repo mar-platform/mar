@@ -150,6 +150,17 @@
 	    model_loader: RDS,
 	    
 	    graph_length : 3
+	},
+	"repo-github-xtext" : {
+	    type: "xtext",
+	    origin: "github",
+	    repo_root  : "$(REPO_ROOT)/download/repo-github-xtext",
+	    crawler_db : "$(REPO_ROOT)/download/repo-github-xtext/crawler.db",
+	    model_db   : "$(ANALYSIS_TARGET)/repo-github-xtext/analysis.db",
+
+	    model_loader: XTEXT,
+	    
+	    graph_length : 3
 	}
 
 

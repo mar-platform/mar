@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.restservice.model.IModelResult;
+import mar.utils.Utils;
 import mar.validation.AnalysisMetadataDocument;
 
 /**
@@ -46,7 +47,13 @@ public class HBaseGetInfo extends HBaseModelAccessor {
 				String id = Bytes.toString(result.getRow());
 				String metadata = Bytes.toString(v);
 				IModelResult r = byId.get(id);
-				r.setMetadata(AnalysisMetadataDocument.loadFromJSON(metadata));
+				AnalysisMetadataDocument analysisDoc;
+				if (Utils.isNullOrEmpty(metadata)) {
+					analysisDoc = new AnalysisMetadataDocument();
+				} else {
+					analysisDoc = AnalysisMetadataDocument.loadFromJSON(metadata);
+				}
+				r.setMetadata(analysisDoc);
 			}
 		}
 	}

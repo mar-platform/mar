@@ -14,6 +14,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 import org.eclipse.xtext.Grammar;
+import org.eclipse.xtext.XtextStandaloneSetup;
 import org.eclipse.xtext.XtextStandaloneSetupGenerated;
 import org.eclipse.xtext.resource.IResourceFactory;
 import org.eclipse.xtext.resource.XtextResourceSet;
@@ -29,6 +30,7 @@ public class XtextLoader {
 	
 	private static Injector getInjector() {
 		if (injector == null) {
+			XtextStandaloneSetup.doSetup();
 			injector = new XtextStandaloneSetupGenerated().createInjector();
 		}
 		return injector;
@@ -37,7 +39,7 @@ public class XtextLoader {
 	@Nonnull
 	public Resource load(@Nonnull File f) throws IOException {
 		List<EPackage> pkgs = extractMetamodel(f);
-		Resource res = new XMIResourceImpl();
+		Resource res = new XMIResourceImpl(URI.createFileURI(f.getAbsolutePath() + ".ecore"));
 	    for (EPackage pkg : pkgs) {
 			res.getContents().add(pkg);
 		}

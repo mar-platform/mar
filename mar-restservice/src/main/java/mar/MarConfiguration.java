@@ -48,12 +48,14 @@ public class MarConfiguration {
 		pathsComputations.put("uml_sm", model2graph_sm);
 		pathsComputations.put("uml", model2graph_uml);				
 		pathsComputations.put("bpmn2", model2graph_bpmn);
-		// TODO: Possibly compute this map somewhere else
+		// TODO: Get this information from the configuration		
 		
-		if (! pathsComputations.containsKey(model))
-			throw new IllegalArgumentException();
+		PathComputation pc = pathsComputations.get(model);
 		
-		HBaseScorerFinal hsf = new HBaseScorerFinal(pathsComputations.get(model), model);
+		if (pc == null)
+			pc = new Model2GraphAllpaths(3).withPathFactory(new PathFactory.DefaultPathFactory());
+				
+		HBaseScorerFinal hsf = new HBaseScorerFinal(pc, model);
 		//HBaseNeuralScorer hns = new HBaseNeuralScorer(hsf);
 				
 		return new MarConfiguration(model2graph, hsf);

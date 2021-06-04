@@ -60,21 +60,24 @@ public class BM25ScoreCalculator {
 //					(c_w_d + k*(1-b+b*(doc_len/average)))) * Math.log(((numDocuments - n_docs_t + 0.5)/(n_docs_t + 0.5))); //+ 1, TAKE CARE
 		scores.put(docName, new_score);
 		
-		
-		//TO DO: THIS IS NOT A GOOD WAY TO COMPUTE THE LENGTH
-		List<Double> list = null;
-		if (divided_scores.containsKey(docName)) {
-			list = divided_scores.get(docName);
-		} else {
-			list = new LinkedList<Double>();
-			for (int i = 0; i < partition.getNumPartitions() ; ++i)
-				list.add(0.0);
-			divided_scores.put(docName, list);
+
+		// This is part of the neural scorer which we don't use and in fact partition.getPartition with paths of type [(EGenericType)]
+		if (false) {
+			//TO DO: THIS IS NOT A GOOD WAY TO COMPUTE THE LENGTH
+			List<Double> list = null;
+			if (divided_scores.containsKey(docName)) {
+				list = divided_scores.get(docName);
+			} else {
+				list = new LinkedList<Double>();
+				for (int i = 0; i < partition.getNumPartitions() ; ++i)
+					list.add(0.0);
+				divided_scores.put(docName, list);
+			}
+			int pos = partition.getPartition(path);
+			Double oldScore = list.get(pos);
+			list.set(pos, oldScore + ((c_w_q * (k + 1) * c_w_d) / (c_w_d + k * (1 - b + b * (doc_len / average))))
+					* Math.log((numDocuments + 1) / n_docs_t));
 		}
-		int pos = partition.getPartition(path);
-		Double oldScore = list.get(pos);
-		list.set(pos, oldScore + ((c_w_q * (k + 1) * c_w_d) / (c_w_d + k * (1 - b + b * (doc_len / average))))
-				* Math.log((numDocuments + 1) / n_docs_t));
 		
 	}
 

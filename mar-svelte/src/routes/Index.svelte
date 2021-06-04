@@ -26,7 +26,6 @@
 	let facets
 	$: if (facets != undefined) {
 		shown_results = facets.filter(results)
-		//console.log(shown_results)
 	}
 </script>		
 
@@ -72,12 +71,12 @@
 
 		<!-- Step 3 (for concrete syntax) -->
 		<div class="row justify-content-start mar-step-group">
-			{#if selectedModelType == 'Ecore'}
+			{#if selectedModelType == 'Ecore' || selectedModelType == 'Xtext'}
 				<div class="col-md-auto">
 					<StepSymbol number={3} />
 				</div>
 				<div class="col">
-					<EcoreEditor bind:results={results} />
+					<EcoreEditor bind:results={results} searchModelType={selectedModelType} />
 				</div>
 			{:else if selectedModelType == 'UML'}
 				<div class="col-md-auto">

@@ -9,6 +9,7 @@
     let ecoreStyle, umlStyle
 
     $: ecoreStyle = buttonStyle(selected, 'Ecore');
+    $: xtextStyle = buttonStyle(selected, 'Xtext');
     $: umlStyle   = buttonStyle(selected, 'UML');
     $: bpmn2Style   = buttonStyle(selected, 'BPMN2');
     $: pnmlStyle   = buttonStyle(selected, 'PNML');
@@ -31,6 +32,10 @@
             type="button"
             class="{ecoreStyle}"
             on:click={() => (selected = 'Ecore')}>Ecore</button>
+        <button
+            type="button"
+            class="{xtextStyle}"
+            on:click={() => (selected = 'Xtext')}>Xtext</button>
         <button
             type="button"
             class="{umlStyle}"

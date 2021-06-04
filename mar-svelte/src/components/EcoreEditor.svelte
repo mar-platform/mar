@@ -24,6 +24,7 @@ class Column {
 
   /* Interface */
   export let results = [];
+  export let searchModelType = 'ecore';
 
   function selectModelType(e) {
     var selected = modelTypes[e.detail.modelType];
@@ -35,7 +36,7 @@ class Column {
   let searchText = null;
 
   async function handleSubmit(event) {
-    let modelType = "ecore";
+    let modelType = searchModelType;
     let syntax = "emfatic";
     let url = MAR.toSearchURL(modelType, syntax);
     console.log(url);
