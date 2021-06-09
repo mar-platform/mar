@@ -75,7 +75,7 @@
 	    graph_filter: UMLFilter
 	},	
 	"repo-genmymodel-bpmn2" : {
-	    type: "genmymodel-bpmn",
+	    type: "bpmn2",
 	    origin: "genmymodel",
 	    repo_root : "$(REPO_ROOT)/download/repo-genmymodel-bpmn2/data",
 	    crawler_db : "$(REPO_ROOT)/download/repo-genmymodel-bpmn2/crawler.db",

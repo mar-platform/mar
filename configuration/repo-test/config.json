@@ -10,7 +10,7 @@
 	    graph_factory: EcoreFactory 
 	},
 	"repo-genmymodel-bpmn2" : {
-	    type: "genmymodel-bpmn",
+	    type: "bpmn2",
 	    repo_root : "$(REPO_ROOT)/repo-genmymodel-bpmn2",
 	    file_list : "$(REPO_ROOT)/repo-genmymodel-bpmn2/analysis/valid.txt",
 	    

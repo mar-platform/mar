@@ -28,7 +28,7 @@ public class AnalyserMain implements Callable<Integer> {
 	@Parameters(index = "0", description = "The configuration file.")
 	private File configurationFile;
 
-	@Option(required = true, names = { "-t", "--type" }, description = "The model type: ecore, genmymodel-bpmn, uml")
+	@Option(required = true, names = { "-t", "--type" }, description = "The model type: ecore, bpmn2, uml")
 	private String type;
 
 	@Option(required = false, names = { "-r",
