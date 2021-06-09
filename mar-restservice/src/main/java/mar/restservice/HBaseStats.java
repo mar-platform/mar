@@ -11,8 +11,12 @@ public class HBaseStats extends HBaseModelAccessor {
 
 	private Stats stats = null;
 	
-	public synchronized Stats getStats() throws Exception {
-		if (stats != null) {
+	public Stats getStats() throws Exception {
+		return getStats(false);
+	}
+	
+	public synchronized Stats getStats(boolean forceReload) throws Exception {
+		if (!forceReload && stats != null) {
 			return stats;
 		}
 		

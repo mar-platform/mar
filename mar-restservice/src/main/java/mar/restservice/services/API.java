@@ -209,7 +209,9 @@ public class API extends AbstractService {
 	}
 	
 	public Object doStatus(Request req, Response res) throws Exception {	
-		Map<? extends String, Integer> models = stats.getStats().getCounters();
+		boolean forceReload = req.queryParams("forceReload") != null;
+		
+		Map<? extends String, Integer> models = stats.getStats(forceReload).getCounters();
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> modelList = new ArrayList<>();
 		models.forEach((m, v) -> {
