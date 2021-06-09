@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>mar-chatbot</artifactId>
+	<name>mar-chatbot</name>
+	<description>Dialog flow integration</description>
+
+	<parent>
+		<groupId>org.wakame</groupId>
+		<artifactId>mar-main</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<!-- Java 11 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>libraries-bom</artifactId>
+      <version>16.4.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
+<dependencies>
+		<!-- Project dependencies -->
+		<dependency>
+			<groupId>org.wakame</groupId>
+			<artifactId>mar-common</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.wakame</groupId>
+			<artifactId>mar-modelling</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+  <dependency>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>google-cloud-dialogflow</artifactId>
+  </dependency>
+
+	</dependencies>
+</project>

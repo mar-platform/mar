@@ -47,6 +47,8 @@
     <module>mar-modelling-eclipse</module>
 
     <module>mar-indexer-lucene</module>
-    <module>mar-indexer-spark</module>    
+    <module>mar-indexer-spark</module>
+
+    <module>mar-chatbot</module>    
   </modules>
 </project>
