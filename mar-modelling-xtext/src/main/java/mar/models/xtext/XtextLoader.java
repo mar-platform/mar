@@ -2,7 +2,9 @@ package mar.models.xtext;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -48,7 +50,11 @@ public class XtextLoader {
 	
 	@Nonnull
 	public List<EPackage> extractMetamodel(@Nonnull File f) throws IOException {
+		if (f.getAbsolutePath().contains("BFlow.xtext"))
+			System.out.println("here");
 	    List<String> lines = Files.readAllLines(f.toPath());
+	    
+	    boolean hasGenerate = false;
 	    StringBuffer sb = new StringBuffer();
 	    for (String line: lines) {
 	    	if (line.contains("http://www.eclipse.org/emf/2002/Ecore"))
@@ -56,15 +62,25 @@ public class XtextLoader {
 	    	
 			if (line.startsWith("import")) {
 				line = line.replaceFirst("import", "generate");
+			} else if (line.startsWith("generate")) {
+				hasGenerate = true;
+				break;
 			}
 			sb.append(line).append("\n");
 		}
 	    
 	    
+	    InputStream stream;
+		if (hasGenerate) {
+			stream = new FileInputStream(f);
+	    } else {
+	    	stream = new ByteArrayInputStream(sb.toString().getBytes());
+	    }	    
+	    
 	    IResourceFactory resourceFactory = getInjector().getInstance(IResourceFactory.class);
 	    Resource r = resourceFactory.createResource(URI.createFileURI(f.getAbsolutePath()));
-	    r.load(new ByteArrayInputStream(sb.toString().getBytes()), null);
-	    	   
+	    r.load(stream, null);
+	    
 	    Provider<XtextResourceSet> xtextResourceSetProvider = getInjector().getInstance(new Key<Provider<XtextResourceSet>>() {});
 	    XtextResourceSet resourceSet = xtextResourceSetProvider.get();
 	    resourceSet.getResources().add(r);
