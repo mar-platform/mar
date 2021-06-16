@@ -63,20 +63,7 @@ public class SearchOptions {
 				
 		String model;
 		if (syntaxType == SyntaxType.xmi) {
-			req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));		
-			try (InputStream input = req.raw().getPart("uploaded_file").getInputStream()) {
-				if (input == null)
-					throw new IllegalStateException();
-			                       
-				model = IOUtils.toString(input);
-			    if (model.trim().isEmpty()) {
-			    	throw new InvalidMarRequest(req, "Empty model");
-			    }
-			} catch (IOException e) {
-				throw new InvalidMarRequest(req, e.getMessage());
-			} catch (ServletException e) {
-				throw new InvalidMarRequest(req, e.getMessage());
-			}			
+			model = getUploadedFile(req);			
 		} else {
 			model = req.body();
 		}
@@ -92,6 +79,24 @@ public class SearchOptions {
 		System.out.println("Model type: "+ modelType);
 	    			
 		return new SearchOptions(model, modelType, syntaxType, maxResults);
+	}
+
+	public static String getUploadedFile(@Nonnull Request req) throws InvalidMarRequest {
+		req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));		
+		try (InputStream input = req.raw().getPart("uploaded_file").getInputStream()) {
+			if (input == null)
+				throw new IllegalStateException();
+		                       
+			String model = IOUtils.toString(input);
+		    if (model.trim().isEmpty()) {
+		    	throw new InvalidMarRequest(req, "Empty model");
+		    }
+		    return model;
+		} catch (IOException e) {
+			throw new InvalidMarRequest(req, e.getMessage());
+		} catch (ServletException e) {
+			throw new InvalidMarRequest(req, e.getMessage());
+		}
 	}
 	
 	private static ModelType getModelType(Request req) throws InvalidMarRequest {

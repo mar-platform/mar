@@ -77,8 +77,14 @@ public abstract class AbstractService {
 			throw new IllegalStateException();
 		}
 		
-	    Map<String, Double> scores = getConfiguration(modelType).getScorer().score(r);
-	    return scores;
+		try {
+			Map<String, Double> scores = getConfiguration(modelType).getScorer().score(r);
+			return scores;
+		} finally {
+			// This seems to fail with NPE. 
+			// TODO: Observe isfthere are memory leaks because of this. Maybe each loader needs to be in charge of unloading its models 
+			// r.unload();
+		}
     }
 
 	private Resource loadXMI(String model, ModelType modelType) throws IOException {

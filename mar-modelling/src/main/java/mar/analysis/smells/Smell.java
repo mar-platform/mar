@@ -1,12 +1,13 @@
 package mar.analysis.smells;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.common.base.Preconditions;
 
@@ -30,6 +31,15 @@ public class Smell {
 	@Nonnull
 	public String getSmellId() {
 		return smellId;
+	}
+	
+	@Nonnull
+	public List<String> getSmellyObjectURIs() {
+		List<String> result = new ArrayList<String>(smellyObjects.length);
+		for (EObject eObject : smellyObjects) {
+			result.add(EcoreUtil.getURI(eObject).fragment());
+		}
+		return result;
 	}
 	
 	@Nonnull
