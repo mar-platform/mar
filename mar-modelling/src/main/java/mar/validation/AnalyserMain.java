@@ -35,8 +35,8 @@ public class AnalyserMain implements Callable<Integer> {
 			"--repository" }, description = "A specific repository in the configuration file")
 	private String repository = null;
 
-	@Option(required = false, names = { "-no-remote" }, description = "Do not use the remote client")
-	private boolean noRemote = false;
+	@Option(required = false, names = { "-mode" }, description = "Can be: plain, remote, resilient")
+	private String mode = "remote";
 
 	@Option(required = false, names = { "-parallel" }, description = "Use parallel mode")
 	private Integer parallel;
@@ -69,12 +69,19 @@ public class AnalyserMain implements Callable<Integer> {
 			
 			CrawlerDB crawler = new CrawlerDB(type, repo.getOrigin(), repo.getRootFolder(), repo.getCrawlerDbFile());
 	
-			if (noRemote) {
+			if (mode.equals("plain")) {
 				ISingleFileAnalyser singleAnalyser = factory.newAnalyser();
 				try (ResourceAnalyser analyser = new ResourceAnalyser(singleAnalyser, new IFileProvider.DBFileProvider(crawler), outputAnalysisDB)) {					
 					analyser.check();
 				}
-			} else {
+			} else if (mode.equals("resilient")) {				
+				ISingleFileAnalyser singleAnalyser = factory.newResilientAnalyser();
+				try (ResourceAnalyser analyser = new ResourceAnalyser(singleAnalyser, new IFileProvider.DBFileProvider(crawler), outputAnalysisDB)) {					
+					if (parallel != null && parallel > 1)
+						analyser.withParallelThreads(parallel);
+					analyser.check();
+				}
+			} else if (mode.equals("remote")) {
 				try (ISingleFileAnalyser.Remote singleAnalyser = (Remote) factory.newRemoteAnalyser()) {
 					try (ResourceAnalyser analyser = new ResourceAnalyser(singleAnalyser, new IFileProvider.DBFileProvider(crawler), outputAnalysisDB)) {
 						if (parallel != null && parallel > 1)
@@ -82,6 +89,9 @@ public class AnalyserMain implements Callable<Integer> {
 						analyser.check();
 					}
 				}
+			} else {
+				System.out.println("Invalid mode " + mode + ". " + "Available are: plain, remote, resilient.");
+				return -1;
 			}
 		}
 

@@ -59,6 +59,9 @@ public class ResourceAnalyser implements AutoCloseable {
 		public void configureEnvironment();
 		public ISingleFileAnalyser newAnalyser(@CheckForNull OptionMap options);
 		public ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options);
+		public default ISingleFileAnalyser newResilientAnalyser(@CheckForNull OptionMap options) {
+			return new ResilientAnalyser(newAnalyser(options));
+		}
 		
 		public default ISingleFileAnalyser newAnalyser() {
 			return newAnalyser(null);
@@ -66,6 +69,10 @@ public class ResourceAnalyser implements AutoCloseable {
 				
 		public default ISingleFileAnalyser newRemoteAnalyser() {
 			return newRemoteAnalyser(null);
+		}		
+		
+		public default ISingleFileAnalyser newResilientAnalyser() {
+			return newResilientAnalyser(null);
 		}		
 	}
 
