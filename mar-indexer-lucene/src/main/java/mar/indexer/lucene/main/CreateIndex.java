@@ -79,17 +79,22 @@ public class CreateIndex implements Callable<Integer> {
 			jobs.addAll(data.getRepositories());
 		}
 		
-		for (SingleIndexJob repoConf : jobs) {
-			indexRepo(repoConf);			
+		try(Indexer indexer = new Indexer(pathIndex.getAbsolutePath())) {
+			for (SingleIndexJob repoConf : jobs) {
+				try {
+					indexRepo(repoConf, indexer);
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("Error indexing: " + repoConf.getRootFolder());
+				}
+			}
 		}
-		
         return 0;
 	}
 
-	private void indexRepo(SingleIndexJob repoConf)
+	private void indexRepo(SingleIndexJob repoConf, Indexer indexer)
 			throws IOException, InvalidJobSpecification, FileNotFoundException, SQLException {
-		String rootFolder = repoConf.getRootFolder();
-		Indexer indexer = new Indexer(pathIndex.getAbsolutePath());				
+		String rootFolder = repoConf.getRootFolder();					
 		ModelLoader loader = repoConf.getModelLoader();   
 		
 		List<File> files = new ArrayList<>();
@@ -135,8 +140,7 @@ public class CreateIndex implements Callable<Integer> {
 				e.printStackTrace();
 			}    		    				
 		}
-	    
-        indexer.close();
+	            
 	}
 	
 	public static void main(String[] args) {
