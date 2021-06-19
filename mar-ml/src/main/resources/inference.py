@@ -11,6 +11,13 @@ from nltk.stem.porter import *
 from nltk.corpus import stopwords
 import nltk
 
+MAR = os.environ['REPO_MAR']
+if MAR is None:
+    print("Variable REPO_MAR not defined")
+    exit(-1)
+
+ml_models = MAR + '/external-resources/ml-models/'
+
 stemmer = PorterStemmer()
 def custom_tokenizer(words):
     words = re.sub("[^0-9a-zA-Z]+", " ", words)
@@ -19,8 +26,8 @@ def custom_tokenizer(words):
     
 
 app = Flask(__name__)
-lvec = load('ml-models/vectorizer.joblib')
-lnn = load('ml-models/nn.joblib')
+lvec = load(ml_models + 'vectorizer.joblib')
+lnn = load(ml_models + 'nn.joblib')
 
 @app.route('/category', methods=['GET'])
 def category():

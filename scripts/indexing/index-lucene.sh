@@ -22,4 +22,4 @@ if [ -z "$NAME" ]
       exit
 fi
 
-java -jar $REPO_MAR/mar-indexer-lucene/target/mar-indexer-lucene-1.0-SNAPSHOT-jar-with-dependencies.jar file:/$JSON $NAME $INDEX_TARGET/lucene
+java -jar $REPO_MAR/mar-indexer-lucene/target/mar-indexer-lucene-1.0-SNAPSHOT-jar-with-dependencies.jar $JSON $INDEX_TARGET/lucene -repository $NAME 

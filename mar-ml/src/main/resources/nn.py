@@ -2,11 +2,18 @@ import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import os
 import os.path as osp
 import glob
 import json
 import re
+
+MAR = os.environ['REPO_MAR']
+if MAR is None:
+    print("Variable REPO_MAR not defined")
+    exit(-1)
+
+ml_models = MAR + '/external-resources/ml-models/'
 
 def RepresentsInt(s):
     try: 
@@ -77,12 +84,12 @@ class Vocabulary(object):
 tagsVocab = Vocabulary()
 wordVocab = Vocabulary()
 
-with open('ml-models/vocab_words.json', 'r') as fp:
+with open(ml_models + 'vocab_words.json', 'r') as fp:
     data = json.load(fp)
     wordVocab.word2id_names = data
     wordVocab.id2word_names = {y:x for x,y in data.items()}
     
-with open('ml-models/vocab_tags.json', 'r') as fp:
+with open(ml_models + 'vocab_tags.json', 'r') as fp:
     data = json.load(fp)
     tagsVocab.word2id_names = data
     tagsVocab.id2word_names = {y:x for x,y in data.items()}
@@ -124,7 +131,7 @@ def tokenizeFile(string):
         result = result + separation(w)
     return result
 
-name_data = 'ml-models/multitag-modelset-ecore.data'
+name_data = ml_models + 'multitag-modelset-ecore.data'
 # Load the model
 model2 = SimpleNN()
 

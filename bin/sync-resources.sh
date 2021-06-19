@@ -19,4 +19,5 @@ tar xzf libs.tar.gz
 rm libs.tar.gz
 popd
 
-ln -s $REPO_MAR/external-resources/ml-models/ mar-ml/src/main/resources/ml-models
+# This creates a cycle when packaging
+# ln -s $REPO_MAR/external-resources/ml-models/ mar-ml/src/main/resources/ml-models
