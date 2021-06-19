@@ -34,8 +34,14 @@ import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.EnvironmentVariables;
 import mar.indexer.common.configuration.EnvironmentVariables.MAR;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
+import mar.indexer.common.configuration.InvalidJobSpecification;
 import mar.indexer.common.configuration.SingleIndexJob;
 import mar.indexer.lucene.core.Searcher;
+import mar.model2graph.AbstractPathComputation;
+import mar.model2graph.MetaFilter;
+import mar.model2graph.Model2GraphAllpaths;
+import mar.model2graph.PathComputation;
+import mar.paths.PathFactory;
 import mar.restservice.services.API;
 import mar.restservice.services.APIchatbot;
 import mar.restservice.services.IConfigurationProvider;
@@ -178,7 +184,25 @@ public class Main implements IConfigurationProvider {
 	public MarConfiguration getConfiguration(@NonNull String modelType) {
 		MarConfiguration conf = configurationCache.get(modelType);
 		if (conf == null) {
-			conf = MarConfiguration.getHbaseConfiguration(modelType);
+			SingleIndexJob modelConf = configuration.getModelConfigurationByType(modelType);
+			
+			AbstractPathComputation pathComputation;
+			if (modelConf != null) {
+				PathFactory pathFactory;
+				try {
+					pathFactory = modelConf.getPathFactory();
+				} catch (InvalidJobSpecification e) {
+					pathFactory = new PathFactory.DefaultPathFactory();
+				}
+				pathComputation = new Model2GraphAllpaths(modelConf.getGraphLength()).
+						withPathFactory(pathFactory).
+						withFilter(modelConf.getTextMetaFilter());
+			} else {
+				pathComputation = new Model2GraphAllpaths(3).withPathFactory(new PathFactory.DefaultPathFactory());			
+			}
+						
+			HBaseScorerFinal hsf = new HBaseScorerFinal(pathComputation, modelType);						
+			conf = new MarConfiguration(pathComputation, hsf);
 			configurationCache.put(modelType, conf);
 		}
 		return conf;

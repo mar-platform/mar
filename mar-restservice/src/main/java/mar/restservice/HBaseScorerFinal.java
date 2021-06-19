@@ -1,6 +1,5 @@
 package mar.restservice;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,32 +7,23 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Set;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.resource.Resource;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.serializers.MapSerializer;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.model2graph.PathComputation;
 import mar.paths.PairInformation;
-import mar.paths.PairSerializer;
 import mar.paths.PathMapSerializer;
 import mar.restservice.BM25ScoreCalculator.GlobalStats;
 
@@ -49,73 +39,8 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 	public HBaseScorerFinal(@NonNull PathComputation pathComputation, @NonNull String model) {
 		this.pathComputation = pathComputation;	
 		this.model = model;
+		this.stopwords = new HashMap<>();
 		//change if you want to execute in eclipse
-
-		stopwords = new HashMap<>();
-		
-		Set<String> stopwEcore = null;
-		
-		try {
-			stopwEcore = initializeStopWords("ecore");
-			//check if the sp are obtained
-		} catch (IOException e) {
-			System.out.println("Error when sptable is accessed");
-			stopwEcore = new HashSet<>();
-		}
-		
-//		stopwEcore.add("(-1,upperBound,EReference)");
-//		stopwEcore.add("(-1,upperBound,EReference,containment,true)");
-//		stopwEcore.add("(-1,upperBound,EReference,eContainingClass,EClass,abstract,false)");
-//		stopwEcore.add("(-1,upperBound,EReference,eType,EClass,abstract,false)");
-//		stopwEcore.add("(-1,upperBound,EReference,lowerBound,0)");
-//		stopwEcore.add("(0,lowerBound,EAttribute)");
-//		stopwEcore.add("(0,lowerBound,EAttribute,eContainingClass,EClass,abstract,false)");
-//		stopwEcore.add("(0,lowerBound,EAttribute,eType,EDataType)");
-//		stopwEcore.add("(0,lowerBound,EAttribute,upperBound,1)");
-//		stopwEcore.add("(0,lowerBound,EReference)");
-//		stopwEcore.add("(0,lowerBound,EReference,containment,true)");
-//		stopwEcore.add("(0,lowerBound,EReference,eContainingClass,EClass,abstract,false)");
-//		stopwEcore.add("(0,lowerBound,EReference,eType,EClass,abstract,false)");
-//		stopwEcore.add("(0,lowerBound,EReference,eType,EClass,eStructuralFeatures,EAttribute,upperBound,1)");
-//        stopwEcore.add("(0,lowerBound,EReference,upperBound,-1)");
-//        stopwEcore.add("(1,upperBound,EAttribute)");
-//        stopwEcore.add("(1,upperBound,EAttribute,eContainingClass,EClass,abstract,false)");
-//        stopwEcore.add("(1,upperBound,EAttribute,eType,EDataType)");
-//        stopwEcore.add("(1,upperBound,EAttribute,lowerBound,0)");
-//        stopwEcore.add("(1,upperBound,EReference)");
-//        stopwEcore.add("(1,upperBound,EReference,eContainingClass,EClass,abstract,false)");
-//        stopwEcore.add("(EDataType)");
-//        stopwEcore.add("(false,abstract,EClass)");
-//        stopwEcore.add("(false,abstract,EClass,ePackage,EPackage,eClassifiers,EClass,abstract,false)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EAttribute,eType,EDataType)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EAttribute,lowerBound,0)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EAttribute,upperBound,1)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EReference,containment,true)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EReference,eType,EClass,abstract,false)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EReference,lowerBound,0)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EReference,upperBound,-1)");
-//        stopwEcore.add("(false,abstract,EClass,eStructuralFeatures,EReference,upperBound,1)");
-//        stopwEcore.add("(true,containment,EReference)");
-//        stopwEcore.add("(true,containment,EReference,eContainingClass,EClass,abstract,false)");
-//        stopwEcore.add("(true,containment,EReference,eType,EClass,abstract,false)");
-//        stopwEcore.add("(true,containment,EReference,lowerBound,0)");
-//        stopwEcore.add("(true,containment,EReference,upperBound,-1)");
-        
-        stopwords.put("ecore", stopwEcore);
-        
-        Set<String> stopwSM = new HashSet<>();
-        
-        stopwSM.add("(external,kind,Transition)");
-        stopwSM.add("(external,kind,Transition,container,Region,subvertex,Pseudostate,kind,initial)");
-        stopwSM.add("(external,kind,Transition,container,Region,transition,Transition,kind,external)");
-        stopwSM.add("(external,kind,Transition,source,Pseudostate,kind,initial)");
-        stopwSM.add("(initial,kind,Pseudostate)");
-        stopwSM.add("(initial,kind,Pseudostate,container,Region,transition,Transition,kind,external)");
-        
-        stopwords.put("uml_sm", stopwSM);
-        
-        stopwords.put("uml", new HashSet<>());
-		
 	}
 
 	protected Map<String, Map<String,Integer>> computeParticionedPaths(@NonNull Resource r) {
@@ -266,6 +191,36 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 
 	@Override
 	public Set<String> getStopWords(String model) throws IOException {
+		if (stopwords.containsKey(model)) {
+			return stopwords.get(model);
+		}
+		
+		// TODO: Clean this up
+		Set<String> stopwEcore = null;
+		
+		try {
+			stopwEcore = initializeStopWords("ecore");
+			//check if the sp are obtained
+		} catch (IOException e) {
+			System.out.println("Error when sptable is accessed");
+			stopwEcore = new HashSet<>();
+		}
+
+        stopwords.put("ecore", stopwEcore);
+        
+        Set<String> stopwSM = new HashSet<>();
+        
+        stopwSM.add("(external,kind,Transition)");
+        stopwSM.add("(external,kind,Transition,container,Region,subvertex,Pseudostate,kind,initial)");
+        stopwSM.add("(external,kind,Transition,container,Region,transition,Transition,kind,external)");
+        stopwSM.add("(external,kind,Transition,source,Pseudostate,kind,initial)");
+        stopwSM.add("(initial,kind,Pseudostate)");
+        stopwSM.add("(initial,kind,Pseudostate,container,Region,transition,Transition,kind,external)");
+        
+        stopwords.put("uml_sm", stopwSM);
+        
+        stopwords.put("uml", new HashSet<>());		
+		
 		if (stopwords.containsKey(model))
 			return stopwords.get(model);
 		return Collections.emptySet();

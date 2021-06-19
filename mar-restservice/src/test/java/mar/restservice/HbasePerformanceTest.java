@@ -3,7 +3,6 @@ package mar.restservice;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -29,7 +28,7 @@ public class HbasePerformanceTest extends MarTest {
 	//private final PathComputation path = new Model2GraphAllpaths(4);
 	//private final IScorer scorer = new HbaseScorer(path);
 	
-	private final MarConfiguration configuration = MarConfiguration.getHbaseConfiguration("ecore");
+	private final MarConfiguration configuration = getHbaseConfiguration("ecore");
 	private final PathComputation path = configuration.getPathComputation();
 	private final IScorer scorer = configuration.getScorer();
 	

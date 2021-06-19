@@ -12,18 +12,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 public abstract class AbstractHBaseAccess implements Closeable {
 
-	protected Configuration conf = HBaseConfiguration.create();
+	private Configuration conf = null;
 	private Connection connection = null;	
 
-	public AbstractHBaseAccess() {
-		String zooIp = getZooHostOrDefault();		
-		//conf.set("hbase.zookeeper.quorum", zooIp);
-		conf.set("hbase.zookeeper.quorum", zooIp);
-		
-		conf.set("hbase.rpc.timeout", "1800000");
-		conf.set("hbase.client.scanner.timeout.period", "1800000");
-	}
-	
 	
 	@NonNull
 	private String getZooHostOrDefault() {
@@ -34,10 +25,24 @@ public abstract class AbstractHBaseAccess implements Closeable {
 		return zooIp;
 	}
 
+	protected Configuration getConfiguration() {
+		if (this.conf != null)
+			return this.conf;
+		
+		this.conf = HBaseConfiguration.create();
+		String zooIp = getZooHostOrDefault();		
+		//conf.set("hbase.zookeeper.quorum", zooIp);
+		conf.set("hbase.zookeeper.quorum", zooIp);
+		
+		conf.set("hbase.rpc.timeout", "1800000");
+		conf.set("hbase.client.scanner.timeout.period", "1800000");
+		return conf;
+	}
+	
 	@NonNull
 	protected Connection getConnection() throws IOException {
 		if (connection == null) {
-			connection = ConnectionFactory.createConnection(conf);
+			connection = ConnectionFactory.createConnection(getConfiguration());
 		}
 		return connection;
 	}

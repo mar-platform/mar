@@ -87,7 +87,8 @@ public abstract class AbstractService {
 		}
     }
 
-	private Resource loadXMI(String model, ModelType modelType) throws IOException {
+    @Nonnull
+	protected Resource loadXMI(@Nonnull String model, @Nonnull ModelType modelType) throws IOException {
 		Resource r;
 		switch (modelType) {
 		case uml:
@@ -134,8 +135,8 @@ public abstract class AbstractService {
 		return r;
 	}
        
-	private MarConfiguration getConfiguration(ModelType modelType) {
-		String t = modelType.name(); // TODO: We should map this to configuration files
+	protected MarConfiguration getConfiguration(ModelType modelType) {
+		String t = modelType.name();
 		return configuration.getConfiguration(t);
 	}
 	

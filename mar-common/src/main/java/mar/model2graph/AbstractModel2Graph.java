@@ -38,6 +38,11 @@ public abstract class AbstractModel2Graph extends AbstractPathComputation {
 		return pathFactory.newPathSet(paths);
 	}
 	
+	@Nonnull
+	public PathFactory getPathFactory() {
+		return pathFactory;
+	}
+	
 	protected static class Node {
 		protected Object element;
 		private boolean terminal;

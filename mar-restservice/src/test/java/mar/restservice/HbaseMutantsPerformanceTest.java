@@ -27,7 +27,7 @@ public class HbaseMutantsPerformanceTest extends MarTest {
 	//private final PathComputation path = new Model2GraphAllpaths(4);
 	//private final IScorer scorer = new HbaseScorer(path);
 	
-	private final MarConfiguration configuration = MarConfiguration.getHbaseConfiguration("ecore");
+	private final MarConfiguration configuration = getHbaseConfiguration("ecore");
 	private final PathComputation path = configuration.getPathComputation();
 	private final IScorer scorer = configuration.getScorer();
 	

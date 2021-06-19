@@ -69,6 +69,7 @@ public class API extends AbstractService {
         get("/v1/search/swagger", this::swagger);
 
         new AnalysisAPI(configuration).configure();
+        new MachineLearningAPI(configuration).configure();
         
         get("/status", this::doStatus);
 	}

@@ -21,7 +21,7 @@ import mar.MarConfiguration;
 
 public class HbaseExecutionTest extends MarTest {
 
-	private static final MarConfiguration conf = MarConfiguration.getHbaseConfiguration("ecore");
+	private static final MarConfiguration conf = getHbaseConfiguration("ecore");
 	
 	@Test
 	public void testStateMachine() throws IOException {

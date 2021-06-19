@@ -165,7 +165,6 @@
 			<groupId>com.konghq</groupId>
 			<artifactId>unirest-java</artifactId>
 			<version>3.11.09</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

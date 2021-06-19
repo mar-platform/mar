@@ -1,6 +1,5 @@
 package mar.restservice.services;
 
-import static spark.Spark.get;
 import static spark.Spark.post;
 
 import java.io.ByteArrayInputStream;
@@ -21,7 +20,6 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import io.swagger.annotations.ApiOperation;
 import mar.analysis.smells.Smell;
 import mar.analysis.smells.ecore.EcoreSmellCatalog;
-import mar.restservice.HBaseGetInfo;
 import spark.Request;
 import spark.Response;
 
@@ -33,7 +31,7 @@ public class AnalysisAPI extends AbstractService {
 
 	public void configure() {	       
         // post("/v1/analysis/smells", this::smells);
-		get("/v1/analysis/smells", this::smells);
+		post("/v1/analysis/smells", this::smells);
 	}
 
 	@POST

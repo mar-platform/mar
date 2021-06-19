@@ -81,4 +81,13 @@ public class IndexJobConfigurationData {
 		return repos;
 	}
 
+	// TODO: Modify the configuration files to have a specific ModelConfiguration and a RepoConfiguration 
+	@CheckForNull
+	public SingleIndexJob getModelConfigurationByType(String modelType) {
+		List<SingleIndexJob> repos = getRepositoriesOfType(modelType);
+		if (repos.isEmpty())
+			return null;
+		return repos.get(0);
+	}
+
 }
