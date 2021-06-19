@@ -9,7 +9,6 @@ import mar.model2graph.Model2GraphAllpaths;
 import mar.model2graph.PathComputation;
 import mar.paths.PathFactory;
 import mar.paths.stemming.UMLPathFactory;
-import mar.restservice.HBaseNeuralScorer;
 import mar.restservice.HBaseScorerFinal;
 import mar.restservice.IScorer;
 
