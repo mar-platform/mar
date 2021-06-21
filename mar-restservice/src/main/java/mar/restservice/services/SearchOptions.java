@@ -46,6 +46,9 @@ public class SearchOptions {
 
 	public static SearchOptions get(Request req) throws InvalidMarRequest {
 		SyntaxType syntaxType;
+		// For some reason, the body has to be extracted at the beginning
+		// https://github.com/perwendel/spark/issues/666
+		String body = getContent(req);
 		String syntax = req.queryParams("syntax");
 		if (syntax == null) {
 			syntaxType = SyntaxType.xmi;
@@ -53,20 +56,31 @@ public class SearchOptions {
 			syntaxType = SyntaxType.valueOf(syntax);
 		}
 		
-		return get(req, syntaxType);
+		return get(req, body, syntaxType);
+	}
+
+	private static String getContent(Request req) throws InvalidMarRequest {
+		String body;
+		if (req.contentType().startsWith("multipart/form-data")) {
+			body = getUploadedFile(req);			
+		} else {
+			body = req.body();
+		}
+		return body;
 	}
 	
 	public static SearchOptions get(Request req, @Nonnull SyntaxType syntaxType) throws InvalidMarRequest {
+		String body = getContent(req);
+		return get(req, body, syntaxType);
+	}
+	
+	private static SearchOptions get(Request req, String body, @Nonnull SyntaxType syntaxType) throws InvalidMarRequest {
 		System.out.println("Request...");
 		String max = req.queryParams("max");
-		ModelType modelType = getModelType(req);
-				
-		String model;
-		if (syntaxType == SyntaxType.xmi) {
-			model = getUploadedFile(req);			
-		} else {
-			model = req.body();
-		}
+	
+		ModelType modelType = getModelType(req);		
+		String model = body;
+
 		
 		int maxResults = 100;
 		if (max != null) {
