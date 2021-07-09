@@ -10,5 +10,9 @@ window.MAR = {
     },
     toStatusURL: function() {
         return 'http://localhost:8080/status'
-    }
+    },
+    toConversationURL: function(sessionId) {
+        const postfix = sessionId == null ? '' : '?sessionId=' + sessionId;
+        return 'http://localhost:8080/v1/chatbot/conversation' + postfix;
+    }    
 };	

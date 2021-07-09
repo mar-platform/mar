@@ -4,17 +4,22 @@ import static spark.Spark.post;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.cache.LoadingCache;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
+import mar.chatbot.ChatbotHelper;
+import mar.chatbot.ChatbotResponse;
 import mar.chatbot.elements.ChatBotResults;
 import mar.chatbot.elements.EcoreElementId;
 import mar.chatbot.elements.ElementId;
@@ -23,18 +28,37 @@ import mar.chatbot.elements.IElement;
 import mar.chatbot.elements.SetType;
 import mar.chatbot.elements.SingleElement;
 import mar.chatbot.executiontrace.Cache;
+import mar.chatbot.executiontrace.ExecutionGraph;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.services.SearchOptions.SyntaxType;
 import spark.Request;
 import spark.Response;
 
-public class APIchatbot extends AbstractService{
+public class APIchatbot extends AbstractService {
 	
 	private Cache cache = new Cache();
-
+	
+	private AtomicInteger sessionKey = new AtomicInteger(0);
+	
 	public APIchatbot(IConfigurationProvider configuration) {
 		super(configuration);	
         post("/v1/search/path", this::searchPath);
+        
+        post("/v1/chatbot/conversation", this::conversation);
+	}
+	
+	public Object conversation(Request req, Response res) throws IOException, InvalidMarRequest {
+		String text = req.body();
+		String sessionId = req.queryParams("sessionId");
+		if (sessionId == null) {
+			sessionId = String.valueOf(sessionKey.incrementAndGet());
+		}
+		
+		ChatbotResponse response = ChatbotHelper.doConversation(text, sessionId);
+		Map<String, Object> result = new HashMap<>();
+		result.put("sessionId", sessionId);
+		result.put("message", response.getMessage());
+		return toJson(res, result);
 	}
 	
 	public Object searchPath(Request req, Response res) throws IOException, InvalidMarRequest {

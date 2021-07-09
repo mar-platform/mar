@@ -10,6 +10,10 @@ window.MAR = {
     }, 
     toStatusURL: function() {
         return '/status'
+    },
+    toConversationURL: function(text) {
+        const postfix = sessionId == null ? '' : '?sessionId=' + sessionId;
+        return '/v1/chatbot/conversation' + postfix;
     }
 };	
 

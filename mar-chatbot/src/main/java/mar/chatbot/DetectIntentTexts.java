@@ -14,11 +14,55 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 public class DetectIntentTexts {
 
 	public static void main(String[] args) throws ApiException, IOException {
-		detectIntentTexts("mar-nwuc", Arrays.asList("hi"), "123456789", "en-US");
+		String projectId = "mar-nwuc";
+		String sessionId = "123456789";
+		String language  = "en-US";
+		// detectIntentTexts("mar-nwuc", Arrays.asList("hi"), "123456789", "en-US");
+		
+		
+		
+		try (SessionsClient sessionsClient = SessionsClient.create()) {
+			SessionName session = SessionName.of(projectId, sessionId);
+			DetectIntentResponse response = sendText(sessionsClient, session, "hi", language);			
+			showQueryResults(response);
+
+			response = sendText(sessionsClient, session, "ecore", language);			
+			showQueryResults(response);
+
+			
+		}
 	}
+
+	private static void showQueryResults(DetectIntentResponse response) {
+		QueryResult queryResult = response.getQueryResult();
+		
+		System.out.println("====================");
+		System.out.format("Query Text: '%s'\n", queryResult.getQueryText());
+		System.out.format("Detected Intent: %s (confidence: %f)\n", queryResult.getIntent().getDisplayName(),
+				queryResult.getIntentDetectionConfidence());
+		System.out.format("Fulfillment Text: '%s'\n", queryResult.getFulfillmentText());
+	}
+	
+	@Nonnull
+	private static DetectIntentResponse sendText(SessionsClient sessionClient, SessionName session, String text, String languageCode) {
+		// Set the text (hello) and language code (en-US) for the query
+		TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
+
+		// Build the query with the TextInput
+		QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
+
+		// Performs the detect intent request
+		DetectIntentResponse response = sessionClient.detectIntent(session, queryInput);
+		
+		return response;
+	}
+
+
 
 	// DialogFlow API Detect Intent sample with text inputs.
 	public static Map<String, QueryResult> detectIntentTexts(String projectId, List<String> texts, String sessionId,
@@ -50,6 +94,8 @@ public class DetectIntentTexts {
 						queryResult.getIntentDetectionConfidence());
 				System.out.format("Fulfillment Text: '%s'\n", queryResult.getFulfillmentText());
 
+				
+				
 				queryResults.put(text, queryResult);
 			}
 		}
