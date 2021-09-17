@@ -36,6 +36,7 @@ import mar.indexer.common.configuration.ModelLoader;
 import mar.indexer.lucene.core.LuceneUtils;
 import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
+import mar.renderers.PlantUmlCollection;
 import mar.renderers.ecore.EcorePlantUMLRenderer;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.HBaseLog;
@@ -202,7 +203,13 @@ public class API extends AbstractService {
 		EcorePlantUMLRenderer renderer = new EcorePlantUMLRenderer();
 
 		HttpServletResponse raw = res.raw();
-		renderer.renderTo(r, raw.getOutputStream());
+		PlantUmlCollection diagrams = renderer.render(r);
+		if (diagrams.isEmpty()) {
+			res.status(500);
+			return null;
+		}
+		
+		diagrams.get(0).toImage(raw.getOutputStream());
 		raw.getOutputStream().flush();
 		raw.getOutputStream().close();
 

@@ -23,7 +23,7 @@ public class EcorePlantUMLRendererTest {
 		Resource r = ModelLoader.DEFAULT.load(TestUtils.getExternalResource("ecore", "JavaM.ecore"));
 		File output = TestUtils.getOutputFile("JavaM.png");
 		System.out.println("Output to: " + output);
-		EcorePlantUMLRenderer.INSTANCE.renderTo(r, output);
+		EcorePlantUMLRenderer.INSTANCE.render(r).get(0).toImage(output);
 	}
 	
 }

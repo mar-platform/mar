@@ -10,22 +10,28 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 public abstract class PlantUMLRenderer {
 
+	/*
 	public void renderTo(@Nonnull Resource resource, @Nonnull File file) throws IOException {
-		PlantUmlText text = new PlantUmlText();
-		text.start();
-		render(text, resource);
-		text.end();
+		PlantUmlCollection diagrams = new PlantUmlCollection();
+		render(diagrams, resource);
+		PlantUmlText text = diagrams.get(0);
 		text.toImage(file);
 	}
 
 	public void renderTo(@Nonnull Resource resource, @Nonnull OutputStream outputStream) throws IOException {
-		PlantUmlText text = new PlantUmlText();
 		text.start();
 		render(text, resource);
 		text.end();
 		text.toImage(outputStream);	
 	}
+	*/
+	
+	public PlantUmlCollection render(@Nonnull Resource resource) {
+		PlantUmlCollection diagrams = new PlantUmlCollection();
+		render(diagrams, resource);
+		return diagrams;
+	}
 
-	protected abstract void render(PlantUmlText text, Resource r);
+	protected abstract void render(PlantUmlCollection diagrams, Resource r);
 	
 }
