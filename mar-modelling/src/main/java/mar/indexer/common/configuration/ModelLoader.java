@@ -12,6 +12,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
 import mar.analysis.rds.RdsLoader;
 import mar.models.archimate.ArchimateLoader;
@@ -35,8 +36,14 @@ public enum ModelLoader {
 	UML {
 		@Override
 		public Resource load(File file) {
-			ResourceSet rs = new ResourceSetImpl();
-			return rs.getResource(URI.createFileURI(file.getAbsolutePath()), true);
+			UMLResourceFactoryImpl factory = new UMLResourceFactoryImpl();
+			Resource r = factory.createResource(URI.createFileURI(file.getAbsolutePath()));
+			try {
+				r.load(null);
+			} catch (IOException e1) {
+				throw new RuntimeException(e1);
+			}
+			return r;
 		}
 	},
 	

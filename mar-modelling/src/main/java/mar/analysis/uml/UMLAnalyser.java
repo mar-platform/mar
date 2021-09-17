@@ -27,6 +27,7 @@ import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
+import mar.indexer.common.configuration.ModelLoader;
 import mar.validation.IFileInfo;
 import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
@@ -60,7 +61,7 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 	
 	@Override
 	protected boolean isProperFormat(IFileInfo f) {
-		try(BufferedReader reader = new BufferedReader(new FileReader(f.getRelativeFile()))) {
+		try(BufferedReader reader = new BufferedReader(new FileReader(f.getFullFile()))) {
 			boolean isUML = reader.lines().anyMatch(s -> s.contains("http://www.eclipse.org/uml2"));
 			if (! isUML) {
 				System.out.println(" -- Not a UML model");
@@ -72,6 +73,11 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 		} catch (IOException e1) {
 			return false;
 		}
+	}
+	
+	@Override
+	protected Resource loadModel(IFileInfo f) throws IOException {
+		return ModelLoader.UML.load(f.getFullFile());
 	}
 	
 	@Override
