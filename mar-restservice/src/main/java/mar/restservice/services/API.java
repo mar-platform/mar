@@ -37,11 +37,14 @@ import mar.indexer.lucene.core.LuceneUtils;
 import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
 import mar.renderers.PlantUmlCollection;
+import mar.renderers.PlantUmlCollection.PlantUmlImage;
 import mar.renderers.ecore.EcorePlantUMLRenderer;
+import mar.renderers.uml.UmlPlantUMLRenderer;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.HBaseLog;
 import mar.restservice.HBaseModelAccessor;
 import mar.restservice.HBaseStats;
+import mar.restservice.services.SearchOptions.ModelType;
 import mar.restservice.swagger.SwaggerParser;
 import spark.Request;
 import spark.Response;
@@ -61,6 +64,8 @@ public class API extends AbstractService {
         post("/search-full", this::searchList);
         post("/search-text", this::textSearch);
         get("/content", this::getContent);
+        
+        get("/render/info", this::renderInfo);
         get("/render", this::doRender);
         
         post("/v1/search/keyword", this::textSearch);
@@ -216,6 +221,44 @@ public class API extends AbstractService {
 		raw.setContentType("image/png");
 		
 		return res;
+	}
+
+	public Object renderInfo(Request req, Response res) throws IOException, InvalidMarRequest {
+		ModelType type = SearchOptions.getModelType(req);
+		String id = req.queryParams("id");
+		
+		String file = getModelFile(id);
+		if (file == null)
+			throw new IllegalArgumentException("Couldn't find file with id = " + id);
+				
+		Resource r = loadXMI(new File(file), type);
+		PlantUmlCollection diagrams;
+		switch (type) {
+		case ecore:
+			EcorePlantUMLRenderer r1 = new EcorePlantUMLRenderer();
+			diagrams = r1.render(r);			
+			break;
+		case uml:
+			UmlPlantUMLRenderer r2 = new UmlPlantUMLRenderer();
+			diagrams = r2.render(r);						
+			break;
+		default:
+			res.status(500);
+			return null;
+		}
+		
+		Map<Object, Object> result = new HashMap<Object, Object>();
+		result.put("size", diagrams.size());
+		List<Map<Object, Object>> diagramList = new ArrayList<Map<Object,Object>>();
+		for (PlantUmlImage image : diagrams) {
+			Map<Object, Object> obj = new HashMap<Object, Object>();
+			obj.put("href", "/render/diagram?id=" + id + "&diagram=" + image.getIndex());
+			obj.put("index", image.getIndex());
+			diagramList.add(obj);
+		}
+		result.put("diagrams", diagramList);
+		
+		return toJson(res, result);
 	}
 	
 	public Object doStatus(Request req, Response res) throws Exception {	

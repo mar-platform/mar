@@ -113,7 +113,7 @@ public class SearchOptions {
 		}
 	}
 	
-	private static ModelType getModelType(Request req) throws InvalidMarRequest {
+	public static ModelType getModelType(Request req) throws InvalidMarRequest {
 		String modelType = req.queryParams("model");
 		if (modelType == null)
 			modelType = req.queryParams("type");

@@ -1,7 +1,10 @@
 package mar.restservice.services;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
@@ -87,6 +91,13 @@ public abstract class AbstractService {
 		}
     }
 
+    @Nonnull
+	protected Resource loadXMI(@Nonnull File file, @Nonnull ModelType modelType) throws IOException {
+    	// TODO: How to detect the charset?? Possibly do the loadXMI with the file instead of the contents
+    	String str = IOUtils.toString(new FileInputStream(file), "UTF-8");
+    	return loadXMI(str, modelType);
+    }
+    
     @Nonnull
 	protected Resource loadXMI(@Nonnull String model, @Nonnull ModelType modelType) throws IOException {
 		Resource r;
