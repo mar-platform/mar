@@ -35,7 +35,7 @@ public class PlantUmlText {
 	}
 	
 	public void end() {
-		line("@enduml");
+		line("\n@enduml");
 	}
 	
 	public void toImage(@Nonnegative File file) throws IOException {

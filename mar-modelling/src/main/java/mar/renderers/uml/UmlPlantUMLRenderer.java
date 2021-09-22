@@ -27,12 +27,10 @@ public class UmlPlantUMLRenderer extends PlantUMLRenderer {
 			EObject obj = it.next();
 			if (obj instanceof org.eclipse.uml2.uml.Model) {				
 				Model pkg = (org.eclipse.uml2.uml.Model) obj;
-				PlantUmlText diagram = new PlantUmlText();
-				diagram.start();
-				if (renderPkg(diagram, pkg)) {					
-					diagram.end();
+				PlantUmlText diagram = ClassDiagramVisualizer.INSTANCE.render(pkg);
+				if (diagram != null) {
 					diagrams.add(diagram, pkg, pkg.getName());
-				}			
+				}
 			} else if (obj instanceof StateMachine) {
 				PlantUmlText diagram = StateMachineVisualizer.INSTANCE.render((StateMachine) obj);
 				diagrams.add(diagram, obj, ((StateMachine) obj).getName());
@@ -45,44 +43,6 @@ public class UmlPlantUMLRenderer extends PlantUMLRenderer {
 			}
 		}		
 	}
-
-	private boolean renderPkg(PlantUmlText text, Package pkg) {
-		boolean somethingDone = false;
-		for (Element element : pkg.getOwnedElements()) {
-			if (element instanceof Package) { 
-				somethingDone |= renderPkg(text, (Package) element);
-			} if (element instanceof org.eclipse.uml2.uml.Class) {
-				org.eclipse.uml2.uml.Class c = (org.eclipse.uml2.uml.Class) element;
-				somethingDone = true;
-				
-				for (Property ref : c.getAllAttributes()) {
-					if (!(ref.getType() instanceof Class)) 
-						continue;
-					text.append(toName(c));
-					text.append(" --> ");
-					text.append(toName(ref)).append(" ");
-					// TODO: Add details
-					text.append(toName((Class) ref.getType()));
-					text.line("");					
-				}
-				
-				for (Class sup : c.getSuperClasses()) {
-					text.append(toName(sup));
-					text.append(" ^-- ");
-					text.append(toName(c));
-					text.line("");					
-				}
-			}
-		}
-		return somethingDone;
-	}
 	
-	private String toName(Class c) {
-		return '"' + c.getName() + '"';				 
-	}
-
-	private String toName(Property c) {
-		return '"' + c.getName() + '"';				 
-	}
 
 }
