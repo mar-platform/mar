@@ -66,6 +66,7 @@ public class API extends AbstractService {
         get("/content", this::getContent);
         
         get("/render/info", this::renderInfo);
+        get("/render/diagram", this::doRender);
         get("/render", this::doRender);
         
         post("/v1/search/keyword", this::textSearch);
@@ -196,25 +197,30 @@ public class API extends AbstractService {
 		}		
 	}
 	
-	public Object doRender(Request req, Response res) throws IOException {
+	public Object doRender(Request req, Response res) throws IOException, InvalidMarRequest {
+		ModelType type = SearchOptions.getModelType(req);
 		String id = req.queryParams("id");
+		
+		int pos = req.queryParams("pos") == null ? 0 : Integer.parseInt(req.queryParams("pos"));		
+		if (pos < 0)
+			throw new InvalidMarRequest(req, "'pos' parameter must be positive");
 		
 		String file = getModelFile(id);
 		if (file == null)
 			throw new IllegalArgumentException("Couldn't find file with id = " + id);
 				
-		Resource r = ModelLoader.DEFAULT.load(new File(file));
-		// For the moment this only works for Ecore diagrams
-		EcorePlantUMLRenderer renderer = new EcorePlantUMLRenderer();
-
-		HttpServletResponse raw = res.raw();
-		PlantUmlCollection diagrams = renderer.render(r);
-		if (diagrams.isEmpty()) {
+		PlantUmlCollection diagrams = getDiagrams(type, file);
+		if (diagrams == null || diagrams.isEmpty()) {
 			res.status(500);
-			return null;
+			return null;			
 		}
 		
-		diagrams.get(0).toImage(raw.getOutputStream());
+		if (pos >= diagrams.size())
+			throw new InvalidMarRequest(req, "There are " + diagrams.size() + " but 'pos' is " + pos);
+		
+		
+		HttpServletResponse raw = res.raw();	
+		diagrams.get(pos).toImage(raw.getOutputStream());
 		raw.getOutputStream().flush();
 		raw.getOutputStream().close();
 
@@ -231,22 +237,12 @@ public class API extends AbstractService {
 		if (file == null)
 			throw new IllegalArgumentException("Couldn't find file with id = " + id);
 				
-		Resource r = loadXMI(new File(file), type);
-		PlantUmlCollection diagrams;
-		switch (type) {
-		case ecore:
-			EcorePlantUMLRenderer r1 = new EcorePlantUMLRenderer();
-			diagrams = r1.render(r);			
-			break;
-		case uml:
-			UmlPlantUMLRenderer r2 = new UmlPlantUMLRenderer();
-			diagrams = r2.render(r);						
-			break;
-		default:
+		PlantUmlCollection diagrams = getDiagrams(type, file);
+		if (diagrams == null || diagrams.isEmpty()) {
 			res.status(500);
-			return null;
+			return null;			
 		}
-		
+
 		Map<Object, Object> result = new HashMap<Object, Object>();
 		result.put("size", diagrams.size());
 		List<Map<Object, Object>> diagramList = new ArrayList<Map<Object,Object>>();
@@ -259,6 +255,25 @@ public class API extends AbstractService {
 		result.put("diagrams", diagramList);
 		
 		return toJson(res, result);
+	}
+ 
+	@Nonnull
+	private PlantUmlCollection getDiagrams(ModelType type, String file) throws IOException {
+		Resource r = loadXMI(new File(file), type);
+		PlantUmlCollection diagrams;
+		switch (type) {
+		case ecore:
+			EcorePlantUMLRenderer r1 = new EcorePlantUMLRenderer();
+			diagrams = r1.render(r);			
+			break;
+		case uml:
+			UmlPlantUMLRenderer r2 = new UmlPlantUMLRenderer();
+			diagrams = r2.render(r);						
+			break;
+		default:
+			return null;
+		}
+		return diagrams;
 	}
 	
 	public Object doStatus(Request req, Response res) throws Exception {	

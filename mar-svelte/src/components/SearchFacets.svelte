@@ -97,7 +97,7 @@
     isSelectedItem(item) {
       let metadata = item.metadata
       if (metadata == undefined)
-      	 return false;
+      	 return true; // We show everything, even it doesn't have metadata to avoid hiding results due
       if (metadata.numElements != undefined && (metadata.numElements < this.minElements || metadata.numElements > this.maxElements)) {
         return false;
       }

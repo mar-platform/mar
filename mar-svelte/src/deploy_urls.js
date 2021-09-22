@@ -5,8 +5,8 @@ window.MAR = {
     toTextSearchURL: function() {
         return '/search-text';
     },
-    toImageURL: function(modelId) {
-        return '/render?id=' + modelId;
+    toImageURL: function(modelId, type, pos = 0) {
+        return '/render/diagram?id=' + modelId + '&type=' + type + '&pos=' + pos;
     }, 
     toStatusURL: function() {
         return '/status'
