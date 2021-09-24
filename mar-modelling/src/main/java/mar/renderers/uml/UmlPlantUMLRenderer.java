@@ -4,12 +4,8 @@ import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.uml2.uml.Activity;
-import org.eclipse.uml2.uml.Class;
-import org.eclipse.uml2.uml.Element;
 import org.eclipse.uml2.uml.Interaction;
 import org.eclipse.uml2.uml.Model;
-import org.eclipse.uml2.uml.Package;
-import org.eclipse.uml2.uml.Property;
 import org.eclipse.uml2.uml.StateMachine;
 
 import mar.renderers.PlantUMLRenderer;
@@ -28,6 +24,10 @@ public class UmlPlantUMLRenderer extends PlantUMLRenderer {
 			if (obj instanceof org.eclipse.uml2.uml.Model) {				
 				Model pkg = (org.eclipse.uml2.uml.Model) obj;
 				PlantUmlText diagram = ClassDiagramVisualizer.INSTANCE.render(pkg);
+				if (diagram != null) {
+					diagrams.add(diagram, pkg, pkg.getName());
+				}
+				diagram = UseCaseVisualizer.INSTANCE.render(pkg);
 				if (diagram != null) {
 					diagrams.add(diagram, pkg, pkg.getName());
 				}
