@@ -1,7 +1,9 @@
-RUN_COMMAND="Exec with $0 <json-config> <configuration-name> "
+RUN_COMMAND="Exec with $0 <json-config> <configuration-name> <repository> <mode> "
 
 JSON=$1
 NAME=$2
+REPO=$3
+MODE=$4
 
 if [ -z "$SPARK_BIN" ]
   then
@@ -22,5 +24,5 @@ if [ -z "$NAME" ]
       exit
 fi
 
-$SPARK_BIN/spark-submit --master local[6] --driver-memory 12G $REPO_MAR/mar-indexer-spark/target/mar-indexer-spark-1.0-SNAPSHOT-jar-with-dependencies.jar $JSON -t $NAME -m incremental
+$SPARK_BIN/spark-submit --master local[6] --driver-memory 12G $REPO_MAR/mar-indexer-spark/target/mar-indexer-spark-1.0-SNAPSHOT-jar-with-dependencies.jar $JSON -t $NAME -m $4 -r $3
 
