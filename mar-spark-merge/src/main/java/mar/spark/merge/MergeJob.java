@@ -51,7 +51,7 @@ public static void main(String[] args) throws IOException {
 			return;
 		}
 		String modelType = args[0];
-		String tableNamefromUtils = TableNameUtils.getStopPaths(modelType);
+		String tableNamefromUtils = TableNameUtils.getInvertedIndex(modelType);
 		
 		Configuration conf = HBaseConfiguration.create();
 		conf.set("hbase.zookeeper.quorum", "zoo");
