@@ -1,0 +1,13 @@
+version: "2.0"
+
+#rules:
+
+#  - rule: Say hello
+#    steps:
+#      - intent: greet
+#      - action: utter_greet
+
+#  - rule: Search models
+#    steps:
+#      - intent: i_want_to_search
+#      - action: action_show_global_stats
