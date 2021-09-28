@@ -4,6 +4,11 @@ if [ -z "$REPO_MAR" ]
       exit
 fi
 
+echo 
+echo "Downloading third-party resources..."
+echo "Using MAR source code in $REPO_MAR"
+echo 
+
 pushd .
 mkdir -p $REPO_MAR/external-resources
 cd $REPO_MAR/external-resources
