@@ -4,11 +4,11 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.sparkproject.jetty.proxy.AsyncMiddleManServlet;
-
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.github.arturkorb.rasa.model.Entity;
 import io.github.arturkorb.rasa.model.Intent;
+import mar.chatbot.actions.ActionMessage;
+import mar.chatbot.actions.ActionResponse;
 import mar.restservice.HBaseStats;
 import mar.restservice.HBaseStats.Stats;
 
@@ -20,14 +20,14 @@ public class Conversation {
 	}
 
 	@Nonnull
-	public String process(@Nonnull Intent intent, @Nonnull List<? extends Entity> entities) {
+	public ActionResponse process(@Nonnull Intent intent, @Nonnull List<? extends Entity> entities) {
 		switch (intent.getName()) {
 		case "greet":
-			return "Hi there! I'm here to help :-)";
+			return new ActionMessage("Hi there! I'm here to help :-)");
 		case "i_want_to_search":
-			return search(entities);
+			return new ActionMessage(search(entities));
 		default:
-			return "I don't understand. Try something else. I will provide suggestions when I'm smarter";
+			return new ActionMessage("I don't understand. Try something else. I will provide suggestions when I'm smarter");
 		}
 	}
 

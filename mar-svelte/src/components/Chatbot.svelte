@@ -23,10 +23,19 @@
                 body: input,
         });			
             
-        const answer = await res.text();
-    
-        messages = [...messages, new Message(MessageType.BOT, answer)];
-        
+        const answer = await res.json();
+        let message = null;
+        switch (answer.type) {
+            case "message":
+                message = answer.message;
+                break;
+            default:
+                message = "Something weird happened internally. Please try again."
+                break;
+        }
+
+        if (message != null)
+            messages = [...messages, new Message(MessageType.BOT, message)];
     }
 
     class Message {
