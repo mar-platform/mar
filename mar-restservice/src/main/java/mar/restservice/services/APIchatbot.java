@@ -16,6 +16,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import io.github.arturkorb.rasa.RasaClient;
+import io.github.arturkorb.rasa.TrackerApi;
 import io.github.arturkorb.rasa.model.Context;
 import io.github.arturkorb.rasa.model.Entity;
 import io.github.arturkorb.rasa.model.Intent;
@@ -34,7 +35,7 @@ import mar.restservice.services.SearchOptions.SyntaxType;
 import spark.Request;
 import spark.Response;
 
-public class APIchatbot extends AbstractService {
+public class APIchatbot extends AbstractAPI {
 	
 	private final Cache cache = new Cache();
 	private final RasaClient rasaClient;
@@ -63,7 +64,7 @@ public class APIchatbot extends AbstractService {
 		
 		List<Entity> entities = context.getParseResult().getEntities();
 		
-		return toJson(res, conversation.process(intent, entities));
+		return toJson(res, conversation.process(this.getTextSearcher(), intent, entities));
 	}
 	
 	public Object searchPath(Request req, Response res) throws IOException, InvalidMarRequest {

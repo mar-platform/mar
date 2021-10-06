@@ -18,10 +18,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -32,10 +28,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
-import mar.indexer.common.configuration.ModelLoader;
-import mar.indexer.lucene.core.LuceneUtils;
-import mar.indexer.lucene.core.Searcher;
-import mar.paths.PathFactory.DefaultPathFactory;
 import mar.renderers.PlantUmlCollection;
 import mar.renderers.PlantUmlCollection.PlantUmlImage;
 import mar.renderers.ecore.EcorePlantUMLRenderer;
@@ -45,6 +37,7 @@ import mar.restservice.HBaseLog;
 import mar.restservice.HBaseModelAccessor;
 import mar.restservice.HBaseStats;
 import mar.restservice.services.SearchOptions.ModelType;
+import mar.restservice.services.SearchService.SearchException;
 import mar.restservice.swagger.SwaggerParser;
 import spark.Request;
 import spark.Response;
@@ -52,11 +45,13 @@ import spark.Response;
 @Api
 @Path("/v1/search")
 @Produces("application/json")
-public class API extends AbstractService {
+public class API extends AbstractAPI {
 	@NonNull
 	private final HBaseStats stats = new HBaseStats();
 	@NonNull
-	private final HBaseLog hbaseLog = new HBaseLog();	
+	private final HBaseLog hbaseLog = new HBaseLog();
+	@Nonnull
+	private final SearchService searchService;	
 	
 	public API(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);
@@ -79,6 +74,8 @@ public class API extends AbstractService {
         new MachineLearningAPI(configuration).configure();
         
         get("/status", this::doStatus);
+        
+        this.searchService = new SearchService(getTextSearcher());
 	}
 	
 	// Build swagger json description
@@ -91,31 +88,10 @@ public class API extends AbstractService {
 		}		
 	}
 	
-	public Object textSearch(Request req, Response res) throws IOException, ServletException {
-		// log(req);
-		Searcher searcher = getTextSearcher();
+	public Object textSearch(Request req, Response res) throws SearchException, IOException {
 		String query = req.body();
-		try {
-			TopDocs docs = searcher.topDocs(query, DefaultPathFactory.INSTANCE);
-			List<ResultItem> items = new ArrayList<ResultItem>();
-			for (ScoreDoc doc : docs.scoreDocs) {
-				Document document = searcher.getDoc(doc.doc);
-				String id = document.getField(LuceneUtils.ID).stringValue();
-				String type = document.getField(LuceneUtils.TYPE).stringValue();
-				items.add(new ResultItem(id, doc.score, type));				
-			}
-
-			// Update the information of each model in batch
-			try(HBaseGetInfo info = new HBaseGetInfo()) {
-				info.updateInformation(items);
-			}
-		
-			return toJson(res, items);
-		} catch (ParseException e) {
-			e.printStackTrace();
-			// TODO: Return an error
-			return null;
-		}
+		List<ResultItem> items = searchService.textSearch(query);
+		return toJson(res, items);
 	}
 	
     public Object searchList(Request req, Response res) throws IOException, InvalidMarRequest {
