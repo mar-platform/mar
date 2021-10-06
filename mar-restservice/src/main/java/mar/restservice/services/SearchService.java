@@ -13,7 +13,6 @@ import org.apache.lucene.search.TopDocs;
 
 import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.LuceneUtils;
-import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
 import mar.restservice.HBaseGetInfo;
 

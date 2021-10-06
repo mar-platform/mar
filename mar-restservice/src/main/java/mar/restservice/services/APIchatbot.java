@@ -59,11 +59,9 @@ public class APIchatbot extends AbstractAPI {
 		Context context = rasaClient.sendMessageWithContextRetrieval(text, conversationId);
 		
 		Intent intent = context.getParseResult().getIntentRanking().get(0);
-		System.out.println("Intent: " + intent.getName() + ": " + intent.getConfidence());
-		
 		List<Entity> entities = context.getParseResult().getEntities();
 		
-		return toJson(res, conversation.process(intent, entities));
+		return conversation.process(intent, entities);
 	}
 	
 	public Object searchPath(Request req, Response res) throws IOException, InvalidMarRequest {

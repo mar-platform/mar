@@ -24,10 +24,9 @@ import spark.Request;
 import spark.Response;
 
 public class AnalysisAPI extends AbstractAPI {
-	
 	@Nonnull
 	private final AnalysisService analysisService;	
-	
+
 	public AnalysisAPI(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);
 		this.analysisService = new AnalysisService();
