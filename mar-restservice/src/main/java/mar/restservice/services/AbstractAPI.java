@@ -36,12 +36,12 @@ import mar.restservice.services.SearchOptions.ModelType;
 import mar.restservice.services.SearchOptions.SyntaxType;
 import spark.Response;
 
-public abstract class AbstractService {
+public abstract class AbstractAPI {
 
     private IConfigurationProvider configuration;
 	private Searcher textSearcher;
 	
-	public AbstractService(IConfigurationProvider configuration) {
+	public AbstractAPI(IConfigurationProvider configuration) {
     	this.configuration = configuration;
 	}
 

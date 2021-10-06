@@ -20,7 +20,7 @@ import mar.restservice.services.SearchOptions.ModelType;
 import spark.Request;
 import spark.Response;
 
-public class MachineLearningAPI extends AbstractService {
+public class MachineLearningAPI extends AbstractAPI {
 	
 	public MachineLearningAPI(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);

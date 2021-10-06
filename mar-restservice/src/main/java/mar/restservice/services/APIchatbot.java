@@ -28,7 +28,7 @@ import mar.restservice.services.SearchOptions.SyntaxType;
 import spark.Request;
 import spark.Response;
 
-public class APIchatbot extends AbstractService{
+public class APIchatbot extends AbstractAPI {
 	
 	private Cache cache = new Cache();
 

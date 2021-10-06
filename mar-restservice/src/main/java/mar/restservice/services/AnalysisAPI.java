@@ -22,7 +22,7 @@ import mar.analysis.smells.ecore.EcoreSmellCatalog;
 import spark.Request;
 import spark.Response;
 
-public class AnalysisAPI extends AbstractService {
+public class AnalysisAPI extends AbstractAPI {
 	
 	public AnalysisAPI(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);
