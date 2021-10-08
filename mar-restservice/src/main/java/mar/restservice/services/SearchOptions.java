@@ -2,7 +2,9 @@ package mar.restservice.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnegative;
@@ -10,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import spark.Request;
 import spark.utils.IOUtils;
 
@@ -36,12 +39,18 @@ public class SearchOptions {
 	private final SyntaxType syntaxType;
 	private final int maxResults;
 	private final String model;
+	//TO DO: support more than one ignored
+	private final List<String> ignored;
 	
-	public SearchOptions(String model, @Nonnull ModelType modelType, @Nonnull SyntaxType syntaxType, @Nonnegative int maxResults) {
+	public SearchOptions(String model, @Nonnull ModelType modelType, 
+			@Nonnull SyntaxType syntaxType, 
+			@Nonnegative int maxResults,
+			@Nonnull List<String> ignored) {
 		this.model = model;
 		this.modelType = modelType;
 		this.syntaxType = syntaxType;
 		this.maxResults = maxResults;
+		this.ignored = ignored;
 	}
 
 	public static SearchOptions get(Request req) throws InvalidMarRequest {
@@ -55,8 +64,13 @@ public class SearchOptions {
 		} else {
 			syntaxType = SyntaxType.valueOf(syntax);
 		}
+		String ign = req.queryParams("ignored");
+		List<String> igns = new ArrayList<String>();
+		if(ign != null) {
+			igns.add(ign);
+		}
 		
-		return get(req, body, syntaxType);
+		return get(req, body, syntaxType, igns);
 	}
 
 	private static String getContent(Request req) throws InvalidMarRequest {
@@ -71,10 +85,11 @@ public class SearchOptions {
 	
 	public static SearchOptions get(Request req, @Nonnull SyntaxType syntaxType) throws InvalidMarRequest {
 		String body = getContent(req);
-		return get(req, body, syntaxType);
+		return get(req, body, syntaxType, Collections.emptyList());
 	}
 	
-	private static SearchOptions get(Request req, String body, @Nonnull SyntaxType syntaxType) throws InvalidMarRequest {
+	private static SearchOptions get(Request req, String body, @Nonnull SyntaxType syntaxType,
+			@Nonnull List<String> igns) throws InvalidMarRequest {
 		System.out.println("Request...");
 		String max = req.queryParams("max");
 	
@@ -92,7 +107,7 @@ public class SearchOptions {
 				
 		System.out.println("Model type: "+ modelType);
 	    			
-		return new SearchOptions(model, modelType, syntaxType, maxResults);
+		return new SearchOptions(model, modelType, syntaxType, maxResults, igns);
 	}
 
 	public static String getUploadedFile(@Nonnull Request req) throws InvalidMarRequest {
@@ -141,6 +156,11 @@ public class SearchOptions {
 	
 	public String getModel() {
 		return model;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> getIgnored() {
+		return Collections.unmodifiableList(ignored);
 	}
 
 }

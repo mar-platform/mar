@@ -148,7 +148,8 @@ public class API extends AbstractService {
     
     public Map<String, Double> doSearch(Request req, Response res) throws IOException, InvalidMarRequest {
 		SearchOptions options = SearchOptions.get(req);
-		Map<String, Double> scores = searchAndScore(options.getModel(), options.getModelType(), options.getSyntaxType());
+		Map<String, Double> scores = searchAndScore(options.getModel(), options.getModelType(), 
+				options.getSyntaxType(), options.getIgnored());
 		return firtsElements(scores, options.getMaxResults());		
 	}
     
