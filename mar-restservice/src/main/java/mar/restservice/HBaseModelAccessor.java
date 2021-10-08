@@ -31,22 +31,5 @@ public class HBaseModelAccessor extends AbstractHBaseAccess {
 		String tableName = TableNameUtils.getDocsInfo(modelType);
 		return getConnection().getTable(TableName.valueOf(tableName));
 	}
-	
-	public String getModel(String id) throws IOException {
-		return getModel(getDocsInfo(), id);
-	}
-	
-	private String getModel(Table docs_info, String id) throws IOException {
-		Get get = new Get(id.getBytes());
-		get.addColumn("content".getBytes(), "rawcontent".getBytes());
 
-		Result r = docs_info.get(get);
-
-		if (r.isEmpty())
-			return "Not found";
-
-		byte[] content = r.value();
-
-		return Bytes.toString(content);
-	}
 }

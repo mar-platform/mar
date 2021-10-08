@@ -5,6 +5,8 @@ import static spark.Spark.post;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +65,7 @@ public class API extends AbstractService {
         post("/search", this::search);
         post("/search-full", this::searchList);
         post("/search-text", this::textSearch);
+        
         get("/content", this::getContent);
         
         get("/render/info", this::renderInfo);
@@ -166,11 +169,19 @@ public class API extends AbstractService {
     	return total;
     }
     
-	public Object getContent(Request req, Response res) throws IOException {
+	public Object getContent(Request req, Response res) throws IOException, InvalidMarRequest {
 		String id = req.queryParams("id");
-		System.out.println("Content of " + id);
-		String content = new HBaseModelAccessor().getModel(id);
+		if (id == null)
+			throw new InvalidMarRequest(req, "Missing 'id' param");
+		
+		String file = getModelFile(id);
+		if (file == null) {
+			res.status(404);
+			return "Model not found";
+		}
+		
 		res.type("text/xmi");
+		String content = Files.readString(Paths.get(file));
 		return content;
 	}
 
