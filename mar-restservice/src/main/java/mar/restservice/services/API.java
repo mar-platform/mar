@@ -259,7 +259,7 @@ public class API extends AbstractService {
 		List<Map<Object, Object>> diagramList = new ArrayList<Map<Object,Object>>();
 		for (PlantUmlImage image : diagrams) {
 			Map<Object, Object> obj = new HashMap<Object, Object>();
-			obj.put("href", "/render/diagram?id=" + id + "&diagram=" + image.getIndex());
+			obj.put("href", "/render/diagram?id=" + id + "&type=" + type.name() + "&pos=" + image.getIndex());
 			obj.put("index", image.getIndex());
 			diagramList.add(obj);
 		}
