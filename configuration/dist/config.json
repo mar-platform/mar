@@ -24,7 +24,7 @@
 	    crawler_db : "$(REPO_ROOT)/download/repo-d3/crawler.db",
 	    model_db   : "$(ANALYSIS_TARGET)/repo-d3/analysis.db",
             
-	    graph_length : 3,
+	    graph_length : 4,
 	    graph_filter: EcoreFilter,
 	    graph_factory: EcoreFactory
 	},    
