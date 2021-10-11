@@ -67,7 +67,10 @@ public abstract class AbstractService {
 	}
 	
 	// This is an utility method
-    protected Map<String, Double> searchAndScore(@Nonnull String model, @Nonnull ModelType modelType, @Nonnull SyntaxType syntax) throws IOException {
+    protected Map<String, Double> searchAndScore(@Nonnull String model, 
+    		@Nonnull ModelType modelType, 
+    		@Nonnull SyntaxType syntax,
+    		@Nonnull List<String> ignored) throws IOException {
 		Resource r;
 		switch (syntax) {
 		case xmi:
@@ -82,7 +85,7 @@ public abstract class AbstractService {
 		}
 		
 		try {
-			Map<String, Double> scores = getConfiguration(modelType).getScorer().score(r);
+			Map<String, Double> scores = getConfiguration(modelType).getScorer().score(r, ignored);
 			return scores;
 		} finally {
 			// This seems to fail with NPE. 

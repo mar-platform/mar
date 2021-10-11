@@ -92,11 +92,13 @@ public class BM25ScoreCalculator {
 	
 	public static class GlobalStats {
 		public final long numDocuments;
+		public final long tokens;
 		public final double average;
 		
-		public GlobalStats(long numDocuments, double average) {
+		public GlobalStats(long numDocuments, long tokens) {
 			this.numDocuments = numDocuments;
-			this.average = average;
+			this.tokens = tokens;
+			this.average = (double) tokens/ (double) numDocuments;
 		}
 	}
 	

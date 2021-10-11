@@ -81,12 +81,11 @@ public class HBaseChatBotScorer extends AbstractHBaseAccess implements IChatBotS
     	Map<byte[],byte[]> stats = result_stats.getFamilyMap("stats".getBytes());
     	long nTokens = Bytes.toLong(stats.get("nTokens".getBytes()));
     	long gr  = Bytes.toLong(stats.get("ndocs".getBytes()));
-    	double avg = (double) nTokens / (double) gr;
     	
     	global_st.close();
     
 	    
-	    return new GlobalStats(gr, avg);
+	    return new GlobalStats(gr, nTokens);
 	}
 
 }

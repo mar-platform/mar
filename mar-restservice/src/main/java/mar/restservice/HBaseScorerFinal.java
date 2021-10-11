@@ -1,6 +1,7 @@
 package mar.restservice;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.NavigableMap;
 import java.util.Set;
 
@@ -52,6 +54,11 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 		return connection.getTable(TableName.valueOf("global_st_"+model));
 	}
 	
+	protected Table getDocsInfo(String model) throws IOException {
+		Connection connection = getConnection();
+		return connection.getTable(TableName.valueOf("docs_info_"+model));
+	}
+	
 	protected Table getStopPathsTable(String model) throws IOException {
 		Connection connection = getConnection();
 		return connection.getTable(TableName.valueOf("stop_paths_"+model));
@@ -64,21 +71,8 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 		
 	@SuppressWarnings("unchecked")
 	@Override
-	public Map<String, Double> score(Resource r, Profiler profiler) throws IOException {
-		/*
-		Kryo kryo = new Kryo();
- 		kryo.register(PairInformation.class, new PairSerializer());
- 		@SuppressWarnings("rawtypes")
-		MapSerializer serializer = new MapSerializer();
- 		// serializer.setKeyClass(String.class);
- 		serializer.setKeyClass(String.class, kryo.getSerializer(String.class));
- 		serializer.setKeysCanBeNull(false);
- 		serializer.setValueClass(PairInformation.class, new PairSerializer());
- 		serializer.setValuesCanBeNull(false);
- 		kryo.register(HashMap.class, serializer);
-		*/
- 		
-		//stopwords = new HashSet<String>();
+	public Map<String, Double> score(Resource r, Profiler profiler, List<? extends String> ignored) throws IOException {
+		
 		
 		profiler.start();
 			Set<String> stpw = getStopWords(model);
@@ -93,7 +87,7 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 		//Table global_st = getGlobal_st();
 	    
 	    //global params
-		GlobalStats stats = getGlobalStats(model);
+		GlobalStats stats = getGlobalStats(model, ignored);
 	    		
 		profiler.start();
 	    	Map<String, Map<String,Integer>> hm = computeParticionedPaths(r);
@@ -130,7 +124,7 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 	    profiler.start();
 	    
 	    	
-		    BM25ScoreCalculator calculator = new BM25ScoreCalculator(stats);		    
+		    BM25ScoreCalculator calculator = new BM25ScoreCalculatorIgnore(stats, ignored);		    
 	    	//CountScoreCalculator calculator = new CountScoreCalculator();
 	    	
 		    for (Result result : results) {			
@@ -163,8 +157,14 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 								e.printStackTrace();
 							}
 			    			
-			    			int n_docs_t = mw.size();
 			    			
+			    			//ignore: The total number of documents that contains the path
+			    			int counter = 0;
+			    			for (String ign : ignored) {
+								if (mw.containsKey(ign))
+									counter = counter + 1; 
+							}
+			    			int n_docs_t = mw.size() - counter;
 			    			
 			    			mw.forEach((doc,nocur_ntokens)-> {
 			    				
@@ -226,9 +226,10 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 		return Collections.emptySet();
 	}
 
-	protected GlobalStats getGlobalStats(String model) throws IOException {		
+	protected GlobalStats getGlobalStats(String model, List<? extends String> ignored) throws IOException {		
 		Table global_st = getGlobal(model);
-
+		
+		//obtain stats
 		Get get_stats = new Get("stats".getBytes());
 	    Result result_stats = global_st.get(get_stats);
 	    
@@ -238,12 +239,20 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
     	Map<byte[],byte[]> stats = result_stats.getFamilyMap("stats".getBytes());
     	long nTokens = Bytes.toLong(stats.get("nTokens".getBytes()));
     	long gr  = Bytes.toLong(stats.get("ndocs".getBytes()));
-    	double avg = (double) nTokens / (double) gr;
-    	
     	global_st.close();
-    
-	    
-	    return new GlobalStats(gr, avg);
+    	
+    	//obtain tokens of ignored
+    	Table docs_info = getDocsInfo(model);
+    	List<Get> list_get = ignored.stream().map(ign ->new Get(ign.getBytes())).collect(Collectors.toList());
+    	Result[] results = docs_info.get(list_get);
+	    for (Result result : results) {
+	    	int tok = Bytes.toInt(result.getValue("information".getBytes(), "nTokens".getBytes()));
+	    	nTokens = nTokens - tok;
+	    	gr = gr - 1;
+		}
+	    docs_info.close();
+	    return new GlobalStats(gr, nTokens);
+
 	}
 	
 	public String getModel() {
@@ -292,7 +301,7 @@ public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 		//Table global_st = getGlobal_st();
 	    
 	    //global params
-		GlobalStats stats = getGlobalStats(model);
+		GlobalStats stats = getGlobalStats(model, new ArrayList<String>());
 	    		
 		profiler.start();
 	    	Map<String, Map<String,Integer>> hm = computeParticionedPaths(r);
