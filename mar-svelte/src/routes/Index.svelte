@@ -65,7 +65,7 @@
 					<ModelTypeSelection
 						bind:selected={selectedModelType} />
 				{:else if searchMode == 'chatbot'}
-					<Chatbot />
+					<Chatbot bind:results={results} />
 				{/if}
 			</div>
 		</div>

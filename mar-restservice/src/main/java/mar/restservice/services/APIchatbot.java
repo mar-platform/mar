@@ -38,11 +38,13 @@ public class APIchatbot extends AbstractAPI {
 
 	private final Cache cache = new Cache();
 	private final RasaClient rasaClient;
+	private final SearchService searchService;
 
 	public APIchatbot(IConfigurationProvider configuration) {
 		super(configuration);	
 		this.rasaClient = new RasaClient().withBasePath("http://localhost:5005");
-
+		this.searchService = new SearchService(configuration.newSearcher());
+		
 		post("/v1/search/path", this::searchPath);
         post("/v1/chatbot/conversation", this::conversation);
 	}
@@ -61,7 +63,7 @@ public class APIchatbot extends AbstractAPI {
 		Intent intent = context.getParseResult().getIntentRanking().get(0);
 		List<Entity> entities = context.getParseResult().getEntities();
 		
-		return conversation.process(intent, entities);
+		return toJson(res, conversation.process(this.searchService, intent, entities));
 	}
 	
 	public Object searchPath(Request req, Response res) throws IOException, InvalidMarRequest {

@@ -9,8 +9,12 @@ import io.github.arturkorb.rasa.model.Entity;
 import io.github.arturkorb.rasa.model.Intent;
 import mar.chatbot.actions.ActionMessage;
 import mar.chatbot.actions.ActionResponse;
+import mar.chatbot.actions.ActionResultList;
 import mar.restservice.HBaseStats;
 import mar.restservice.HBaseStats.Stats;
+import mar.restservice.services.ResultItem;
+import mar.restservice.services.SearchService;
+import mar.restservice.services.SearchService.SearchException;
 
 public class Conversation {
 	private ExecutionGraph graph = new ExecutionGraph();
@@ -20,22 +24,44 @@ public class Conversation {
 	}
 
 	@Nonnull
-	public ActionResponse process(@Nonnull Intent intent, @Nonnull List<? extends Entity> entities) {
+	public ActionResponse process(@Nonnull SearchService searchService, @Nonnull Intent intent, @Nonnull List<? extends Entity> entities) {
 		switch (intent.getName()) {
 		case "greet":
 			return new ActionMessage("Hi there! I'm here to help :-)");
+		case "search_a_topic":
+			return searchkeyword(searchService, entities);
 		case "i_want_to_search":
-			return new ActionMessage(search(entities));
+			return new ActionMessage(stats(entities));
 		default:
 			return new ActionMessage("I don't understand. Try something else. I will provide suggestions when I'm smarter");
 		}
 	}
 
+	private ActionResponse searchkeyword(@Nonnull SearchService searchServicer, List<? extends Entity> entities) {
+		String keyword = null;
+		for (Entity entity : entities) {
+			if ("keyword".equals(entity.getEntity())) {
+				keyword = entity.getValue();
+			}
+		}
+		
+		if (keyword == null) {
+			return new ActionMessage("Please tell me a few keywords");
+		}
+				
+		try {
+			List<ResultItem> items = searchServicer.textSearch(keyword);
+			return new ActionResultList("Here are some results", items);
+		} catch (SearchException e) {
+			return new ActionMessage(e.getMessage());
+		}
+	}
+	
 	// TODO: We should pass an object with the services available
 	@NonNull
 	private final HBaseStats stats = new HBaseStats();
 	
-	private String search(List<? extends Entity> entities) {
+	private String stats(List<? extends Entity> entities) {
 		String value = null;
 		for (Entity entity : entities) {
 			if ("model_type".equals(entity.getEntity())) {

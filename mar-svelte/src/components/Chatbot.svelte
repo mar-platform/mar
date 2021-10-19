@@ -1,4 +1,6 @@
 <script>
+    export let results = [];
+
     let messageInput;
     let messages = []
 
@@ -28,6 +30,10 @@
         switch (answer.type) {
             case "message":
                 message = answer.message;
+                break;
+            case "result_list":
+                message = answer.message;
+                results = answer.items;
                 break;
             default:
                 message = "Something weird happened internally. Please try again."
