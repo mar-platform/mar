@@ -77,14 +77,45 @@ def insert_file_contents(model_id, fname, c, f):
               (model_id, fname, f.name, f.download_url,
                f.size, f.license, repo.id))
     c.connection.commit()
-        
-def process(hint, extension, writer, output_folder, init = None, end = 1_000_000, step = 5):
-    total = 0
 
-    db = os.path.join(output_folder, 'crawler.db')
+def save_file(f, c, output_folder, writer = None):
+    """
+    f : FileContents object
+    c : A cursor
+    """
+    name = f.repository.full_name                   
+    model_id = os.path.join(name, f.path)
+    fname = os.path.join("data", name, f.path)
+    if common.model_already_exists(model_id, c):
+        print("Model already exists ", model_id)
+        return
+                    
+    path = Path(output_folder, "data", name, f.path);
+    path.parents[0].mkdir(parents=True, exist_ok=True)
+    text = base64.b64decode(f.content).decode('utf-8')
     
+    # print("   Writing to ", total, "...", path)
+    
+    try:
+        with path.open("w") as target:
+            target.write(text)
+            
+            insert_file_contents(model_id, fname, c, f)
+            if not writer is None:
+                writer.writerow([model_id, f.name, f.download_url, f.size])
+    except Exception as e:
+        print("Error processing ", model_id, " with size = ", f.size)
+        traceback.print_exc()
+
+def open_db(output_folder):
+    db = os.path.join(output_folder, 'crawler.db')
     conn = common.open_db(output_folder, 'crawler.db')
     c = conn.cursor()
+    return c
+    
+def process(hint, extension, writer, output_folder, init = None, end = 1_000_000, step = 5):
+    total = 0
+    c = open_db(output_folder)
     
     if init is None:
         init = largest_file(c)
@@ -122,31 +153,8 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
 
                     print(f)
 
-                    name = f.repository.full_name                   
-                    model_id = os.path.join(name, f.path)
-                    fname = os.path.join("data", name, f.path)
-                    if common.model_already_exists(model_id, c):
-                        print("Model already exists ", model_id)
-                        continue
+                    save_file(f, c, output_folder, writer)
                     
-                    # print(f.repository.name)
-                    # print(f.repository.owner.name)
-                    # print(f.repository.organization)
-                    path = Path(output_folder, "data", name, f.path);
-                    path.parents[0].mkdir(parents=True, exist_ok=True)
-                    text = base64.b64decode(f.content).decode('utf-8')
-                    print("   Writing to ", total, "...", path)
-
-                    try:
-                        with path.open("w") as target:
-                            target.write(text)
-
-                            insert_file_contents(model_id, fname, c, f)                        
-                            writer.writerow([model_id, f.name, f.download_url, f.size])
-                    except Exception as e:
-                        print("Error processing ", model_id, " with size = ", f.size)
-                        traceback.print_exc()
-
                     iterations_without_downloading = 0
                     last_size = f.size
                     total = total + 1
@@ -168,6 +176,45 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
                 
     conn.close()
 
+def process_single_files(file_list, output_folder):
+    c = open_db(output_folder)
+    
+    # file_list contains relative files wrt to github, i.e., /user/repo/path
+    #
+    for file in file_list:
+        # Try to check using file with id
+        if common.model_already_exists(file, c):
+            print("File ", file, " already downloaded and stored in db")
+            continue
+            
+        seconds = random.randint(1, 2)
+        print("   Waiting ", seconds, " seconds")
+        time.sleep(seconds)
+
+        print("Processing ", file)
+        parts = file.split("/")
+        if len(parts) < 3:
+            continue
+
+        try:
+            repo = g.get_repo(parts[0] + "/" + parts[1])
+            rest = parts[2:]
+            path = "/".join(rest)
+            print(path)
+            attempts = 0
+            while attempts < 3:
+                try:
+                    contents_file = repo.get_contents(path)
+                    save_file(contents_file, c, output_folder)
+                    break
+                except github.GithubException as exception:
+                    attempts += 1
+                    traceback.print_exc()
+                    api_wait_search2(g)                
+        except github.GithubException as e:
+            print("Repo for ", file, " not found")
+            
+                    
 def parse_args():
     parser = argparse.ArgumentParser(description='Download files from github.')
     parser.add_argument('output', metavar='OUTPUT_FOLDER', type=str,
@@ -178,6 +225,9 @@ def parse_args():
     parser.add_argument('--step', dest='step', action='store', type=int,
                    default=5,
                    help='step')
+    parser.add_argument('--filelist', dest='files', action='store', type=str,
+                   default=None,
+                   help='file list')
 
     args = parser.parse_args()
 
