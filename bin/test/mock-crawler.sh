@@ -15,6 +15,10 @@ python3 $REPO_MAR/mar-crawlers/test/mockcrawler.py $REPO_MAR/external-resources/
 
 $REPO_MAR/scripts/indexing/analyse.sh $REPO_MAR/configuration/test/config.json ecore
 
+# Index for text-based search with Lucene
+$REPO_MAR/scripts/indexing/index-lucene.sh $REPO_MAR/configuration/test/config.json ecore
+
+# Index for example-base search with Spark
 sudo docker system prune -f
 
 $REPO_MAR/bin/test/run-docker.sh
