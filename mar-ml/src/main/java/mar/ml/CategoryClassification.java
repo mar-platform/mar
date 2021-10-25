@@ -30,7 +30,7 @@ import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.SingleIndexJob;
 import mar.model2graph.IMetaFilter;
-import mar.model2text.Utils;
+import mar.model2text.Model2TextUtils;
 import mar.paths.PathFactory;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
@@ -72,7 +72,7 @@ public class CategoryClassification implements Callable<Integer> {
 					ResourceSet rs = new ResourceSetImpl();
 					Resource r = rs.getResource(URI.createFileURI(model.getFile().getAbsolutePath()), true);
 									
-					String content = Utils.model2document(r, mf, pf);
+					String content = Model2TextUtils.model2document(r, mf, pf);
 
 					AnalysisMetadataDocument document = AnalysisMetadataDocument.loadFromJSON(model.getMetadata());
 					

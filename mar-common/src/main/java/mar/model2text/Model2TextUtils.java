@@ -14,7 +14,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import mar.model2graph.IMetaFilter;
 import mar.paths.PathFactory;
 
-public class Utils {
+public class Model2TextUtils {
 
 	public static String model2document(Resource r,  IMetaFilter mf, PathFactory pf) {
 		StringBuffer buffer = new StringBuffer();
@@ -40,7 +40,7 @@ public class Utils {
 							if ((object != null) && (object instanceof String)) {
 								List<String> parts = applyTokSwStem((String) object, pf);
 								for (String s: parts) {
-									buffer.append(s).append(separator);
+									buffer.append(separator).append(s);
 									separator = " ";
 								}
 							}
@@ -51,7 +51,7 @@ public class Utils {
 						if ((attribute != null) && (attribute instanceof String)) {
 							List<String> parts = applyTokSwStem((String) attribute, pf);
 							for (String s : parts) {
-								buffer.append(s).append(separator);
+								buffer.append(separator).append(s);
 								separator = " ";
 							}
 						}

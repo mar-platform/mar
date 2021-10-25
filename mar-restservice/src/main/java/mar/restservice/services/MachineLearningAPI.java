@@ -17,7 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import mar.MarConfiguration;
-import mar.model2text.Utils;
+import mar.model2text.Model2TextUtils;
 import mar.restservice.services.SearchOptions.ModelType;
 import spark.Request;
 import spark.Response;
@@ -49,7 +49,7 @@ public class MachineLearningAPI extends AbstractService {
 		
 		MarConfiguration config = getConfiguration(ModelType.ecore);
 		
-		String text = Utils.model2document(r, config.getPathComputation().getFilter(), config.getPathComputation().getPathFactory());
+		String text = Model2TextUtils.model2document(r, config.getPathComputation().getFilter(), config.getPathComputation().getPathFactory());
 		
 		String category = invokeService(text, "category");
 		String tags = invokeService(text, "tags");

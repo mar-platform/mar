@@ -9,7 +9,7 @@ import org.apache.lucene.document.TextField;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.model2graph.IMetaFilter;
-import mar.model2text.Utils;
+import mar.model2text.Model2TextUtils;
 import mar.paths.PathFactory;
 
 public class LuceneUtils {
@@ -20,7 +20,7 @@ public class LuceneUtils {
 	
 	public static Document model2document(String id, String type, Resource r,  IMetaFilter mf, PathFactory pf) {
 		
-		String content = Utils.model2document(r, mf, pf);
+		String content = Model2TextUtils.model2document(r, mf, pf);
 		
 		Document document = new Document();
 		
@@ -36,7 +36,7 @@ public class LuceneUtils {
 	}
 
 	public static List<String> applyTokSwStem(String searchQuery, PathFactory pf) {
-		return Utils.applyTokSwStem(searchQuery, pf);
+		return Model2TextUtils.applyTokSwStem(searchQuery, pf);
 	}
 		
 }
