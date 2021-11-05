@@ -9,11 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.POST;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
-import io.swagger.annotations.ApiOperation;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import mar.MarConfiguration;
@@ -34,8 +32,6 @@ public class MachineLearningAPI extends AbstractService {
 	
 	private static final String INFERENCE_URL = "http://localhost:5000/";
 	
-	@POST
-	@ApiOperation(value = "Infer category and tags for a given model", nickname="classify")
 	public Object classify(Request req, Response res) throws IOException, InvalidMarRequest {
 		//String type = req.queryParams("type");
 		//if (type == null) {

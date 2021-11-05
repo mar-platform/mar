@@ -17,8 +17,6 @@ import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -27,14 +25,7 @@ import org.apache.lucene.search.TopDocs;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
-import mar.indexer.common.configuration.ModelLoader;
 import mar.indexer.lucene.core.LuceneUtils;
 import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
@@ -44,16 +35,13 @@ import mar.renderers.ecore.EcorePlantUMLRenderer;
 import mar.renderers.uml.UmlPlantUMLRenderer;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.HBaseLog;
-import mar.restservice.HBaseModelAccessor;
 import mar.restservice.HBaseStats;
 import mar.restservice.services.SearchOptions.ModelType;
-import mar.restservice.swagger.SwaggerParser;
+import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
+import spark.template.freemarker.FreeMarkerEngine;
 
-@Api
-@Path("/v1/search")
-@Produces("application/json")
 public class API extends AbstractService {
 	@NonNull
 	private final HBaseStats stats = new HBaseStats();
@@ -76,7 +64,7 @@ public class API extends AbstractService {
         post("/v1/search/example", this::searchList);
         get("/v1/search/metadata", this::metadata);
         
-        get("/v1/search/swagger", this::swagger);
+        get("/openapi", this::swagger, new FreeMarkerEngine());
 
         new AnalysisAPI(configuration).configure();
         new MachineLearningAPI(configuration).configure();
@@ -85,13 +73,9 @@ public class API extends AbstractService {
 	}
 	
 	// Build swagger json description
-	public Object swagger(Request req, Response res) throws IOException, ServletException {
-		try {
-			String json = SwaggerParser.getSwaggerJson("mar.restservice.services");
-			return json;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}		
+	public ModelAndView swagger(Request req, Response res) throws IOException, ServletException {
+		// Return model and view
+		return new ModelAndView(null, "openapi.ftl");
 	}
 	
 	public Object textSearch(Request req, Response res) throws IOException, ServletException {
@@ -186,13 +170,13 @@ public class API extends AbstractService {
 	}
 
 	@GET
-	@ApiOperation(value = "Gets the metadata associated to a given model", nickname="metadata")
-	@ApiImplicitParams({ //
-			@ApiImplicitParam(required = true, dataType="string", name="id", paramType = "header")
-	}) //
-	@ApiResponses({
-		@ApiResponse(code = 404, message = "Model not found") /* , response=ApiError.class) */
-	})
+//	@ApiOperation(value = "Gets the metadata associated to a given model", nickname="metadata")
+//	@ApiImplicitParams({ //
+//			@ApiImplicitParam(required = true, dataType="string", name="id", paramType = "header")
+//	}) //
+//	@ApiResponses({
+//		@ApiResponse(code = 404, message = "Model not found") /* , response=ApiError.class) */
+//	})
 	public Object metadata(Request req, Response res) throws IOException, InvalidMarRequest {
 		String id = req.queryParams("id");
 		if (id == null) {

@@ -17,7 +17,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 
-import io.swagger.annotations.ApiOperation;
 import mar.analysis.smells.Smell;
 import mar.analysis.smells.ecore.EcoreSmellCatalog;
 import spark.Request;
@@ -34,8 +33,6 @@ public class AnalysisAPI extends AbstractService {
 		post("/v1/analysis/smells", this::smells);
 	}
 
-	@POST
-	@ApiOperation(value = "Compute smells of a given model", nickname="smells")
 	public Object smells(Request req, Response res) throws IOException, InvalidMarRequest {
 		// String model = SearchOptions.getUploadedFile(req);
 		String model = req.body();

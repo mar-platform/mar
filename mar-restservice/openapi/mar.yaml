@@ -1,0 +1,94 @@
+openapi: "3.0.1"
+info:
+  version: "1.0.0"
+  title: MAR API
+  description: MAR offers several MDE related services
+  #termsOfService: https://mar-search.org/terms
+  contact:
+    name: Jesús Sánchez Cuadrado
+    url: https://models-lab.github.io
+    email: jesusc@um.es
+  license:
+    name: Apache 2.0
+    url: https://opensource.org/licenses/Apache-2.0
+    
+paths:
+  /v1/search/example:
+    post:
+      summary: Example-based search
+      description: > 
+        Takes an example model and search for other models of the same
+        type which has similar features as the example model.
+      parameters:
+        - in: query
+          name: type
+          required: true
+          description: "The type of the model. Can be: ecore, uml, etc..." 
+          schema:
+            type: string
+        - in: query
+          name: syntax
+          required: false
+          description: "The format of the model: xmi, emfatic" 
+          schema:
+            type: string
+          
+      requestBody:
+        description: A model serialized in the format specified in the syntax parameter or XMI by default
+        required: true
+        content:
+          text/plain: 
+            schema:
+              type: string           
+
+      responses:
+        '200':
+          description: A list of models
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfResultItem'
+
+  /v1/search/keyword:
+    post:
+      summary: Keyword-based search
+      description: >
+        Given one or more keyword separated by spaces
+        it returns a list of models containing one or more of
+        these keywords.
+      requestBody:
+        description: A list of keywords separated by spaces
+        required: true
+        content:
+          text/plain: 
+            schema:
+              type: string           
+      responses:
+        '200':
+          description: A list of models
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfResultItem'          
+      
+
+components:
+  schemas:
+    ArrayOfResultItem:
+      type: array
+      items:
+        $ref: '#/components/schemas/ResultItem'          
+      
+    ResultItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier given by MAR to this model
+        name:
+          type: string
+          description: The file name  
+      example:
+        id: github:ecore:/jesusc/examples/mymodel.ecore
+        name: mymodel.ecore
+                

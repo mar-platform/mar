@@ -3,10 +3,7 @@ package mar.restservice;
 import java.io.IOException;
 
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
 
 import mar.spark.indexer.TableNameUtils;
 
