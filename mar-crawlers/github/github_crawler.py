@@ -83,7 +83,7 @@ def save_file(f, c, output_folder, writer = None):
     f : FileContents object
     c : A cursor
     """
-    name = f.repository.full_name                   
+    name = f.repository.full_name
     model_id = os.path.join(name, f.path)
     fname = os.path.join("data", name, f.path)
     if common.model_already_exists(model_id, c):
@@ -213,6 +213,48 @@ def process_single_files(file_list, output_folder):
                     api_wait_search2(g)                
         except github.GithubException as e:
             print("Repo for ", file, " not found")
+
+def check_single_files(file_list, writer):    
+    for file in file_list:
+        parts = file.split("/")
+        if len(parts) < 3:
+            continue
+
+        attempts = 0
+        try:
+            repo = g.get_repo(parts[0] + "/" + parts[1])
+            if (parts[0] + "/" + parts[1] != repo.full_name):
+                print("Rename: ", file, ". ", parts[0] + "/" + parts[1], " => ", repo.full_name)
+                writer.writerow([file, "Rename", repo.full_name])
+                continue
+
+            rest = parts[2:]
+            path = "/".join(rest)
+            while attempts < 3:
+                try:
+                    contents_file = repo.get_contents(path)
+                    attempts = 0
+                    break
+                except github.GithubException as exception:
+                    if exception.status == 404:
+                        print("FileNotFound: ", file)
+                        writer.writerow([file, "FileNotFound"])                        
+                        continue
+                    else:
+                        attempts += 1
+                        traceback.print_exc()
+                        api_wait_search2(g)
+                    
+            if attempts >= 3:
+                print("FileNotFound: ", file)
+                writer.writerow([file, "FileNotFound"])
+            else:
+                print("Found: ", file)
+                writer.writerow([file, "Found"])
+                
+        except github.GithubException as e:
+            print("RepoNotFound: ", file)
+            writer.writerow([file, "RepotNotFound"])            
             
                     
 def parse_args():
@@ -225,13 +267,24 @@ def parse_args():
     parser.add_argument('--step', dest='step', action='store', type=int,
                    default=5,
                    help='step')
-    parser.add_argument('--filelist', dest='files', action='store', type=str,
-                   default=None,
-                   help='file list')
 
     args = parser.parse_args()
 
     return args
-    
+
+def parse_args_files():
+    parser = argparse.ArgumentParser(description='Download files from github.')
+    parser.add_argument('output', metavar='OUTPUT_FOLDER', type=str,
+                   help='output folder to store the downloaded files')
+    parser.add_argument('--filelist', dest='files', action='store', type=str,
+                   default=None,
+                   help='file list')
+    parser.add_argument('--check', dest='check', action='store_true',
+                   help='check if files exist')
+
+    args = parser.parse_args()
+
+    return args
+
 
 # uses dates for filtering: https://github.com/PyGithub/PyGithub/issues/824
