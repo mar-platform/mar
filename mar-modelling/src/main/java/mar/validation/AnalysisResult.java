@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import mar.validation.AnalysisDB.Status;
@@ -33,10 +34,13 @@ import mar.validation.AnalysisDB.Status;
  */
 public class AnalysisResult {
 
+	@JsonProperty
 	private final String modelId;
 	private final Status status;
+	@JsonProperty
 	private Map<String, Integer> stats;
 	private Map<String, List<String>> metadata;
+	@JsonProperty
 	private String jsonMetadata;
 
 	public AnalysisResult(@Nonnull String modelId, @Nonnull Status status) {

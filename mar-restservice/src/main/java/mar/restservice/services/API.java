@@ -43,7 +43,7 @@ public class API extends AbstractAPI {
 	@NonNull
 	private final HBaseLog hbaseLog = new HBaseLog();
 	@Nonnull
-	private final SearchService searchService;	
+	private final SearchService searchService;
 	
 	public API(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);
@@ -119,13 +119,13 @@ public class API extends AbstractAPI {
     
     public double computeMRank(ResultItem item, Map<? extends String, Double> mrank){
     	double total = Math.log(item.getScore() + 1) + mrank.get("similarity");
-    	for (Entry<? extends String, Integer> entry : item.getMetadata().getSmells().entrySet()) {
+    	for (Entry<? extends String, List<String>> entry : item.getMetadata().getSmells().entrySet()) {
     		String smellId = entry.getKey();
     		Double smellWeight = mrank.get(smellId);
     		if (smellWeight == null)
     			continue;
     		
-    		double value = entry.getValue();
+    		double value = entry.getValue().size();
     		total = total + Math.log(value + 1) * smellWeight;
 		}	
     	return total;
