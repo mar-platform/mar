@@ -36,6 +36,11 @@ public class SingleGenMyModelBPMNValidator extends SingleEMFFileAnalyser {
 	public static class Factory implements ResourceAnalyser.Factory {
 
 		@Override
+		public String getId() {
+			return ID;
+		}
+		
+		@Override
 		public void configureEnvironment() {
 			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
 			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
@@ -45,11 +50,7 @@ public class SingleGenMyModelBPMNValidator extends SingleEMFFileAnalyser {
 		public ISingleFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
 			return new SingleGenMyModelBPMNValidator();
 		}				
-		
-		@Override
-		public ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options) {
-			return new AnalysisClient(ID, options);
-		}
+
 	}
 		
 	@Override

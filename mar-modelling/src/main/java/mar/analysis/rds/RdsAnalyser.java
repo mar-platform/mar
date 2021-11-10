@@ -30,8 +30,8 @@ public class RdsAnalyser extends SingleEMFFileAnalyser {
 		}				
 		
 		@Override
-		public ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options) {
-			return new AnalysisClient(ID, options);
+		public String getId() {
+			return ID;
 		}
 	}
 	

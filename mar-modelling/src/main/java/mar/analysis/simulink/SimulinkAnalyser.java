@@ -8,11 +8,9 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.models.simulink.SimulinkLoader;
 import mar.validation.IFileInfo;
-import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 import mar.validation.SingleEMFFileAnalyser;
-import mar.validation.server.AnalysisClient;
 
 public class SimulinkAnalyser extends SingleEMFFileAnalyser {
 
@@ -28,11 +26,11 @@ public class SimulinkAnalyser extends SingleEMFFileAnalyser {
 		@Override
 		public SimulinkAnalyser newAnalyser(@CheckForNull OptionMap options) {
 			return new SimulinkAnalyser();
-		}				
+		}
 		
 		@Override
-		public ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options) {
-			return new AnalysisClient(ID, options);
+		public String getId() {
+			return ID;
 		}
 	}
 	

@@ -23,14 +23,14 @@ import mar.analysis.thrift.InvalidOperation;
 import mar.analysis.thrift.Result;
 import mar.analysis.thrift.ValidateService;
 import mar.analysis.thrift.ValidationJob;
+import mar.ingestion.IngestedMetadata;
 import mar.validation.AnalysisDB.Status;
 import mar.validation.AnalysisMetadataDocument;
 import mar.validation.AnalysisResult;
 import mar.validation.IFileInfo;
-import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 
-public class AnalysisClient implements ISingleFileAnalyser.Remote {
+public class AnalysisClient implements AutoCloseable {
 
 	private static final int TIMEOUT_MS = 45 * 1000;
 
@@ -42,21 +42,17 @@ public class AnalysisClient implements ISingleFileAnalyser.Remote {
 	private final Set<ServerProcess> runningServers = Collections.newSetFromMap(new ConcurrentHashMap<ServerProcess, Boolean>());
 	
 	@Nonnull
-	private final String type;
-	@Nonnull
 	private final OptionMap options;
 	
-	public AnalysisClient(@Nonnull String type, @CheckForNull OptionMap options) {
-		this.type = type;
+	public AnalysisClient(@CheckForNull OptionMap options) {
 		this.options = options;
 	}
 
-	public AnalysisClient(@Nonnull String type) {
-		this(type, null);
+	public AnalysisClient() {
+		this(null);
 	}
 
-	@Override
-	public AnalysisResult analyse(IFileInfo f) {
+	public AnalysisResult analyse(IFileInfo f, String type) {
 		ServerProcess process = checkOrRestartServer();
 		
 		try {
@@ -103,6 +99,19 @@ public class AnalysisClient implements ISingleFileAnalyser.Remote {
 			}
 			throw new RuntimeException(e);
 		}	
+	}
+	
+	private void addIngestedMetadata(IFileInfo origin, @CheckForNull AnalysisMetadataDocument document) {
+		if (document == null) 
+			return;
+		if (! (origin instanceof IngestedMetadata))
+			return;
+				
+		IngestedMetadata metadata = (IngestedMetadata) origin;
+		
+		document.setURL(metadata.getURL());
+		document.setTopics(metadata.getTopics());
+		document.setExplicitName(metadata.getExplicitName());
 	}
 	
 	@Override

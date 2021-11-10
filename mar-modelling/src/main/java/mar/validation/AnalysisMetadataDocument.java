@@ -16,6 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import mar.analysis.smells.Smell;
+
 /**
  * 
  * @author jesus
@@ -23,8 +25,9 @@ import com.google.gson.GsonBuilder;
  */
 public class AnalysisMetadataDocument {
 
+	// Smell and the list of model URIs with this smell
 	@JsonProperty 
-	private Map<String, Integer> smells = new HashMap<>();	
+	private Map<String, List<String>> smells = new HashMap<>();	
 	@JsonProperty
 	private String url;
 	@JsonProperty
@@ -48,12 +51,15 @@ public class AnalysisMetadataDocument {
 	}
 	
 	@Nonnull
-	public Map<? extends String, Integer> getSmells() {
+	public Map<? extends String, List<String>> getSmells() {
 		return smells;
 	}
 
-	public void addSmell(@Nonnull String smellName, @Nonnegative int size) {
-		smells.put(smellName, size);
+	public void addSmell(@Nonnull String smellName, @Nonnegative List<? extends Smell> smells) {
+		for (Smell smell : smells) {
+			List<String> uris = new ArrayList<>(smell.getSmellyObjectURIs());
+			this.smells.put(smellName, uris);
+		}
 	}
 	
 	@Nonnull

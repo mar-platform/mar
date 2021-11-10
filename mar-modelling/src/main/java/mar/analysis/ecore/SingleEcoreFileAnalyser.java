@@ -26,11 +26,9 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import mar.analysis.smells.Smell;
 import mar.analysis.smells.ecore.EcoreSmellCatalog;
 import mar.validation.AnalysisMetadataDocument;
-import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 import mar.validation.SingleEMFFileAnalyser;
-import mar.validation.server.AnalysisClient;
 
 public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 
@@ -45,14 +43,14 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		}
 		
 		@Override
+		public String getId() {
+			return ID;
+		}
+		
+		@Override
 		public SingleEcoreFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
 			return new SingleEcoreFileAnalyser();
 		}				
-		
-		@Override
-		public ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options) {
-			return new AnalysisClient(ID, options);
-		}
 	}
 
 	@Override
@@ -137,7 +135,7 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		Map<String, List<Smell>> smells = EcoreSmellCatalog.INSTANCE.detectSmells(r);
 		if (! smells.isEmpty()) {
 			smells.forEach((k, v) -> {
-				document.addSmell(k, v.size());
+				document.addSmell(k, v);
 			});
 		}
 		

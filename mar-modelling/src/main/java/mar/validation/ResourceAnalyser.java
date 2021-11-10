@@ -20,6 +20,9 @@ import org.apache.logging.log4j.Logger;
 import com.google.common.io.BaseEncoding;
 
 import mar.validation.AnalysisDB.Status;
+import mar.validation.ResourceAnalyser.OptionMap;
+import mar.validation.server.AnalysisClient;
+import mar.validation.server.RemoteModelAnalyser;
 
 /**
  * Analyse file resources against provided validators.
@@ -58,7 +61,7 @@ public class ResourceAnalyser implements AutoCloseable {
 	public static interface Factory {
 		public void configureEnvironment();
 		public ISingleFileAnalyser newAnalyser(@CheckForNull OptionMap options);
-		public ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options);
+		public String getId();
 		public default ISingleFileAnalyser newResilientAnalyser(@CheckForNull OptionMap options) {
 			return new ResilientAnalyser(newAnalyser(options));
 		}
@@ -74,6 +77,10 @@ public class ResourceAnalyser implements AutoCloseable {
 		public default ISingleFileAnalyser newResilientAnalyser() {
 			return newResilientAnalyser(null);
 		}		
+		
+		public default ISingleFileAnalyser newRemoteAnalyser(@CheckForNull OptionMap options) {
+			return new RemoteModelAnalyser(getId(), options);
+		}
 	}
 
 	public ResourceAnalyser(@Nonnull ISingleFileAnalyser analyser, @Nonnull IFileProvider fileProvider, @Nonnull File resultDB) {
