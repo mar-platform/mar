@@ -70,6 +70,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArrayOfResultItem'          
+
+  /v1/analysis:
+    post:
+      summary: Model analysis
+      description: >
+        Given a model, this service loads the model, compute
+        basic stats and analyse smells.
+      requestBody:
+        description: A model in the proper format according to its type, normally XMI.
+        required: true
+        content:
+          text/plain: 
+            schema:
+              type: string           
+      responses:
+        '200':
+          description: Information about the model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo' 
       
 
 components:
@@ -91,4 +112,34 @@ components:
       example:
         id: github:ecore:/jesusc/examples/mymodel.ecore
         name: mymodel.ecore
+
+    ModelInfo:
+      type: object
+      properties:
+        modelId:
+          type: string
+          description: This can be ignored, no meaning for the moment since we don't store the models
+        status:
+          type: string
+          description: Can be VALID, INVALID, CRASHED
+        stats:
+          type: object
+          description: Basic stats about the model. Depends on the type of model.
+        jsonMetadata:
+          type: object
+          description: Additional information, includes smells.
+      example:
+        modelId: an_id_to_ignore
+        status: "VALID"
+        stats: 
+          elements: 41
+          references: 4
+          classes: 7
+          attributes: 7
+          packages: 1
+          enum: 1
+          datatypes: 0
+        jsonMetadata:
+          smells: 
+            IsolatedClassSmell: ["#//FaultyElement"]
                 
