@@ -38,6 +38,10 @@ public class AnalysisService {
 		// Not sure if this should be done here, all the time
 		factory.configureEnvironment();
 		
+		// Use this analyser to test locally
+		// ISingleFileAnalyser a = factory.newAnalyser();
+		// AnalysisResult result = a.analyse(new NormalFileInfo(f));
+		
 		AnalysisResult result = analyser.analyse(new NormalFileInfo(f), type.name());
 		return result;
 	}

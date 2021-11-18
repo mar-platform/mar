@@ -43,7 +43,7 @@ public class AnalysisAPI extends AbstractAPI {
 	public Object analysis(Request req, Response res) throws IOException, InvalidMarRequest {		
 		String model = req.body();
 		ModelType type = SearchOptions.getModelType(req);
-		File temp = File.createTempFile("uploaded-file", type.name());
+		File temp = File.createTempFile("uploaded-file", "." + type.name());
 		try {			
 			try (FileWriter writer = new FileWriter(temp)) {			
 				writer.append(model);
