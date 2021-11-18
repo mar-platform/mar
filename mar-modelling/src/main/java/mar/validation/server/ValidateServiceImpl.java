@@ -39,5 +39,5 @@ public class ValidateServiceImpl implements mar.analysis.thrift.ValidateService.
 		return new Result(r.getStatus().name(), r.getStats(), r.getMetadata()).
 				setMetadata_json(r.getJsonMetadata());
 	}
-
+	
 }
