@@ -6,7 +6,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.MarChatBotConfiguration;
 import mar.MarConfiguration;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
-import mar.indexer.lucene.core.Searcher;
+import mar.indexer.lucene.core.ITextSearcher;
 
 public interface IConfigurationProvider {
 
@@ -14,7 +14,7 @@ public interface IConfigurationProvider {
 	public MarConfiguration getConfiguration(@NonNull String modelType);
 
 	@Nonnull
-	public Searcher newSearcher();
+	public ITextSearcher newSearcher();
 
 	@Nonnull
 	public IndexJobConfigurationData getIndexJobConfiguration();

@@ -29,7 +29,7 @@ import mar.MarChatBotConfiguration;
 import mar.MarConfiguration;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.ModelLoader;
-import mar.indexer.lucene.core.Searcher;
+import mar.indexer.lucene.core.ITextSearcher;
 import mar.models.bpmn.BPMNLoader;
 import mar.restservice.emfatic.EmfaticReader;
 import mar.restservice.services.SearchOptions.ModelType;
@@ -39,7 +39,7 @@ import spark.Response;
 public abstract class AbstractAPI {
 
     private IConfigurationProvider configuration;
-	private Searcher textSearcher;
+	private ITextSearcher textSearcher;
 	
 	public AbstractAPI(IConfigurationProvider configuration) {
     	this.configuration = configuration;
@@ -51,7 +51,7 @@ public abstract class AbstractAPI {
 	}	
 	
 	@NonNull
-	protected Searcher getTextSearcher() {
+	protected ITextSearcher getTextSearcher() {
 		if (textSearcher == null)
 			textSearcher = configuration.newSearcher();
 		return textSearcher;

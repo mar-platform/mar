@@ -22,6 +22,12 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexNotFoundException;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TotalHits;
+import org.apache.lucene.search.TotalHits.Relation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -36,6 +42,7 @@ import mar.indexer.common.configuration.EnvironmentVariables.MAR;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.InvalidJobSpecification;
 import mar.indexer.common.configuration.SingleIndexJob;
+import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.Searcher;
 import mar.model2graph.AbstractPathComputation;
 import mar.model2graph.Model2GraphAllpaths;
@@ -207,10 +214,24 @@ public class Main implements IConfigurationProvider {
 	}
 	
 	@Override
-	public Searcher newSearcher() {
+	public ITextSearcher newSearcher() {
 		try {
 			File dbFolder = new File(EnvironmentVariables.getVariable(MAR.INDEX_TARGET));
 			return new Searcher(Paths.get(dbFolder.getAbsolutePath(), "lucene").toString());
+		} catch (IndexNotFoundException e) {
+			System.err.println("No index available: " + e.getMessage());
+			return new ITextSearcher() {
+				@Override
+				public TopDocs topDocs(String searchQuery, PathFactory pf)
+						throws org.apache.lucene.queryparser.classic.ParseException, IOException {
+					return new TopDocs(new TotalHits(0, Relation.EQUAL_TO), new ScoreDoc[0]);
+				}
+
+				@Override
+				public Document getDoc(int doc) throws IOException {
+					throw new IllegalStateException();
+				}
+			};
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

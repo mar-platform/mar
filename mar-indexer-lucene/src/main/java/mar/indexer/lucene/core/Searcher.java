@@ -19,7 +19,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import mar.paths.PathFactory;
 
-public class Searcher {
+public class Searcher implements ITextSearcher {
 	
 	@Nonnull
 	private final IndexSearcher indexSearcher;
@@ -34,7 +34,7 @@ public class Searcher {
 		queryParser = new QueryParser(LuceneUtils.CONTENTS, new WhitespaceAnalyzer());
 	}
 	
-	@Nonnull
+	@Override
 	public TopDocs topDocs (@Nonnull String searchQuery, @Nonnull PathFactory pf) throws ParseException, IOException {
 		List<String> result = LuceneUtils.applyTokSwStem(searchQuery, pf);
 		
@@ -52,7 +52,8 @@ public class Searcher {
 		Query query = queryParser.parse(queryResult);
 		return indexSearcher.search(query, 1000);
 	}
-	
+
+	@Override
 	public Document getDoc(int doc) throws IOException {
 		return indexSearcher.doc(doc);
 	}

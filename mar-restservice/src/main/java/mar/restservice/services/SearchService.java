@@ -11,6 +11,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
+import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.LuceneUtils;
 import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
@@ -26,9 +27,9 @@ import mar.restservice.HBaseGetInfo;
 public class SearchService {
 
 	@Nonnull
-	private final Searcher textSearcher;
+	private final ITextSearcher textSearcher;
 
-	public SearchService(@Nonnull Searcher textSearcher) {
+	public SearchService(@Nonnull ITextSearcher textSearcher) {
 		this.textSearcher = textSearcher;
 	}
 
