@@ -18,7 +18,7 @@ public class RemoteModelAnalyser extends AnalysisClient implements ISingleFileAn
 	private final String type;
 
 	public RemoteModelAnalyser(String type, OptionMap options) {
-		super(options);
+		super(AnalysisClient.DEFAULT_INITIAL_PORT, options);
 		this.type = type;
 	}
 	

@@ -28,7 +28,7 @@ public abstract class SandboxClient implements AutoCloseable {
 	private static final int TIMEOUT_MS = 45 * 1000;
 
 	// Counters for new ports
-	private final AtomicInteger availablePorts = new AtomicInteger(9081);
+	private final AtomicInteger availablePorts;
 	// Each analysing thread holds its own ServerProcess.
 	private final ThreadLocal<ServerProcess> serverProcess = ThreadLocal.withInitial(this::newProcess);
 	// Aggregate all processes here so that we can stop them
@@ -37,6 +37,10 @@ public abstract class SandboxClient implements AutoCloseable {
 	@FunctionalInterface
 	protected static interface Invoker<T> {
 		public T invoke(TProtocol protocol) throws TException;
+	}
+	
+	public SandboxClient(int initalPort) {
+		this.availablePorts = new AtomicInteger(initalPort);
 	}
 	
 	protected <T> T invokeService(Invoker<T> invoker, Supplier<T> onTimeOut) {

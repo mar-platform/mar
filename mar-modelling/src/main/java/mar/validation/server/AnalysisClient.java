@@ -19,15 +19,18 @@ import mar.validation.ResourceAnalyser.OptionMap;
 
 public class AnalysisClient extends SandboxClient {
 	
+	public static final int DEFAULT_INITIAL_PORT = 9081;
+	
 	@Nonnull
 	private final OptionMap options;
 	
-	public AnalysisClient(@CheckForNull OptionMap options) {
+	public AnalysisClient(int initialPort, @CheckForNull OptionMap options) {
+		super(initialPort);
 		this.options = options;
 	}
 
 	public AnalysisClient() {
-		this(null);
+		this(DEFAULT_INITIAL_PORT, null);
 	}
 	
 	@Nonnull
