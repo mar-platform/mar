@@ -58,9 +58,9 @@ public class API extends AbstractAPI {
         get("/render/diagram", this::doRender);
         get("/render", this::doRender);
         
-        post("/v1/search/keyword", this::textSearch);
-        post("/v1/search/example", this::searchList);
-        get("/v1/search/metadata", this::metadata);
+        post("/search/keyword", this::textSearch);
+        post("/search/example", this::searchList);
+        get("/search/metadata", this::metadata);
         
         get("/openapi", this::swagger, new FreeMarkerEngine());
 

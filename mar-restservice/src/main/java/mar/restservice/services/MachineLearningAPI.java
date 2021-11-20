@@ -27,7 +27,7 @@ public class MachineLearningAPI extends AbstractAPI {
 	}
 
 	public void configure() {	       
-		post("/v1/analysis/classify", this::classify);
+		post("/analysis/classify", this::classify);
 	}
 	
 	private static final String INFERENCE_URL = "http://localhost:5000/";

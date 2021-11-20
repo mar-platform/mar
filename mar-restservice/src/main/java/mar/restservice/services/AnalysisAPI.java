@@ -34,8 +34,8 @@ public class AnalysisAPI extends AbstractAPI {
 	}
 
 	public void configure() {	       
-		post("/v1/analysis", this::analysis);
-		post("/v1/analysis/smells", this::smells);
+		post("/analysis", this::analysis);
+		post("/analysis/smells", this::smells);
 	}
 
 	public Object analysis(Request req, Response res) throws IOException, InvalidMarRequest {		
