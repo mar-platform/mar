@@ -30,9 +30,8 @@ public class TransformationAPI extends AbstractAPI {
 	
 	public Object ecoreToEmfatic(Request req, Response res) throws IOException, InvalidMarRequest {		
 		String model = req.body();
-		ModelType type = SearchOptions.getModelType(req);
-		try (ModelDumper dumper = new ModelDumper(model, type)) {
-			return service.transformEcoreToEmfatic(dumper.getFile(), type);
+		try (ModelDumper dumper = new ModelDumper(model, ModelType.ecore)) {
+			return service.transformEcoreToEmfatic(dumper.getFile());
 		}
 	}
 }

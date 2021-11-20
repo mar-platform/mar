@@ -39,14 +39,14 @@ public class TransformationService {
 		this.analysis = service;
 	}
 	
-	public String transformEcoreToEmfatic(File f, ModelType type) throws IOException {
+	public String transformEcoreToEmfatic(File f) throws IOException {
 		if (analysis != null) {
-			AnalysisResult r = analysis.analyse(f, type);
+			AnalysisResult r = analysis.analyse(f, ModelType.ecore);
 			if (r.getStatus() == Status.CRASHED)
 				return null;
 		}
 		
-		Factory factory = AnalyserRegistry.INSTANCE.getFactory(type.name());
+		Factory factory = AnalyserRegistry.INSTANCE.getFactory(ModelType.ecore.name());
 		ILoader loader = factory.newLoader();
 		Resource res = loader.toEMF(f);
 		
