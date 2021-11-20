@@ -3,8 +3,6 @@ package mar.restservice.services;
 import static spark.Spark.post;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,15 +41,9 @@ public class AnalysisAPI extends AbstractAPI {
 	public Object analysis(Request req, Response res) throws IOException, InvalidMarRequest {		
 		String model = req.body();
 		ModelType type = SearchOptions.getModelType(req);
-		File temp = File.createTempFile("uploaded-file", "." + type.name());
-		try {			
-			try (FileWriter writer = new FileWriter(temp)) {			
-				writer.append(model);
-			}
-			AnalysisResult result = analysisService.analyse(temp, type);
-			return toJson(res, result);
-		} finally {
-			temp.delete();
+		try (ModelDumper dumper = new ModelDumper(model, type)) {
+			AnalysisResult result = analysisService.analyse(dumper.getFile(), type);
+			return toJson(res, result);			
 		}
 	}
 	

@@ -26,6 +26,7 @@ import mar.renderers.PlantUmlCollection;
 import mar.renderers.PlantUmlCollection.PlantUmlImage;
 import mar.renderers.ecore.EcorePlantUMLRenderer;
 import mar.renderers.uml.UmlPlantUMLRenderer;
+import mar.rest.api.TransformationAPI;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.HBaseLog;
 import mar.restservice.HBaseStats;
@@ -64,6 +65,7 @@ public class API extends AbstractAPI {
         get("/openapi", this::swagger, new FreeMarkerEngine());
 
         new AnalysisAPI(configuration).configure();
+        new TransformationAPI(configuration).configure();
         new MachineLearningAPI(configuration).configure();
         
         get("/status", this::doStatus);
