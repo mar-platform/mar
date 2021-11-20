@@ -15,7 +15,7 @@ public class SculptorLoaderTest {
 	public void testLoad() {
 		File file = TestUtils.getExternalResource("sculptor", "IcelyFramework/model.btdesign");
 		SculptorLoader loader = new SculptorLoader();
-		Resource r = loader.load(file);
+		Resource r = loader.toEMF(file);
 		
 		assertEquals(1, r.getContents().size());
 	}

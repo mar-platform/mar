@@ -17,7 +17,7 @@ public class LilypondLoaderTest {
 		File file = TestUtils.getExternalResource("lilypond", "lilyinstarlight/we-are-the-champions.ly");
 		
 		LilypondLoader loader = new LilypondLoader();
-		Resource r = loader.load(file);
+		Resource r = loader.toEMF(file);
 		
 		assertEquals(1, r.getContents().size());
 	}

@@ -19,9 +19,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.io.BaseEncoding;
 
+import mar.modelling.loader.ILoader;
 import mar.validation.AnalysisDB.Status;
-import mar.validation.ResourceAnalyser.OptionMap;
-import mar.validation.server.AnalysisClient;
 import mar.validation.server.RemoteModelAnalyser;
 
 /**
@@ -61,6 +60,7 @@ public class ResourceAnalyser implements AutoCloseable {
 	public static interface Factory {
 		public void configureEnvironment();
 		public ISingleFileAnalyser newAnalyser(@CheckForNull OptionMap options);
+		public ILoader newLoader();
 		public String getId();
 		public default ISingleFileAnalyser newResilientAnalyser(@CheckForNull OptionMap options) {
 			return new ResilientAnalyser(newAnalyser(options));

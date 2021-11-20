@@ -15,6 +15,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
 import mar.analysis.rds.RdsLoader;
+import mar.analysis.uml.UMLLoader;
 import mar.models.archimate.ArchimateLoader;
 import mar.models.bpmn.BPMNLoader;
 import mar.models.elysium.LilypondLoader;
@@ -35,15 +36,8 @@ public enum ModelLoader {
 	
 	UML {
 		@Override
-		public Resource load(File file) {
-			UMLResourceFactoryImpl factory = new UMLResourceFactoryImpl();
-			Resource r = factory.createResource(URI.createFileURI(file.getAbsolutePath()));
-			try {
-				r.load(null);
-			} catch (IOException e1) {
-				throw new RuntimeException(e1);
-			}
-			return r;
+		public Resource load(File file) throws IOException {
+			return new UMLLoader().toEMF(file);
 		}
 	},
 	
@@ -51,7 +45,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			BPMNLoader loader = new BPMNLoader();
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 	
@@ -59,7 +53,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			PnmlLoader loader = new PnmlLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 	
@@ -67,7 +61,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			SculptorLoader loader = new SculptorLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 	
@@ -75,7 +69,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			ArchimateLoader loader = new ArchimateLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 
@@ -83,7 +77,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			LilypondLoader loader = new LilypondLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 
@@ -91,7 +85,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			XtextLoader loader = new XtextLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 	
@@ -99,7 +93,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			SimulinkLoader loader = new SimulinkLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	},
 	
@@ -107,7 +101,7 @@ public enum ModelLoader {
 		@Override
 		public Resource load(File file) throws IOException {
 			RdsLoader loader = new RdsLoader();			
-			return loader.load(file);
+			return loader.toEMF(file);
 		}
 	};
 

@@ -9,11 +9,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 
-import fr.lip6.move.pnml.framework.general.PNType;
 import fr.lip6.move.pnml.framework.hlapi.HLAPIRootClass;
 import fr.lip6.move.pnml.framework.utils.PNMLUtils;
 import fr.lip6.move.pnml.framework.utils.exception.ImportException;
 import fr.lip6.move.pnml.framework.utils.exception.InvalidIDException;
+import mar.modelling.loader.ILoader;
 
 /**
  * 
@@ -22,9 +22,10 @@ import fr.lip6.move.pnml.framework.utils.exception.InvalidIDException;
  * @author jesus
  *
  */
-public class PnmlLoader {
+public class PnmlLoader implements ILoader {
 
-	public Resource load(@Nonnull File f) {
+	@Override
+	public Resource toEMF(@Nonnull File f) {
 		try {
 			// Load the document. No fall back to any compatible type (false).
 			// Fall back takes place between an unknown Petri Net type and the CoreModel.

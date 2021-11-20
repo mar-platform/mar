@@ -12,7 +12,9 @@ import org.elysium.LilyPondStandaloneSetupGenerated;
 
 import com.google.inject.Injector;
 
-public class LilypondLoader {
+import mar.modelling.loader.ILoader;
+
+public class LilypondLoader implements ILoader {
 
 	@CheckForNull
 	private static Injector injector = null;
@@ -23,8 +25,8 @@ public class LilypondLoader {
 		return injector;
 	}
 	
-	@Nonnull
-	public Resource load(@Nonnull File f) {
+	@Override
+	public Resource toEMF(@Nonnull File f) {
 		Injector injector = getInjector();
 		XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
 		Resource resource = resourceSet.getResource(URI.createFileURI(f.getAbsolutePath()), true);

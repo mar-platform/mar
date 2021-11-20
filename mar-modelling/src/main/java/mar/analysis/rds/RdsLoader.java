@@ -14,7 +14,9 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 
-public class RdsLoader {
+import mar.modelling.loader.ILoader;
+
+public class RdsLoader implements ILoader {
 	private static EPackage rdsPackage;
 	
 	public EPackage loadPackage() {
@@ -24,8 +26,8 @@ public class RdsLoader {
 		return rdsPackage;
 	}
 	
-	@Nonnull
-	public Resource load(@Nonnull File f) {
+	@Override
+	public Resource toEMF(@Nonnull File f) {
 		EPackage pkg = loadPackage();
 		ResourceSet rs = new ResourceSetImpl();
 		rs.getPackageRegistry().put(pkg.getNsURI(), pkg);
@@ -48,4 +50,5 @@ public class RdsLoader {
 			throw new RuntimeException(e);
 		}
 	}
+
 }

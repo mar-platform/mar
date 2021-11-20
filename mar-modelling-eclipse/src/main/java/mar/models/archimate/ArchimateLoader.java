@@ -12,10 +12,12 @@ import org.eclipse.emf.ecore.resource.Resource;
 import com.archimatetool.model.impl.ArchimatePackage;
 import com.archimatetool.model.util.ArchimateXMLProcessor;
 
-public class ArchimateLoader {
+import mar.modelling.loader.ILoader;
+
+public class ArchimateLoader implements ILoader {
 	
-	@Nonnull
-	public Resource load(@Nonnull File f) throws IOException {
+	@Override
+	public Resource toEMF(@Nonnull File f) throws IOException {
 		String uri = ArchimatePackage.eINSTANCE.getNsURI();
 		if (EPackage.Registry.INSTANCE.containsKey(uri)) {
 			EPackage.Registry.INSTANCE.put(uri, ArchimatePackage.eINSTANCE);

@@ -12,6 +12,8 @@ import org.sculptor.dsl.SculptordslStandaloneSetup;
 
 import com.google.inject.Injector;
 
+import mar.modelling.loader.ILoader;
+
 /**
  * 
  * Doc: https://dev.lip6.fr/trac/research/ISOIEC15909/wiki/English/User/Import
@@ -19,7 +21,7 @@ import com.google.inject.Injector;
  * @author jesus
  *
  */
-public class SculptorLoader {
+public class SculptorLoader implements ILoader {
 
 	@CheckForNull
 	private static Injector injector = null;
@@ -30,8 +32,8 @@ public class SculptorLoader {
 		return injector;
 	}
 	
-	@Nonnull
-	public Resource load(@Nonnull File f) {
+	@Override
+	public Resource toEMF(@Nonnull File f) {
 		Injector injector = getInjector();
 		XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
 		Resource resource = resourceSet.getResource(URI.createFileURI(f.getAbsolutePath()), true);

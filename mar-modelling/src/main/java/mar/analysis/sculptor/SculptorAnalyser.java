@@ -6,13 +6,12 @@ import javax.annotation.CheckForNull;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
+import mar.modelling.loader.ILoader;
 import mar.models.pnml.SculptorLoader;
 import mar.validation.IFileInfo;
-import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 import mar.validation.SingleEMFFileAnalyser;
-import mar.validation.server.AnalysisClient;
 
 public class SculptorAnalyser extends SingleEMFFileAnalyser {
 
@@ -34,12 +33,17 @@ public class SculptorAnalyser extends SingleEMFFileAnalyser {
 		public String getId() {
 			return ID;
 		}
+
+		@Override
+		public ILoader newLoader() {
+			return new SculptorLoader();
+		}
 	}
 	
 	@Override
 	protected Resource loadModel(IFileInfo f) throws IOException {
 		SculptorLoader loader = new SculptorLoader();
-		return loader.load(f.getFullFile());
+		return loader.toEMF(f.getFullFile());
 	}
 
 }

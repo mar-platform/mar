@@ -10,13 +10,13 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+import mar.modelling.loader.ILoader;
 import mar.models.bpmn.BPMNLoader;
 import mar.validation.IFileInfo;
 import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 import mar.validation.SingleEMFFileAnalyser;
-import mar.validation.server.AnalysisClient;
 
 /**
  * Validator of GenMyModel BPMN models.
@@ -49,12 +49,17 @@ public class SingleGenMyModelBPMNValidator extends SingleEMFFileAnalyser {
 		@Override
 		public ISingleFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
 			return new SingleGenMyModelBPMNValidator();
+		}
+
+		@Override
+		public ILoader newLoader() {
+			return new BPMNLoader();
 		}				
 
 	}
 		
 	@Override
 	protected Resource loadModel(IFileInfo f) throws IOException {
-		return loader.load(f.getFullFile());
+		return loader.toEMF(f.getFullFile());
 	}
 }

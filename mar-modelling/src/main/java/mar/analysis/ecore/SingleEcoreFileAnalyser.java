@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 import mar.analysis.smells.Smell;
 import mar.analysis.smells.ecore.EcoreSmellCatalog;
+import mar.modelling.loader.ILoader;
 import mar.validation.AnalysisMetadataDocument;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
@@ -50,6 +51,11 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		@Override
 		public SingleEcoreFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
 			return new SingleEcoreFileAnalyser();
+		}
+
+		@Override
+		public ILoader newLoader() {
+			return new EcoreLoader();
 		}				
 	}
 

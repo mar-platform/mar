@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 import mar.analysis.ecore.EcoreRepository;
+import mar.modelling.loader.ILoader;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Status;
 import mar.validation.AnalysisResult;
@@ -18,7 +19,6 @@ import mar.validation.IFileInfo;
 import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
-import mar.validation.server.AnalysisClient;
 
 public class XMIAnalyser implements ISingleFileAnalyser {
 
@@ -45,6 +45,11 @@ public class XMIAnalyser implements ISingleFileAnalyser {
 		@Override
 		public String getId() {
 			return ID;
+		}
+
+		@Override
+		public ILoader newLoader() {
+			return new XmiLoader();
 		}
 	}
 	

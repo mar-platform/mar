@@ -14,7 +14,9 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 
-public class SimulinkLoader {
+import mar.modelling.loader.ILoader;
+
+public class SimulinkLoader implements ILoader {
 
 	private static EPackage simulinkPackage;
 	
@@ -25,8 +27,8 @@ public class SimulinkLoader {
 		return simulinkPackage;
 	}
 	
-	@Nonnull
-	public Resource load(@Nonnull File f) {
+	@Override
+	public Resource toEMF(@Nonnull File f) {
 		EPackage pkg = loadPackage();
 		ResourceSet rs = new ResourceSetImpl();
 		rs.getPackageRegistry().put(pkg.getNsURI(), pkg);

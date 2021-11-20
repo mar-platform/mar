@@ -26,7 +26,10 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provider;
 
-public class XtextLoader {
+import mar.modelling.loader.ILoader;
+
+public class XtextLoader implements ILoader {
+	
 	@CheckForNull
 	private static Injector injector = null;
 	
@@ -39,7 +42,7 @@ public class XtextLoader {
 	}
 	    
 	@Nonnull
-	public Resource load(@Nonnull File f) throws IOException {
+	public Resource toEMF(@Nonnull File f) throws IOException {
 		List<EPackage> pkgs = extractMetamodel(f);
 		Resource res = new XMIResourceImpl(URI.createFileURI(f.getAbsolutePath() + ".ecore"));
 	    for (EPackage pkg : pkgs) {
@@ -50,8 +53,6 @@ public class XtextLoader {
 	
 	@Nonnull
 	public List<EPackage> extractMetamodel(@Nonnull File f) throws IOException {
-		if (f.getAbsolutePath().contains("BFlow.xtext"))
-			System.out.println("here");
 	    List<String> lines = Files.readAllLines(f.toPath());
 	    
 	    boolean hasGenerate = false;

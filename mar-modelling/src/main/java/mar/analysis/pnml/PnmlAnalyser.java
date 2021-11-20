@@ -6,6 +6,7 @@ import javax.annotation.CheckForNull;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
+import mar.modelling.loader.ILoader;
 import mar.models.pnml.PnmlLoader;
 import mar.validation.IFileInfo;
 import mar.validation.ResourceAnalyser;
@@ -32,12 +33,17 @@ public class PnmlAnalyser extends SingleEMFFileAnalyser {
 		public String getId() {
 			return ID;
 		}
+
+		@Override
+		public ILoader newLoader() {
+			return new PnmlLoader();
+		}
 	}
 	
 	@Override
 	protected Resource loadModel(IFileInfo f) throws IOException {
 		PnmlLoader loader = new PnmlLoader();
-		return loader.load(f.getFullFile());
+		return loader.toEMF(f.getFullFile());
 	}
 
 }

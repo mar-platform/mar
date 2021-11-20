@@ -16,7 +16,7 @@ public class ArchimateLoaderTest {
 	public void testLoad() throws IOException {
 		File file = TestUtils.getExternalResource("archimate", "alastria/Alastria.archimate");
 		ArchimateLoader loader = new ArchimateLoader();
-		Resource r = loader.load(file);
+		Resource r = loader.toEMF(file);
 		
 		assertEquals(1, r.getContents().size());
 	}

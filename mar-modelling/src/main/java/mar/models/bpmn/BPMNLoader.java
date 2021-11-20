@@ -15,9 +15,10 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 
+import mar.modelling.loader.ILoader;
 import mar.modelling.xmi.LooseLoadingXMIResource;
 
-public class BPMNLoader {
+public class BPMNLoader implements ILoader {
 
 	private static ResourceSet BPMN = null;
 
@@ -28,7 +29,8 @@ public class BPMNLoader {
 		return r;
 	}
 
-	public Resource load(@Nonnull File xmi) throws IOException {
+	@Override
+	public Resource toEMF(@Nonnull File xmi) throws IOException {
 		initBPMN();
 		LooseLoadingXMIResource r = new LooseLoadingXMIResource(URI.createFileURI(xmi.getAbsolutePath()));
 		r.load(new FileInputStream(xmi), null);

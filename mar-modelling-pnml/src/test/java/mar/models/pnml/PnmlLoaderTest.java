@@ -12,7 +12,7 @@ public class PnmlLoaderTest {
 	public void testLoad() {
 		File file = TestUtils.getExternalResource("pnml-documents", "philo.pnml");
 		PnmlLoader loader = new PnmlLoader();
-		loader.load(file);
+		loader.toEMF(file);
 	}
 
 }

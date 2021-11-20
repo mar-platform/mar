@@ -6,14 +6,12 @@ import javax.annotation.CheckForNull;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
-import mar.models.archimate.ArchimateLoader;
+import mar.modelling.loader.ILoader;
 import mar.models.elysium.LilypondLoader;
 import mar.validation.IFileInfo;
-import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 import mar.validation.SingleEMFFileAnalyser;
-import mar.validation.server.AnalysisClient;
 
 public class LilypondAnalyser extends SingleEMFFileAnalyser {
 
@@ -35,12 +33,17 @@ public class LilypondAnalyser extends SingleEMFFileAnalyser {
 		public String getId() {
 			return ID;
 		}
+
+		@Override
+		public ILoader newLoader() {
+			return new LilypondLoader();
+		}
 	}
 	
 	@Override
 	protected Resource loadModel(IFileInfo f) throws IOException {
 		LilypondLoader loader = new LilypondLoader();
-		return loader.load(f.getFullFile());
+		return loader.toEMF(f.getFullFile());
 	}
 
 }

@@ -28,12 +28,11 @@ import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.indexer.common.configuration.ModelLoader;
+import mar.modelling.loader.ILoader;
 import mar.validation.IFileInfo;
-import mar.validation.ISingleFileAnalyser;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
 import mar.validation.SingleEMFFileAnalyser;
-import mar.validation.server.AnalysisClient;
 
 public class UMLAnalyser extends SingleEMFFileAnalyser {
 
@@ -56,6 +55,11 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 		@Override
 		public String getId() {
 			return ID;
+		}
+
+		@Override
+		public ILoader newLoader() {
+			return new UMLLoader();
 		}
 
 	}
