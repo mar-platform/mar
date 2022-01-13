@@ -1,0 +1,34 @@
+version: "2.0"
+
+nlu:
+  - intent: greet
+    examples: |
+      - Hey
+      - Hi
+
+  - intent: i_want_to_search
+    examples: |
+      - I want to search [Ecore]{"entity": "model_type"} models
+      - I would like to search [Ecore]{"entity": "model_type"} models
+      - Do you have [UML]{"entity": "model_type"} models?
+      - I'm interested in [petri net]{"entity": "model_type"} models
+
+  - intent: search_a_topic
+    examples: |      
+      - Do you have models about [banks]{"entity": "keyword"}?
+      - I'm interested in models about [petri nets]{"entity": "keyword"}
+        
+
+# With lookup table    
+#      - I want to search [Ecore](model_type)
+#      - I would like to search [Ecore](model_type)
+#      - Do you have [UML](model_type) models?
+
+      
+#      - I would like to find interesting [Ecore]{"entity": type", "value": "model_types"} models
+#      - I want to search [Ecore]{"entity": "type", "value": "model_types"} models
+
+#  - lookup: model_type
+#    examples: |
+#      - ecore
+#      - uml

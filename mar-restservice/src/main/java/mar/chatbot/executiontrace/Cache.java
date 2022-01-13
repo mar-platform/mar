@@ -15,14 +15,14 @@ import mar.chatbot.elements.IElement;
 
 public class Cache {
 	
-	private LoadingCache<Integer, ExecutionGraph> cache;
+	private LoadingCache<Integer, Conversation> cache;
 	private AtomicInteger lastKey = new AtomicInteger(0);
 	
 	public Cache() {
-		CacheLoader<Integer, ExecutionGraph> cacheLoader = new CacheLoader<Integer, ExecutionGraph>() {
+		CacheLoader<Integer, Conversation> cacheLoader = new CacheLoader<Integer, Conversation>() {
 			@Override
-			public ExecutionGraph load(Integer arg0) throws Exception {
-				return new ExecutionGraph();
+			public Conversation load(Integer arg0) throws Exception {
+				return new Conversation();
 			}
 		};
 		cache = CacheBuilder.newBuilder()
@@ -33,19 +33,19 @@ public class Cache {
 	}
 	
 	public void addStep(Map<String, Double> results, IElement query, int key) {
-		ExecutionGraph graph = getGraph(key);
+		Conversation conversation = getConversation(key);
+		ExecutionGraph graph = conversation.getGraph();
 		graph.addStep(results, query);
-		cache.put(key, graph);
+		cache.put(key, conversation); // Is this needed??
 	}
 	
 	public ElementsSet getGlobalQuery(int key) {
-		ExecutionGraph graph = getGraph(key);
+		ExecutionGraph graph = getConversation(key).getGraph();
 		return graph.getGlobalQuery();
 	}
 	
-	public ExecutionGraph getGraph(int key) {
-		ExecutionGraph graph = cache.getUnchecked(key);
-		return graph;
+	public Conversation getConversation(int key) {
+		return cache.getUnchecked(key);
 	}
 	
 	public int getKey() {
@@ -57,6 +57,10 @@ public class Cache {
 			}
 		});
 		return key;
+	}
+
+	public boolean hasKey(int key) {
+		return cache.getIfPresent(key) != null;
 	}
 	
 }

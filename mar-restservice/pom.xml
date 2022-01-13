@@ -286,6 +286,12 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.11</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>io.github.arturkorb</groupId>
+			<artifactId>rasa-java-client-library</artifactId>
+			<version>0.2.0</version>
+		</dependency>
 
 		<!-- Swagger and Spark/Java: https://serol.ro/posts/2016/swagger_sparkjava/ -->
 		<dependency>

@@ -1,0 +1,12 @@
+version: "2.0"
+
+actions:
+  - action_show_global_stats
+
+entities:
+  - model_type
+  
+responses:
+   utter_greet:
+      - text: "Hi there! I'm here to help :-)"
+      
