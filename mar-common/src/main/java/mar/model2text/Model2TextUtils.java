@@ -41,7 +41,7 @@ public class Model2TextUtils {
 								List<String> parts = applyTokSwStem((String) object, pf);
 								for (String s: parts) {
 									buffer.append(separator).append(s);
-									separator = " ";
+									separator = "\n";
 								}
 							}
 						}
@@ -52,7 +52,7 @@ public class Model2TextUtils {
 							List<String> parts = applyTokSwStem((String) attribute, pf);
 							for (String s : parts) {
 								buffer.append(separator).append(s);
-								separator = " ";
+								separator = "\n";
 							}
 						}
 					}
