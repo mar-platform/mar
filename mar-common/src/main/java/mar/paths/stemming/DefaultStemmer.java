@@ -9,7 +9,7 @@ public class DefaultStemmer implements IStemmer {
 	
 	@Override
 	public String stem(@Nonnull String word) {
-		return ps.stem(word);
+		return ps.stem(word).toLowerCase();
 	}
 
 }
