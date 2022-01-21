@@ -48,8 +48,8 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 		}
 		
 		@Override
-		public SingleEcoreFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
-			return new SingleEcoreFileAnalyser();
+		public UMLAnalyser newAnalyser(@CheckForNull OptionMap options) {
+			return new UMLAnalyser();
 		}				
 		
 		@Override
