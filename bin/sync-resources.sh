@@ -13,7 +13,7 @@ echo
 
 pushd .
 cd $REPO_MAR
-wget http://mar-search.org/external-resources/libs.tar.gz
+wget http://sanchezcuadrado.es/mar/external-resources/libs.tar.gz
 tar xzf libs.tar.gz
 rm libs.tar.gz
 popd
