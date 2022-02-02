@@ -17,4 +17,3 @@ The detailed instructions to compile and deploy MAR locally
 are available here: https://github.com/mar-platform/mar/wiki/Installation-instructions
 
 
-
