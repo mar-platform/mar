@@ -43,6 +43,10 @@ public class EcoreRepository {
 			this.model = m;
 		}
 
+		public String getId() {
+			return model.getId();
+		}
+		
 		@Nonnull
 		public Resource load(ResourceSet rs) {
 			String path = model.getFile().getAbsolutePath();

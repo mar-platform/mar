@@ -12,3 +12,15 @@ mvn install:install-file -Dfile=thirdparty/lilypond/org.elysium_0.6.0.2018053014
 # This is a hack because this dependencies seems to be needed in two places
 cp -r ./mar-modelling/lib/ mar-restservice/lib
 
+
+pushd .
+cd thirdparty
+git clone https://github.com/mrcalvin/qvto-cli.git
+cd qvto-cli/qvt-bundle
+# This is an old project and we need to update the versions
+sed -i 's/http:\/\/download.eclipse.org\/releases\/luna/http:\/\/download.eclipse.org\/releases\/2021-09/' pom.xml
+sed -i 's/0\.22\.0/2\.6\.0/g' pom.xml
+
+mvn clean install
+popd
+>>>>>>> Ability to load QVTo transformations
