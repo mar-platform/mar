@@ -22,7 +22,7 @@ public class QvtoLoader {
 		InternalTransformationExecutor exec = new InternalTransformationExecutor(URI.createFileURI(qvtoFile), registry);
 		exec.loadTransformation(new NullProgressMonitor());
 		CompiledUnit unit = exec.getUnit();
-		return new Transformation.Qvto(unit);
+		return new Transformation.Qvto(qvtoFile, unit);
 	}
 	
 }

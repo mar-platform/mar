@@ -124,14 +124,9 @@ public class URIExtractor {
 		for (List<EcoreModel> metamodels : combinations) {
 			try {
 				for (EcoreModel mm : metamodels) {
-					Resource r = mm.load(rs);
-					TreeIterator<EObject> it = r.getAllContents();
-					while (it.hasNext()) {
-						EObject obj = it.next();
-						if (obj instanceof EPackage) {
-							EPackage pkg = (EPackage) obj;						
-							rs.getPackageRegistry().put(pkg.getNsURI(), pkg);
-						}
+					List<EPackage> packages = mm.getPackages(rs);
+					for (EPackage pkg : packages) {
+						rs.getPackageRegistry().put(pkg.getNsURI(), pkg);						
 					}
 				}
 			
