@@ -2,14 +2,21 @@ package mar.artefacts;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
 import org.eclipse.m2m.internal.qvt.oml.QvtMessage;
 import org.eclipse.m2m.internal.qvt.oml.compiler.CompiledUnit;
+import org.eclipse.m2m.internal.qvt.oml.cst.MappingModuleCS;
+import org.eclipse.m2m.internal.qvt.oml.cst.ModelTypeCS;
+import org.eclipse.m2m.internal.qvt.oml.cst.PackageRefCS;
+import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
 import mar.analysis.ecore.EcoreRepository.EcoreModel;
+import mar.artefacts.Transformation.Qvto;
+import mar.artefacts.qvto.QvtoLoader;
 
 public interface Transformation {
 
@@ -31,9 +38,11 @@ public interface Transformation {
 	
 	public static class Qvto extends AbstractTransformation {
 
-		private CompiledUnit unit;
+		private final CompiledUnit unit;
+		private final String fileName;
 
-		public Qvto(@Nonnull CompiledUnit unit) {
+		public Qvto(@Nonnull String fileName, @Nonnull CompiledUnit unit) {
+			this.fileName = fileName;
 			this.unit = unit;
 		}
 		
@@ -45,6 +54,29 @@ public interface Transformation {
 		@Nonnull
 		public CompiledUnit getUnit() {
 			return unit;
+		}
+		
+		public Set<String> getMetamodelURIs() {
+			Set<String> result = new HashSet<>();
+			UnitCS cs = getUnit().getUnitCST();
+			if (cs.getTopLevelElements().isEmpty()) {
+				System.out.println("No meta-models: " + fileName);
+				return result;
+			}
+			MappingModuleCS x = (MappingModuleCS) cs.getTopLevelElements().get(0);
+			for (ModelTypeCS modelTypeCS : x.getMetamodels()) {
+				for (PackageRefCS packageRefCS : modelTypeCS.getPackageRefs()) {
+					if (packageRefCS.getUriCS() == null) {
+						System.out.println("No URI: " + fileName);
+						System.out.println(packageRefCS.getPathNameCS());
+						// TODO: Find out how to handle this
+						continue;
+					}
+					String uri = packageRefCS.getUriCS().getStringSymbol();
+					result.add(uri);
+				}
+			}			
+			return result;
 		}
 
 		@Nonnull
