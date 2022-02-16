@@ -19,20 +19,22 @@ def insert_file(c, full_file, filename):
                stats.st_size, 'mine', 1, 1000, 2000, 'a description'))
     c.connection.commit()
 
-def process(test_input, extension, output_folder):
-    conn = common.open_db(output_folder, 'crawler.db', smash=True)
-    cursor = conn.cursor()
-    
+def get_crawled_files(input_folder, extension):
     crawled_files = []
-    for (dirpath, dirnames, filenames) in os.walk(test_input):
+    for (dirpath, dirnames, filenames) in os.walk(input_folder):
         rel = ''
-        if dirpath != test_input:
-            rel = os.path.relpath(dirpath, test_input)
+        if dirpath != input_folder:
+            rel = os.path.relpath(dirpath, input_folder)
         
         for filename in filenames:
             if filename.endswith(extension):
                 crawled_files.append([os.path.join(dirpath, filename), os.path.join(rel, filename)])
 
+    return crawled_files
+
+def process(crawled_files, output_folder):
+    conn = common.open_db(output_folder, 'crawler.db', smash=True)
+    cursor = conn.cursor()
             
     insert_repo_info(cursor, 1, 'test-repo')
     for full, f in crawled_files:
@@ -40,12 +42,14 @@ def process(test_input, extension, output_folder):
             
 def parse_args():
     parser = argparse.ArgumentParser(description='Simulate downloading test files.')
-    parser.add_argument('input', metavar='INPUT_FOLDER', type=str,
-                   help='input folder for the test files')    
-    parser.add_argument('extension', metavar='EXTENSION', type=str,
-                   help='File extension to crawl')
-    parser.add_argument('output', metavar='OUTPUT_FOLDER', type=str,
-                   help='output folder to store the downloaded files')
+    parser.add_argument("-d", "--dir", dest='input', metavar='INPUT_FOLDER', type=str,
+                    help='input folder for the test files')
+    parser.add_argument('-f', '--filelist', dest='filelist', metavar='FILE_LIST', type=str,
+                    help='List of files to be considered. Extension is not needed')     
+    parser.add_argument('-e', '--extension', dest='extension', metavar='EXTENSION', type=str,
+                    help='File extension to crawl')
+    parser.add_argument('-o', '--output', dest='output', metavar='OUTPUT_FOLDER', type=str,
+                    help='output folder to store the downloaded files')
 
     args = parser.parse_args()
 
@@ -53,8 +57,16 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    input_folder  = args.input
+    input_folder = args.input
+    filelist = args.filelist
     output_folder = args.output
     extension = args.extension
 
-    process(input_folder, extension, output_folder)
+    if extension is not None:
+        all_files = get_crawled_files(input_folder, extension)
+    else:
+        with open(filelist) as file:
+            lines = [line.rstrip() for line in file]        
+        all_files = [[os.path.join(input_folder, f), f] for f in lines]        
+    
+    process(all_files, output_folder)
