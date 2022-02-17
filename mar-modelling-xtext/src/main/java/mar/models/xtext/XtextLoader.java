@@ -25,6 +25,7 @@ import org.eclipse.xtext.resource.IResourceFactory;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.xtext.ecoreInference.Xtext2EcoreTransformer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provider;
@@ -69,18 +70,13 @@ public class XtextLoader implements ILoader {
 	    	boolean isGenerate = line.startsWith("generate");
 	    	
 	    	if (isGenerate) {	    		
-	    		// The format is 'generate pkgName uri' 
-	    		String[] parts = line.split("\\s*");
-	    		if (parts.length > 2) {
-	    			String uri = parts[2];
-	    			for(int i = 3; i < parts.length; i++) {
-	    				uri += parts[i];
-	    			}
+	    		String uri = extractGeneratedURI(line);
+	    		if (uri != null)
 	    			generatedURIs.add(uri);
-	    		}
 	    	} else if (isImport) {
-	    		String uri = line.substring(5).trim();
-	    		importedURIs.add(uri);
+	    		String uri = extractImportedURI(line);
+	    		if (uri != null)
+	    			importedURIs.add(uri);
 	    	}
 	    	
 	    	if (line.contains("http://www.eclipse.org/emf/2002/Ecore"))
@@ -117,6 +113,36 @@ public class XtextLoader implements ILoader {
 	    transformer.transform();	    
 	    
 	    return new XtextAnalysisResult(g, transformer.getGeneratedPackages(), generatedURIs, importedURIs);
+	}
+
+	@VisibleForTesting
+	@CheckForNull
+	/* pp*/ static String extractImportedURI(@Nonnull String line) {
+		String uri = line.substring(6).trim();		
+		uri = uri.replaceFirst("^\"", "");
+		
+		int idx = uri.indexOf("\"");
+		if (idx != -1) {
+			return uri.substring(0, idx); 
+		}
+		
+		return null;
+	}
+
+	@VisibleForTesting
+	@CheckForNull
+	/* pp*/ static String extractGeneratedURI(String line) {
+		// The format is 'generate pkgName uri' 
+		String[] parts = line.split("\\s+");
+		if (parts.length > 2) {
+			String uri = parts[2];
+			for(int i = 3; i < parts.length; i++) {
+				uri += parts[i];
+			}
+			uri = uri.replaceFirst("^\"", "").replaceFirst("\"$", "");
+			return uri;
+		}
+		return null;
 	}
 	
 	public static class XtextAnalysisResult {
