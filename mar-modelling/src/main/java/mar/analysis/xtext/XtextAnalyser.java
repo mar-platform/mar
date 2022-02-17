@@ -6,14 +6,14 @@ import javax.annotation.CheckForNull;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
+import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.modelling.loader.ILoader;
 import mar.models.xtext.XtextLoader;
 import mar.validation.IFileInfo;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.OptionMap;
-import mar.validation.SingleEMFFileAnalyser;
 
-public class XtextAnalyser extends SingleEMFFileAnalyser {
+public class XtextAnalyser extends SingleEcoreFileAnalyser {
 
 	public static final String ID = "xtext";
 
