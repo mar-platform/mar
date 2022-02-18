@@ -10,8 +10,19 @@ import git.exc
 def main(root, target):
     repos = ['repo-github-ecore',
              'repo-github-qvto',
-             'repo-github-atl']
-
+             'repo-github-atl',
+             'repo-github-epsilon-etl',
+             'repo-github-epsilon-eol',
+             'repo-github-epsilon-etl',
+             'repo-github-jet',
+             'repo-github-xtext',
+             'repo-github-odesign',
+             'repo-github-emfatic',
+             'repo-github-acceleo',
+             'repo-github-henshin',
+             'repo-github-ocl',
+             'repo-github-emftext']
+    
     repo_artifact = defaultdict(list)
 
     for r in repos:        
@@ -23,7 +34,7 @@ def main(root, target):
                 
         #folder = os.path(root, r)
         print("Total repos found so far", len(repo_artifact))
-
+    
     for url in repo_artifact:
         user = url.split('/')[-2]
         name = url.split('/')[-1]
@@ -38,6 +49,7 @@ def main(root, target):
         print("Cloning", url, "to", target_folder)
         try:
             Repo.clone_from(url, target_folder)
+	#Repo.clone_from(url, target_folder, depth=1)	
         except git.exc.GitCommandError as err:
             print(err)
         
