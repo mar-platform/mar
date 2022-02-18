@@ -19,7 +19,6 @@ import mar.artefacts.Transformation;
 import mar.artefacts.qvto.QvtoProcessor;
 import mar.ingestion.CrawlerDB;
 import mar.ingestion.IngestedModel;
-import mar.validation.AnalyserMain;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 import picocli.CommandLine;
@@ -115,7 +114,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	public static void main(String[] args) {
-		int exitCode = new CommandLine(new AnalyserMain()).execute(args);
+		int exitCode = new CommandLine(new MegamodelAnalysis()).execute(args);
 		System.exit(exitCode);
 	}
 	
