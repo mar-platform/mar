@@ -1,6 +1,7 @@
 package mar.analysis.ecore;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,6 +28,8 @@ public class EcoreRepository {
 	@Nonnull
 	private final File rootFolder;
 	private Map<String, EcorePredefinedModel> knownMetamodels;
+	/** Metamodels which doesn't exist physically because they are derived from other files (e.g., Xtext generated clause) */ 
+	private Map<String, List<EcoreModel>> derivedMetamodels = new HashMap<String, List<EcoreModel>>();
 
 	public EcoreRepository(@Nonnull AnalysisDB db, @Nonnull File rootFolder) {
 		this.db = db;
@@ -41,11 +44,20 @@ public class EcoreRepository {
 		models.put(EcorePackage.eINSTANCE.getNsURI(), new EcorePredefinedModel("ecore", EcorePackage.eINSTANCE));		
 		return models;
 	}
+
+	public void addDerived(@Nonnull String uri, @Nonnull EcoreDerivedModel derived) {
+		List<EcoreModel> list = derivedMetamodels.computeIfAbsent(uri, (k) -> new ArrayList<>());
+		list.add(derived);
+	}
+
 	
 	@Nonnull
 	public List<EcoreModel> findEcoreByURI(String uri) {
 		if (knownMetamodels.containsKey(uri))
 			return Collections.singletonList(knownMetamodels.get(uri));
+		
+		if (derivedMetamodels.containsKey(uri))
+			return derivedMetamodels.get(uri);		
 		
 		List<Model> models = db.findByMetadata("nsURI", uri, (relative) -> rootFolder + File.separator + relative);
 		ArrayList<EcoreModel> result = new ArrayList<>(models.size());
@@ -55,6 +67,16 @@ public class EcoreRepository {
 		return result;
 	}
 
+	// FIXME: Perhaps return EcoreModel
+	public List<Model> getModels() {
+		try {
+			List<Model> models = db.getValidModels((relative) -> rootFolder + File.separator + relative);
+			return models;
+		} catch (SQLException e) {
+			throw new RuntimeException();
+		}
+	}
+	
 	public interface EcoreModel {
 
 		String getId();
@@ -62,6 +84,15 @@ public class EcoreRepository {
 		String getName();		
 		
 		List<EPackage> getPackages(ResourceSet rs);
+	}
+	
+	public static interface EcoreDerivedModel extends EcoreModel {
+
+		@Override
+		public default List<EPackage> getPackages(ResourceSet rs) {
+			throw new UnsupportedOperationException();
+		}
+		
 	}
 	
 	public static class EcorePredefinedModel implements EcoreModel {
