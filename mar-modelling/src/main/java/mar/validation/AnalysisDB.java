@@ -29,7 +29,7 @@ public class AnalysisDB implements Closeable {
 	}
 
 	@Nonnull
-	private Connection connection;
+	protected Connection connection;
 	@Nonnull
 	private Map<String, Status> alreadyChecked = new HashMap<>();
 	
@@ -67,6 +67,8 @@ public class AnalysisDB implements Closeable {
                         + "    value text NOT NULL\n"                          
                         + ");";
                 
+                String index = "create index if not exists idx_metadata on metadata(type, value);";
+                
                 Statement stmt = conn.createStatement();
                 stmt.execute(models);
                 
@@ -75,6 +77,9 @@ public class AnalysisDB implements Closeable {
 
                 stmt = conn.createStatement();
                 stmt.execute(metadata);
+
+                stmt = conn.createStatement();
+                stmt.execute(index);
             }
                         
             this.connection = conn;
@@ -322,8 +327,7 @@ public class AnalysisDB implements Closeable {
 			this.id = id;
 			this.file = file;
 			this.metadata = metadata;
-		}
-		
+		}		
 		
 		public String getId() {
 			return id;
