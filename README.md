@@ -16,4 +16,19 @@ You can try it at http://mar-search.org
 The detailed instructions to compile and deploy MAR locally
 are available here: https://github.com/mar-platform/mar/wiki/Installation-instructions
 
+# mde-repository-analysis
+Study of MDE artefacts and repositories
+
+## Install
+
+```
+curl -s "https://get.sdkman.io" | bash
+sdk install micronaut
+```
+
+## Run
+
+```
+./mvnw mn:run
+```
 
