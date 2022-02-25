@@ -3,6 +3,8 @@ package mar.validation;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -166,9 +168,10 @@ public class AnalysisDB implements Closeable {
 		ResultSet rs = statement.getResultSet();
 		while (rs.next()) {
 			String id = rs.getString(2);
+			Path relative = Paths.get(rs.getString(1));
 			File file = new File(relativePathTransformer.apply(rs.getString(1)));
 			String metadata = rs.getString(3);
-			models.add(new Model(id, file, metadata));			
+			models.add(new Model(id, relative, file, metadata));			
 		}
 		
 		return models;
@@ -305,9 +308,9 @@ public class AnalysisDB implements Closeable {
 			ResultSet rs = stm.getResultSet();
 			while (rs.next()) {
 				String id = rs.getString(1);
-				File relativeFile = new File(relativePathTransformer.apply(rs.getString(2)));
+				File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
 				String metadataDocument = rs.getString(3);
-				result.add(new Model(id, relativeFile, metadataDocument));
+				result.add(new Model(id, Paths.get(rs.getString(2)), fullFile, metadataDocument));
 			}
 			return result;
 		} catch (SQLException e) {
@@ -322,17 +325,25 @@ public class AnalysisDB implements Closeable {
 		private File file;
 		@Nonnull
 		private String metadata;
+		@Nonnull
+		private Path relativePath;
 
-		public Model(@Nonnull String id, @Nonnull File file, String metadata) {
+		public Model(@Nonnull String id, @Nonnull Path relativePath, @Nonnull File file, String metadata) {
 			this.id = id;
 			this.file = file;
+			this.relativePath = relativePath;
 			this.metadata = metadata;
 		}		
 		
 		public String getId() {
 			return id;
 		}
-		
+
+		@Nonnull
+		public Path getRelativePath() {
+			return relativePath;
+		}
+
 		@Nonnull
 		public File getFile() {
 			return file;
@@ -341,6 +352,7 @@ public class AnalysisDB implements Closeable {
 		public String getMetadata() {
 			return metadata;
 		}
+
 	}
 
 }
