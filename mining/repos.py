@@ -14,6 +14,7 @@ def main(root, target):
              'repo-github-epsilon-etl',
              'repo-github-epsilon-eol',
              'repo-github-epsilon-etl',
+             'repo-github-epsilon-egl',             
              'repo-github-jet',
              'repo-github-xtext',
              'repo-github-odesign',
