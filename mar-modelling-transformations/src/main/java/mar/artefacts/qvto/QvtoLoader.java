@@ -1,7 +1,6 @@
 package mar.artefacts.qvto;
 
 import java.util.Collection;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 

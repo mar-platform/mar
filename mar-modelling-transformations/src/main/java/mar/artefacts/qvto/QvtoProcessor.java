@@ -37,6 +37,9 @@ public class QvtoProcessor {
 		ResourceSet rs = new ResourceSetImpl();
 		for (String uri : expectedMetamodels) {
 			List<EcoreModel> m = this.repo.findEcoreByURI(uri);
+			// TODO: Be more precise about which meta-model to use
+			// We get the first one, that this doesn't guarantee that this is the right one
+			// Possibly looking at the paths
 			if (! m.isEmpty()) {
 				EcoreModel ecore = m.get(0);
 				metamodels.add(ecore);

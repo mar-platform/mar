@@ -2,7 +2,6 @@ package mar.artefacts;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -15,8 +14,6 @@ import org.eclipse.m2m.internal.qvt.oml.cst.PackageRefCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
 import mar.analysis.ecore.EcoreRepository.EcoreModel;
-import mar.artefacts.Transformation.Qvto;
-import mar.artefacts.qvto.QvtoLoader;
 
 public interface Transformation {
 
