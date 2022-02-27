@@ -1,7 +1,10 @@
 package mar.analysis.backend.megamodel;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -13,9 +16,17 @@ import mar.analysis.ecore.EcoreRepository;
 import mar.analysis.ecore.EcoreRepository.EcoreDerivedModel;
 import mar.analysis.ecore.EcoreRepository.EcoreModel;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
+import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Relationship;
+import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 import mar.analysis.uml.UMLAnalyser;
+import mar.artefacts.FileProgram;
+import mar.artefacts.Metamodel;
 import mar.artefacts.Transformation;
+import mar.artefacts.epsilon.BuildFileInspector;
+import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.qvto.QvtoInspector;
 import mar.artefacts.qvto.QvtoProcessor;
 import mar.ingestion.CrawlerDB;
 import mar.ingestion.IngestedModel;
@@ -33,6 +44,102 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	@Parameters(index = "1", description = "Output file.")
 	private File output;
 	
+	private List<RecoveryGraph> computeMiniGraphs(Path repositoryDataFolder) {
+		File buildCrawlerDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "build" , "crawler.db").toFile();
+		File xtextAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "xtext" , "analysis.db").toFile();
+		File qvtCrawlerDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "qvto" , "crawler.db").toFile();
+		
+		// For Epsilon, etc.
+		CrawlerDB buildFileCrawler = new CrawlerDB("build", "github", repositoryDataFolder.toFile().getAbsolutePath(), buildCrawlerDbFile);
+
+		List<RecoveryGraph> result = new ArrayList<>();
+		result.addAll( fromBuildFiles(buildFileCrawler, repositoryDataFolder) );
+		result.addAll(  fromQvtoFiles(qvtCrawlerDbFile, repositoryDataFolder) );
+		
+		return result;
+	}
+	
+	private Collection<? extends RecoveryGraph> fromQvtoFiles(File qvtCrawlerDbFile, Path repositoryDataFolder) {
+		List<RecoveryGraph> result = new ArrayList<>();
+		CrawlerDB crawler = new CrawlerDB("qvto", "github", repositoryDataFolder.toString(), qvtCrawlerDbFile);
+		for (IngestedModel model : crawler.getModels()) {
+			Path path = Paths.get(model.getRelativePath()).normalize();
+			Path projectPath = path.subpath(0, 2);
+			
+			try {
+				QvtoInspector inspector = new QvtoInspector(repositoryDataFolder, projectPath);
+				RecoveryGraph minigraph = inspector.process(model.getFullFile());
+				result.add(minigraph);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	@Nonnull
+	private List<RecoveryGraph> fromBuildFiles(CrawlerDB buildFileCrawler, Path repositoryDataFolder) {
+		List<RecoveryGraph> result = new ArrayList<>();
+		for (IngestedModel model : buildFileCrawler.getModels()) {
+			Path path = Paths.get(model.getRelativePath()).normalize();
+			Path projectPath = path.subpath(0, 2);
+
+			System.out.println("Doing: " + path);			
+			
+			try {
+				BuildFileInspector inspector = new BuildFileInspector(repositoryDataFolder, projectPath);
+				RecoveryGraph miniGraph = inspector.process(model.getFullFile());
+				result.add(miniGraph);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	
+	private RelationshipsGraph mergeMiniGraphs(@Nonnull Collection<RecoveryGraph> graphs, File repositoryDataFolder, AnalysisDB metamodels) {
+		RelationshipsGraph graph = new RelationshipsGraph();
+		for (RecoveryGraph miniGraph : graphs) {		
+			try {
+				for (Metamodel metamodel : miniGraph.getMetamodels()) {
+					String id = toId(metamodel, metamodels);
+					String name = toName(metamodel);
+					System.out.println("Adding id: " + id);
+					Node node = new RelationshipsGraph.Node(id, new Artefact(id, "metamodel", name), metamodel);
+					graph.addNode(node);							
+				}
+				
+				for (Metamodel metamodel : miniGraph.getMetamodels()) {
+					String id = toId(metamodel, metamodels);
+					for (Metamodel dep : metamodel.getDependents()) {
+						String depId = toId(dep, metamodels);
+						graph.addEdge(id, depId, Relationship.IMPORT);
+					}
+				}
+				
+				for (FileProgram p : miniGraph.getPrograms()) {
+					String id = toId(p);
+					String name = toName(p);
+					
+					Node node = new RelationshipsGraph.Node(id, new Artefact(id, "transformation", name), p);
+					graph.addNode(node);
+					
+					for (Metamodel metamodel : p.getMetamodels()) {
+						String metamodelId = toId(metamodel, metamodels);
+						System.out.println("Edge: " + id + ", " + metamodelId);
+						graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
+					}
+					// p.getMetamodels()
+				}
+				
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return graph;
+	}
+	
 	@Override
 	public Integer call() throws Exception {
 		new SingleEcoreFileAnalyser.Factory().configureEnvironment();
@@ -40,12 +147,39 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		File repositoryDataFolder = Paths.get(rootFolder.getAbsolutePath(), "repos").toFile();
 		File ecoreAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
+
+		// Detailed information about all the meta-models in the repositories
+		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
+		
+		List<RecoveryGraph> miniGraphs = computeMiniGraphs(repositoryDataFolder.toPath());		
+		RelationshipsGraph graph       = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
+
+		/*
+		File repositoryDataFolder = Paths.get(rootFolder.getAbsolutePath(), "repos").toFile();
+		File buildCrawlerDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "build" , "crawler.db").toFile();
+		File ecoreAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
 		File xtextAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "xtext" , "analysis.db").toFile();
+
+		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
+
+		CrawlerDB buildFileCrawler = new CrawlerDB("build", "github", repositoryDataFolder.getAbsolutePath(), buildCrawlerDbFile);
+		RelationshipsGraph graph = mergeMinigraphs(repositoryDataFolder, analysisDb, buildFileCrawler);
+		*/
+		
+		if (true) {
+			if (output.exists())
+				output.delete();
+			MegamodelDB megamodelDB = new MegamodelDB(output);
+			megamodelDB.setAutocommit(false);
+			megamodelDB.dump(graph);
+			megamodelDB.close();
+			return 0;
+		}
 		
 		File qvtCrawlerDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "qvto" , "crawler.db").toFile();
-		
+		File xtextAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "xtext" , "analysis.db").toFile();
+
 		// AnalysisDB analysisDb = new AnalysisDB(new File("/home/jesus/projects/mde-ml/mar/.output/repo-github-ecore/analysis.db"));
-		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
 		XtextAnalysisDB xtextAnalysisDb = new XtextAnalysisDB(xtextAnalysisDbFile);
 		
 		EcoreRepository repo  = new EcoreRepository(analysisDb, repositoryDataFolder);
@@ -111,6 +245,85 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		megamodelDB.close();
 		
 		return 0;
+	}
+
+	private RelationshipsGraph mergeMinigraphs(File repositoryDataFolder, AnalysisDB metamodels, CrawlerDB crawler) {
+		RelationshipsGraph graph = new RelationshipsGraph();
+		
+		for (IngestedModel model : crawler.getModels()) {
+			Path path = Paths.get(model.getRelativePath()).normalize();
+			Path projectPath = path.subpath(0, 2);
+
+			System.out.println("Doing: " + path);			
+			
+			BuildFileInspector inspector = new BuildFileInspector(repositoryDataFolder.toPath(), projectPath);
+			
+			try {
+				RecoveryGraph miniGraph = inspector.process(model.getFullFile());
+				for (Metamodel metamodel : miniGraph.getMetamodels()) {
+					String id = toId(metamodel, metamodels);
+					String name = toName(metamodel);
+					System.out.println("Adding id: " + id);
+					Node node = new RelationshipsGraph.Node(id, new Artefact(id, "metamodel", name), metamodel);
+					graph.addNode(node);							
+				}
+				
+				for (Metamodel metamodel : miniGraph.getMetamodels()) {
+					String id = toId(metamodel, metamodels);
+					for (Metamodel dep : metamodel.getDependents()) {
+						String depId = toId(dep, metamodels);
+						graph.addEdge(id, depId, Relationship.IMPORT);
+					}
+				}
+				
+				for (FileProgram p : miniGraph.getPrograms()) {
+					String id = toId(p);
+					String name = toName(p);
+					
+					Node node = new RelationshipsGraph.Node(id, new Artefact(id, "transformation", name), p);
+					graph.addNode(node);
+					
+					for (Metamodel metamodel : p.getMetamodels()) {
+						String metamodelId = toId(metamodel, metamodels);
+						System.out.println("Edge: " + id + ", " + metamodelId);
+						graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
+					}
+					// p.getMetamodels()
+				}
+				
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+		}
+		
+		return graph;
+	}
+
+	private String toName(FileProgram p) {
+		return p.getFilePath().getPath().getFileName().toString();		
+	}
+
+	private String toName(Metamodel metamodel) {
+		if (metamodel.getPath() != null)
+			return metamodel.getPath().getPath().getFileName().toString();
+		return metamodel.getUri();
+	}
+
+	private String toId(FileProgram p) {
+		return p.getFilePath().getPath().toString();
+	}
+
+	private String toId(Metamodel metamodel, AnalysisDB metamodels) {
+		if (metamodel.getPath() != null) {
+			Path relativePath = metamodel.getPath().getPath();
+			Model model = metamodels.getModelByPath(relativePath.toString(), "nsURI", (s) -> s /* TODO: Do this properly */);
+			if (model != null) {
+				return model.getKeyValueMetadata("nsURI");
+			}			
+			return metamodel.getPath().getPath().toString();
+		}
+		return metamodel.getUri();
 	}
 
 	public static void main(String[] args) {

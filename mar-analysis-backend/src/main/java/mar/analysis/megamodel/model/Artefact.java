@@ -27,7 +27,7 @@ public class Artefact {
 		return type;
 	}
 	
-	public String geName() {
+	public String getName() {
 		return name;
 	}
 	
