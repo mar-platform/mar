@@ -32,17 +32,28 @@
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
-    	<dependency>
-      		<groupId>at.ac.wu.nm</groupId>
-      		<artifactId>qvt-bundle</artifactId>
-      		<version>4.4</version>
-      		<classifier>repackaged</classifier>
-    	</dependency>
+		<dependency>
+			<groupId>at.ac.wu.nm</groupId>
+			<artifactId>qvt-bundle</artifactId>
+			<version>4.4</version>
+			<classifier>repackaged</classifier>
+		</dependency>
 
 		<dependency>
 			<groupId>ml2.mar</groupId>
 			<artifactId>mar-modelling</artifactId>
 			<version>1.0-SNAPSHOT</version>
+			<!-- To avoid module conflicts with java.xml -->
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>

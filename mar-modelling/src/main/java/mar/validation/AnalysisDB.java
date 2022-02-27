@@ -297,6 +297,28 @@ public class AnalysisDB implements Closeable {
 		}			
 	}
 
+	@CheckForNull
+	public Model getModelByPath(String relativePath, String metadataType, @Nonnull Function<String, String> relativePathTransformer) {
+		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value FROM models m, metadata mm WHERE m.id = mm.id AND relative_file = ? AND type = ?")) {
+			stm.setString(1, relativePath);
+			stm.setString(2, metadataType); // Typically nsURI
+			stm.execute();
+			ResultSet rs = stm.getResultSet();			
+			if (! rs.next())
+				return null;
+			
+			String id = rs.getString(1);
+			Path relative = Paths.get(rs.getString(2));
+			File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
+			String metadataDocument = rs.getString(3);
+			String metadataValue = rs.getString(4); // This is because we have two flavours of metadata (a Json document and additional data in a string-map style, which is a pity)			
+			return new Model(id, relative, fullFile, metadataDocument).putKeyValueMetadata(metadataType, metadataValue);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}			
+	}
+
+	
 	@Nonnull
 	public List<Model> findByMetadata(@Nonnull String key, @Nonnull String value, @Nonnull Function<String, String> relativePathTransformer) {
 		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document FROM models m, metadata mm WHERE m.id = mm.id AND m.status IN ('VALID', 'INVALID') AND mm.type = ? AND mm.value = ?")) {			
@@ -326,14 +348,31 @@ public class AnalysisDB implements Closeable {
 		@Nonnull
 		private String metadata;
 		@Nonnull
-		private Path relativePath;
-
+		private Path relativePath;		
+		@Nonnull
+		private Map<String, String> keyValueMetadata;
+		
 		public Model(@Nonnull String id, @Nonnull Path relativePath, @Nonnull File file, String metadata) {
 			this.id = id;
 			this.file = file;
 			this.relativePath = relativePath;
 			this.metadata = metadata;
 		}		
+		
+		protected Map<String, String> getKeyValueMetadata() {
+			if (keyValueMetadata == null)
+				keyValueMetadata = new HashMap<>();
+			return keyValueMetadata;
+		}
+		
+		public Model putKeyValueMetadata(String metadataType, String metadataValue) {
+			getKeyValueMetadata().put(metadataType, metadataValue);
+			return this;
+		}
+
+		public String getKeyValueMetadata(String metadataType) {
+			return getKeyValueMetadata().get(metadataType);
+		}
 		
 		public String getId() {
 			return id;
