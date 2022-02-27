@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.jgrapht.Graph;
@@ -12,6 +13,7 @@ import org.jgrapht.graph.DefaultEdge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.base.Preconditions;
 
 public class RelationshipsGraph {
 	
@@ -22,13 +24,14 @@ public class RelationshipsGraph {
 		impl = new DefaultDirectedGraph<>(Edge.class);	
 	}
 	
-	public void addNode(Node node) {
+	public void addNode(@Nonnull Node node) {
+		Preconditions.checkNotNull(node);
 		impl.addVertex(node);
 		idToNode.put(node.id, node);
 	}
 
 	public Node getNode(String id) {
-		return idToNode.get(id);
+		return Preconditions.checkNotNull(idToNode.get(id));
 	}
 	
 	public void addEdge(String src, String tgt, Relationship type) {
@@ -56,12 +59,28 @@ public class RelationshipsGraph {
 		@Nonnull
 		@JsonProperty
 		private final Artefact artefact;
+		@CheckForNull
+		private Object element;
 
-		public Node(String id, @Nonnull Artefact artefact) {
-			this.id = id;
+		public Node(@Nonnull String id, @Nonnull Artefact artefact) {
+			this.id = Preconditions.checkNotNull(id);
 			this.artefact = artefact;
 		}
 		
+		public Node(@Nonnull String id, @Nonnull Artefact artefact, Object element) {
+			this(id, artefact);
+			this.element = element;
+		}
+		
+		@Nonnull
+		public Artefact getArtefact() {
+			return artefact;
+		}
+		
+		@CheckForNull
+		public Object getElement() {
+			return element;
+		}
 	}
 	
 	@JsonTypeName("edge")

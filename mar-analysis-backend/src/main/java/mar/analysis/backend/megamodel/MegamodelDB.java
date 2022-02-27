@@ -20,6 +20,9 @@ import com.google.common.base.Preconditions;
 
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Relationship;
+import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
+import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
 public class MegamodelDB implements Closeable {
 
@@ -181,9 +184,8 @@ public class MegamodelDB implements Closeable {
 	public void addRelationship(@Nonnull String sourceId, @Nonnull String targetId, @Nonnull Relationship type) {		
 		try {
 			Preconditions.checkState(allArtefacts.containsKey(sourceId));
-			Preconditions.checkState(allArtefacts.containsKey(targetId));
-						
-			// We can insert
+			Preconditions.checkState(allArtefacts.containsKey(targetId));						
+
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO relationships(source, target, type) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, sourceId);
 			preparedStatement.setString(2, targetId);
@@ -217,8 +219,21 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 
+	public void dump(@Nonnull RelationshipsGraph graph) {
+		for (Node node : graph.getNodes()) {
+			Artefact artefact = node.getArtefact();
+			addArtefact(artefact.getId(), artefact.getType(), artefact.getName());
+		}
+		
+		for (Edge edge : graph.getEdges()) {
+			addRelationship(edge.getSourceId(), edge.getTargetId(), edge.getType());
+		}		
+	}
+
+	
 	@FunctionalInterface
 	public static interface RelationshipConsumer {
 		public void accept(String source, String target, Relationship type);
 	}
+
 }
