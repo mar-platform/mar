@@ -27,7 +27,11 @@ public class TransformationRelationshipsAnalysis {
 		db.getRelationshipsByType(Relationship.TYPED_BY, (src, tgt, type) -> {
 			graph.addEdge(src, tgt, type);
 		});
-		
+
+		db.getRelationshipsByType(Relationship.IMPORT, (src, tgt, type) -> {
+			graph.addEdge(src, tgt, type);
+		});
+
 		return graph;
 	}
 	
