@@ -48,9 +48,9 @@ public class BuildFileInspector extends ProjectInspector {
 	
 	private final FileSearcher searcher;
 	
-	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectPath) {
-		super(repoFolder, projectPath);
-		this.searcher = new FileSearcher(repoFolder);
+	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
+		super(repoFolder, projectSubPath);
+		this.searcher = new FileSearcher(getProjectFolder());
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
