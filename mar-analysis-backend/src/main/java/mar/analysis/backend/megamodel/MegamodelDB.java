@@ -120,41 +120,6 @@ public class MegamodelDB implements Closeable {
 	public static String getConnectionString(File file) {
 		return "jdbc:sqlite:" + file.getAbsolutePath();
 	}
-
-//	@Nonnull
-//	public static String getValidModelsQuery() {
-//		return "select relative_file, id, metadata_document from models where status = '" + Status.VALID.name() + "' or status = '" + Status.NO_VALIDATE.name() + "'";
-//	}
-//	
-//	@Nonnull
-//	public List<String> getValidModels() throws SQLException {
-//		PreparedStatement statement = connection.prepareStatement(getValidModelsQuery());
-//		statement.execute();
-//		
-//		List<String> result = new ArrayList<>();
-//		ResultSet rs = statement.getResultSet();
-//		while (rs.next()) {
-//			result.add(rs.getString(1));
-//		}
-//		
-//		return result;
-//	}
-//
-//	public List<Model> getValidModels(@Nonnull Function<String, String> relativePathTransformer) throws SQLException {
-//		List<Model> models = new ArrayList<>(1024);
-//		PreparedStatement statement = connection.prepareStatement(getValidModelsQuery());
-//		statement.execute();
-//		
-//		ResultSet rs = statement.getResultSet();
-//		while (rs.next()) {
-//			String id = rs.getString(2);
-//			File file = new File(relativePathTransformer.apply(rs.getString(1)));
-//			String metadata = rs.getString(3);
-//			models.add(new Model(id, file, metadata));			
-//		}
-//		
-//		return models;
-//	}
 	
 	@Nonnull
 	public Map<? extends String, ? extends Artefact> getAllArtefacts() {
