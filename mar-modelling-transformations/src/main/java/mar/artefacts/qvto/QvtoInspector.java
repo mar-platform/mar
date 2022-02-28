@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import mar.artefacts.Metamodel;
+import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.Transformation.Qvto;
@@ -35,7 +36,7 @@ public class QvtoInspector extends ProjectInspector {
 			Metamodel mm = new Metamodel(uri);
 			mm.setURI(uri);
 			graph.addMetamodel(mm);
-			program.addMetamodel(mm);
+			program.addMetamodel(mm, MetamodelReference.Kind.IMPORT, MetamodelReference.Kind.TYPED_BY);
 		}
 		
 		return graph;

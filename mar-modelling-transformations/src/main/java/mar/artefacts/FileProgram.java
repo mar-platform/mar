@@ -12,7 +12,7 @@ public abstract class FileProgram {
 	private final RecoveredPath path;
 
 	@Nonnull
-	private final List<Metamodel> metamodels = new ArrayList<>();
+	private final List<MetamodelReference> metamodels = new ArrayList<>();
 	
 	public FileProgram(@Nonnull RecoveredPath path) {
 		this.path = path;
@@ -22,11 +22,11 @@ public abstract class FileProgram {
 		return path;
 	}
 	
-	public void addMetamodel(@Nonnull Metamodel metamodel) {
-		this.metamodels.add(metamodel);
+	public void addMetamodel(@Nonnull Metamodel metamodel, MetamodelReference.Kind... kind) {
+		this.metamodels.add(new MetamodelReference(metamodel, kind));
 	}
 	
-	public Collection<? extends Metamodel> getMetamodels() {
+	public Collection<? extends MetamodelReference> getMetamodels() {
 		return metamodels;
 	}
 	

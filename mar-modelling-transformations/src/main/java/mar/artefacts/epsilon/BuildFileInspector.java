@@ -35,6 +35,7 @@ import com.google.common.base.Preconditions;
 import io.vavr.collection.LinkedHashSet;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.Metamodel;
+import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.Ant;
 import mar.artefacts.graph.RecoveryGraph;
@@ -108,7 +109,7 @@ public class BuildFileInspector extends ProjectInspector {
 		    	String modelName = mitem.getTextContent();
 		    	if (metamodels.containsKey(modelName)) {
 		    		Metamodel metamodel = metamodels.get(modelName);
-		    		program.addMetamodel(metamodel);
+		    		program.addMetamodel(metamodel, MetamodelReference.Kind.TYPED_BY);
 		    		
 		    		String alias = nameToAlias.get(modelName);
 		    		if (alias != null && aliasToModel.containsKey(alias)) {
