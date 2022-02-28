@@ -198,7 +198,7 @@ public class BuildFileInspector extends ProjectInspector {
 	    		continue;
 	    	
 	    	String name = nameNode.getTextContent();
-	    	Metamodel metamodel = new Metamodel(name);
+	    	Metamodel metamodel;
 	    	if (metamodelfileNode != null) {
 	    		RecoveredPath path = AntUtils.parseAntPath(buildFileFolder, metamodelfileNode.getTextContent());
 	    		if (! Files.exists(path.getCompletePath(this.repoFolder))) {
@@ -206,9 +206,9 @@ public class BuildFileInspector extends ProjectInspector {
 	    			String loosyPath = AntUtils.stripUnknownElements(metamodelfileNode.getTextContent());
 	    			path = searcher.findFile(Paths.get(loosyPath));
 	    		}
-	    		metamodel.setPath(path);
+	    		metamodel = Metamodel.fromFile(name, path);
 	    	} else {
-	    		metamodel.setURI(metamodelURINode.getTextContent());
+	    		metamodel = Metamodel.fromURI(name, metamodelURINode.getTextContent());
 	    	}
 	    		
 	    	metamodels.put(name, metamodel);
