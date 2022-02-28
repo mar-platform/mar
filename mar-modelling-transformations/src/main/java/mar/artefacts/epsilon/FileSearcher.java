@@ -39,7 +39,7 @@ public class FileSearcher {
 		}		
 	}
 
-	private int similarity(Path loosyPath, Path projectFilePath) {
+	protected static int similarity(Path loosyPath, Path projectFilePath) {
 		int i, len = loosyPath.getNameCount();
 		for(i = len - 1; i >= 0; i++) {
 			if (projectFilePath.endsWith(loosyPath.subpath(i, len))) {
@@ -47,10 +47,6 @@ public class FileSearcher {
 			}
 		}
 		return 0;
-	}
-
-	private boolean matches(Path f, String loosyPath) {
-		return f.toString().contains(loosyPath);
 	}
 	
 }
