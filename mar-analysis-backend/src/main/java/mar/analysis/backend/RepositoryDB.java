@@ -31,23 +31,18 @@ public class RepositoryDB implements AutoCloseable {
 	private PreparedStatement filesByType;
 	
 	@Nonnull
-	public RepositoryDB(@Nonnull Path rootFolder, @Nonnull File file) {
+	public RepositoryDB(@Nonnull Path rootFolder, @Nonnull File file) throws SQLException {
 		String url = getConnectionString(file);
-		try (Connection connection = DriverManager.getConnection(url)){
-			this.connection = connection;
-			this.rootFolder = rootFolder;
+		this.connection = DriverManager.getConnection(url);
+		this.rootFolder = rootFolder;
 			
-			String query = "SELECT file_path FROM files WHERE type = ?";
-			this.filesByType = connection.prepareStatement(query);
-			
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+		String query = "SELECT file_path FROM files WHERE type = ?";
+		this.filesByType = connection.prepareStatement(query);
 	}
 
 	@Override
 	public void close() throws Exception {
-		filesByType.close();
+		// filesByType.close();
 		connection.close();
 	}
 	
@@ -58,8 +53,12 @@ public class RepositoryDB implements AutoCloseable {
 	}
 
 	public List<RepoFile> getFilesByType(String type) throws SQLException {
+		//String query = "SELECT file_path FROM files WHERE type = ?";
+		//PreparedStatement filesByType = connection.prepareStatement(query);
+		
 		filesByType.setString(1, type);
-		ResultSet rs = filesByType.executeQuery();
+		filesByType.execute();
+		ResultSet rs = filesByType.getResultSet();
 		
 		List<RepoFile> files = new ArrayList<>(1024);
 		while (rs.next()) {
