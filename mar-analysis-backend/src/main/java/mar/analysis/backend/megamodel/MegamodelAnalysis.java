@@ -26,6 +26,7 @@ import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 import mar.analysis.uml.UMLAnalyser;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
+import mar.artefacts.MetamodelReference;
 import mar.artefacts.Transformation;
 import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.graph.RecoveryGraph;
@@ -52,6 +53,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			List<RecoveryGraph> result = new ArrayList<>();
 			result.addAll( fromBuildFiles(db, repositoryDataFolder) );
 			result.addAll(  fromQvtoFiles(db, repositoryDataFolder) );
+			result.addAll(  fromXtextFiles(db, repositoryDataFolder) );
 			
 			return result;
 		} catch (Exception e) {
@@ -98,6 +100,26 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return result;
 	}
 	
+	@Nonnull
+	private List<RecoveryGraph> fromXtextFiles(RepositoryDB db, Path repositoryDataFolder) throws SQLException {
+		List<RecoveryGraph> result = new ArrayList<>();
+		for (RepoFile model : db.getFilesByType("xtext")) {
+			Path path = model.getRelativePath();
+			Path projectPath = model.getProjectPath();
+
+			System.out.println("Analysing Xtext: " + path);			
+			
+			try {
+				XtextInspector inspector = new XtextInspector(repositoryDataFolder, projectPath);
+				RecoveryGraph miniGraph = inspector.process(model.getFullPath().toFile());
+				result.add(miniGraph);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	
 	private RelationshipsGraph mergeMiniGraphs(@Nonnull Collection<RecoveryGraph> graphs, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		for (RecoveryGraph miniGraph : graphs) {		
@@ -125,9 +147,12 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					Node node = new RelationshipsGraph.Node(id, new Artefact(id, "transformation", name), p);
 					graph.addNode(node);
 					
-					for (Metamodel metamodel : p.getMetamodels()) {
+					for (MetamodelReference ref : p.getMetamodels()) {
+						Metamodel metamodel = ref.getMetamodel();
 						String metamodelId = toId(metamodel, metamodels);
 						System.out.println("Edge: " + id + ", " + metamodelId);
+						
+						// TODO: Analyse metamodel.getKind() to establish proper edge relationships
 						graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
 					}
 					// p.getMetamodels()
@@ -284,8 +309,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					Node node = new RelationshipsGraph.Node(id, new Artefact(id, "transformation", name), p);
 					graph.addNode(node);
 					
-					for (Metamodel metamodel : p.getMetamodels()) {
-						String metamodelId = toId(metamodel, metamodels);
+					for (MetamodelReference ref : p.getMetamodels()) {
+						String metamodelId = toId(ref.getMetamodel(), metamodels);
 						System.out.println("Edge: " + id + ", " + metamodelId);
 						graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
 					}
