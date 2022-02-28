@@ -3,6 +3,7 @@ package mar.analysis.backend.megamodel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
+import mar.analysis.backend.RepositoryDB;
+import mar.analysis.backend.RepositoryDB.RepoFile;
 import mar.analysis.backend.megamodel.XtextAnalysisDB.XtextModel;
 import mar.analysis.ecore.EcoreRepository;
 import mar.analysis.ecore.EcoreRepository.EcoreDerivedModel;
@@ -45,30 +48,28 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private File output;
 	
 	private List<RecoveryGraph> computeMiniGraphs(Path repositoryDataFolder) {
-		File buildCrawlerDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "build" , "crawler.db").toFile();
-		File xtextAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "xtext" , "analysis.db").toFile();
-		File qvtCrawlerDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "qvto" , "crawler.db").toFile();
-		
-		// For Epsilon, etc.
-		CrawlerDB buildFileCrawler = new CrawlerDB("build", "github", repositoryDataFolder.toFile().getAbsolutePath(), buildCrawlerDbFile);
-
-		List<RecoveryGraph> result = new ArrayList<>();
-		result.addAll( fromBuildFiles(buildFileCrawler, repositoryDataFolder) );
-		result.addAll(  fromQvtoFiles(qvtCrawlerDbFile, repositoryDataFolder) );
-		
-		return result;
+		try(RepositoryDB db = new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile())) {		
+			List<RecoveryGraph> result = new ArrayList<>();
+			result.addAll( fromBuildFiles(db, repositoryDataFolder) );
+			result.addAll(  fromQvtoFiles(db, repositoryDataFolder) );
+			
+			return result;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
-	private Collection<? extends RecoveryGraph> fromQvtoFiles(File qvtCrawlerDbFile, Path repositoryDataFolder) {
+	private Collection<? extends RecoveryGraph> fromQvtoFiles(RepositoryDB db, Path repositoryDataFolder) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
-		CrawlerDB crawler = new CrawlerDB("qvto", "github", repositoryDataFolder.toString(), qvtCrawlerDbFile);
-		for (IngestedModel model : crawler.getModels()) {
-			Path path = Paths.get(model.getRelativePath()).normalize();
-			Path projectPath = path.subpath(0, 2);
+		for (RepoFile model : db.getFilesByType("qvto")) {
+			Path path = model.getRelativePath();
+			Path projectPath = model.getProjectPath();
+						
+			System.out.println("Analysing QVTO: " + path);
 			
 			try {
 				QvtoInspector inspector = new QvtoInspector(repositoryDataFolder, projectPath);
-				RecoveryGraph minigraph = inspector.process(model.getFullFile());
+				RecoveryGraph minigraph = inspector.process(model.getFullPath().toFile());
 				result.add(minigraph);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -78,17 +79,17 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	@Nonnull
-	private List<RecoveryGraph> fromBuildFiles(CrawlerDB buildFileCrawler, Path repositoryDataFolder) {
+	private List<RecoveryGraph> fromBuildFiles(RepositoryDB db, Path repositoryDataFolder) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
-		for (IngestedModel model : buildFileCrawler.getModels()) {
-			Path path = Paths.get(model.getRelativePath()).normalize();
-			Path projectPath = path.subpath(0, 2);
+		for (RepoFile model : db.getFilesByType("ant")) {
+			Path path = model.getRelativePath();
+			Path projectPath = model.getProjectPath();
 
-			System.out.println("Doing: " + path);			
+			System.out.println("Analysing ANT: " + path);			
 			
 			try {
 				BuildFileInspector inspector = new BuildFileInspector(repositoryDataFolder, projectPath);
-				RecoveryGraph miniGraph = inspector.process(model.getFullFile());
+				RecoveryGraph miniGraph = inspector.process(model.getFullPath().toFile());
 				result.add(miniGraph);
 			} catch (Exception e) {
 				e.printStackTrace();
