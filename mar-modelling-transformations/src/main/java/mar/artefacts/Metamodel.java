@@ -1,6 +1,5 @@
 package mar.artefacts;
 
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,8 +8,6 @@ import javax.annotation.Nonnull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-
-import mar.artefacts.utils.AntUtils;
 
 @VisibleForTesting
 public class Metamodel {
@@ -24,8 +21,22 @@ public class Metamodel {
 	@Nonnull
 	private Set<Metamodel> dependents = new HashSet<>();
 	
-	public Metamodel(@Nonnull String  name) {
+	private Metamodel(@Nonnull String  name) {
 		this.name = name;
+	}
+	
+	@Nonnull
+	public static Metamodel fromURI(@Nonnull String name, @Nonnull String uri) {
+		Metamodel mm = new Metamodel(name);
+		mm.setURI(uri);
+		return mm;
+	}
+
+	@Nonnull
+	public static Metamodel fromFile(@Nonnull String name, @Nonnull RecoveredPath file) {
+		Metamodel mm = new Metamodel(name);
+		mm.setPath(file);
+		return mm;
 	}
 
 	public void addDependent(Metamodel dependent) {
