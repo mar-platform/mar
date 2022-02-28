@@ -2,7 +2,6 @@ import os
 import sys
 import argparse
 
-
 def insert_project(dir, cursor):
     project_name = dir.split(os.path.sep)[1]
     cursor.execute('INSERT INTO projects(project_path, name) VALUES (?, ?)', [dir, project_name])
@@ -11,7 +10,6 @@ def insert_project(dir, cursor):
 def insert_file(project_path, path, fname, ext, filetype, cursor):
     cursor.execute('INSERT INTO files(project_path, file_path, filename, extension, type) VALUES (?, ?, ?, ?, ?)',
                    [project_path, path, fname, ext, filetype])
-
 
 def process_folder(input_folder, extension_map, file_map, cursor):
     for (dirpath, dirnames, filenames) in os.walk(input_folder, topdown=True, followlinks=False):
@@ -32,12 +30,21 @@ def process_folder(input_folder, extension_map, file_map, cursor):
             project_path = os.path.sep.join(parts[0:2])
             
         for filename in filenames:
-            ext = os.path.splitext(filename)[1]
-            if ext in extension_map:
-                filetype = extension_map[ext]
-                print(filetype, filename)
-                insert_file(project_path, os.path.join(dirpath, filename), filename, ext, filetype, cursor)
-                
+            try:
+                filepath = os.path.join(dirpath, filename)
+                ext = os.path.splitext(filename)[1]
+                if ext in extension_map:
+                    filetype = extension_map[ext]
+                    print(filetype, filepath)
+                    insert_file(project_path, filepath, filename, ext, filetype, cursor)
+                elif filename in file_map:
+                    filetype = file_map[filename]
+                    print(filetype, filepath)
+                    insert_file(project_path, filepath, filename, ext, filetype, cursor)
+            except UnicodeEncodeError:
+                print("Invalid file name")
+
+                    
 def open(output_file):
     import sqlite3
     conn   = sqlite3.connect(output_file)
