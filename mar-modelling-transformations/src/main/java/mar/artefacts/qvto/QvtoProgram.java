@@ -11,4 +11,13 @@ public class QvtoProgram extends FileProgram {
 		super(path);
 	}
 
+	@Override
+	public String getKind() {
+		return "qvto";
+	}
+	
+	@Override
+	public String getCategory() {
+		return "transformation";
+	}
 }
