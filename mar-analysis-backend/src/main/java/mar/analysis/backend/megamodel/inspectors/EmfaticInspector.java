@@ -42,7 +42,7 @@ public class EmfaticInspector extends ProjectInspector {
 		int idx = line.indexOf(uriTag) + uriTag.length();
 		Preconditions.checkState(idx != -1);
 		
-		int last = line.indexOf(line, idx);
+		int last = line.indexOf("\"", idx);
 		Preconditions.checkState(last != -1);
 		
 		return line.substring(idx, last);
