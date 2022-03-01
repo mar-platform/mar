@@ -91,6 +91,12 @@ if __name__ == "__main__":
         '.atl': 'atl',
 
         '.qvto': 'qvto',
+
+        '.ocl': 'ocl',
+        
+        '.cs': 'emftext',
+        
+        '.mtl': 'acceleo',
         
         '.xtext': 'xtext',
 
