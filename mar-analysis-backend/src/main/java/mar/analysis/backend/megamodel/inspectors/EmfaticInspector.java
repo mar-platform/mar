@@ -15,6 +15,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
 
 /**
@@ -50,8 +51,6 @@ public class EmfaticInspector extends ProjectInspector {
 	
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-		//String filename = f.getName();
-		//File parent = f.getParentFile();
 		
 		List<String> uris = Files.lines(f.toPath()).
 								filter(this::isPackage).
@@ -63,12 +62,22 @@ public class EmfaticInspector extends ProjectInspector {
 		EmfaticProgram p = new EmfaticProgram(new RecoveredPath(f.toPath()));		
 		graph.addProgram(p);
 		
-		// TODO: Not sure if I should point to the actual file
-		
-		for (String uri : uris) {
-			Metamodel mm = Metamodel.fromURI(uri, uri);
+		if (uris.isEmpty()) {
+			String filename = f.getName().replace(".emf", ".ecore");
+			File parent = f.getParentFile();
+
+			FileSearcher searcher = new FileSearcher(repoFolder);
+			RecoveredPath rp = searcher.findInFolder(parent.toPath(), filename);
+			Metamodel mm = Metamodel.fromFile(filename, rp);
 			graph.addMetamodel(mm);
-			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);
+			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		
+		} else {
+			// Assume that URIs between .ecore files match
+			for (String uri : uris) {
+				Metamodel mm = Metamodel.fromURI(uri, uri);
+				graph.addMetamodel(mm);
+				p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);
+			}
 		}
 		
 		return graph;
