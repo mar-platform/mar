@@ -30,4 +30,7 @@ public abstract class FileProgram {
 		return metamodels;
 	}
 	
+	public abstract String getKind();
+
+	public abstract String getCategory();
 }
