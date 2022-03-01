@@ -49,5 +49,15 @@ public class XtextInspector extends ProjectInspector {
 			super(path);
 		}
 		
+		@Override
+		public String getKind() {
+			return "xtext";
+		}
+		
+		@Override
+		public String getCategory() {
+			return "textual-syntax";
+		}
+		
 	}
 }

@@ -12,10 +12,13 @@ public class Artefact {
 	private final String type;
 	@JsonProperty
 	private final String name;
+	@JsonProperty
+	private final String category;
 
-	public Artefact(@Nonnull String id, @Nonnull String type, @Nonnull String name) {
+	public Artefact(@Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
 		this.id = id;
 		this.type = type;
+		this.category = category;
 		this.name = name;
 	}
 	
@@ -30,5 +33,8 @@ public class Artefact {
 	public String getName() {
 		return name;
 	}
-	
+
+	public String getCategory() {
+		return category;
+	}
 }

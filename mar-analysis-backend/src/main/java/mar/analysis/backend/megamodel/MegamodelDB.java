@@ -46,6 +46,7 @@ public class MegamodelDB implements Closeable {
                 String artefacts = "CREATE TABLE IF NOT EXISTS artefacts (\n"
                         + "    id            varchar(255) PRIMARY KEY,\n"
                         + "    type          varchar(255) NOT NULL,\n"
+                        + "    category      varchar(255) NOT NULL,\n"
                         + "    name          varchar(255) NOT NULL\n"
                         + ");";
 
@@ -73,14 +74,15 @@ public class MegamodelDB implements Closeable {
 
 	private Map<String, Artefact> getArtefacts() throws SQLException {
 		Map<String, Artefact> result = new HashMap<String, Artefact>();     
-		PreparedStatement allArtefactsStm = connection.prepareStatement("SELECT id, type, name FROM artefacts");
+		PreparedStatement allArtefactsStm = connection.prepareStatement("SELECT id, type, category, name FROM artefacts");
 		allArtefactsStm.execute();
 		ResultSet rs = allArtefactsStm.getResultSet();
 		while (rs.next()) {
 			String id = rs.getString(1);
 			String type = rs.getString(2);
-			String name = rs.getString(3);
-			result.put(id, new Artefact(id, type, name));
+			String category = rs.getString(3);
+			String name = rs.getString(4);
+			result.put(id, new Artefact(id, type, category, name));
 		}
 		allArtefactsStm.close();
 		return result;
@@ -164,21 +166,22 @@ public class MegamodelDB implements Closeable {
 
 
 	@CheckForNull
-	public void addArtefact(@Nonnull String id, @Nonnull String type, String name) {		
+	public void addArtefact(@Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
 		try {
 			if (allArtefacts.containsKey(id)) {				
 				return;
 			}
 						
 			// We can insert
-			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO artefacts(id, type, name) VALUES (?, ?, ?)");
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO artefacts(id, type, category, name) VALUES (?, ?, ?, ?)");
 			preparedStatement.setString(1, id);
 			preparedStatement.setString(2, type);
-			preparedStatement.setString(3, name);
+			preparedStatement.setString(3, category);
+			preparedStatement.setString(4, name);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();			
 			
-			allArtefacts.put(id, new Artefact(id, type, name));
+			allArtefacts.put(id, new Artefact(id, type, category, name));
 		} catch (SQLException e) {
 			throw new RuntimeException(e);		
 		}
@@ -187,7 +190,7 @@ public class MegamodelDB implements Closeable {
 	public void dump(@Nonnull RelationshipsGraph graph) {
 		for (Node node : graph.getNodes()) {
 			Artefact artefact = node.getArtefact();
-			addArtefact(artefact.getId(), artefact.getType(), artefact.getName());
+			addArtefact(artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName());
 		}
 		
 		for (Edge edge : graph.getEdges()) {
