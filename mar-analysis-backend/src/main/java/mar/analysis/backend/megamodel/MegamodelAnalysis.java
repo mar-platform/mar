@@ -3,7 +3,6 @@ package mar.analysis.backend.megamodel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
 
 import mar.analysis.backend.RepositoryDB;
-import mar.analysis.backend.RepositoryDB.RepoFile;
+import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Relationship;
@@ -22,9 +21,7 @@ import mar.analysis.uml.UMLAnalyser;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
-import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.graph.RecoveryGraph;
-import mar.artefacts.qvto.QvtoInspector;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 import picocli.CommandLine;
@@ -40,75 +37,19 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private File output;
 	
 	private List<RecoveryGraph> computeMiniGraphs(Path repositoryDataFolder) {
-		try(RepositoryDB db = new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile())) {		
+		try(RepositoryDB db = new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile())) {
+			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder);
+			
 			List<RecoveryGraph> result = new ArrayList<>();
-			result.addAll( fromBuildFiles(db, repositoryDataFolder) );
-			result.addAll(  fromQvtoFiles(db, repositoryDataFolder) );
-			result.addAll(  fromXtextFiles(db, repositoryDataFolder) );
+			result.addAll( inspector.fromBuildFiles() );
+			result.addAll( inspector.fromQvtoFiles() );
+			result.addAll( inspector.fromXtextFiles() );
+			result.addAll( inspector.fromEmfaticFiles() );
 			
 			return result;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	private Collection<? extends RecoveryGraph> fromQvtoFiles(RepositoryDB db, Path repositoryDataFolder) throws SQLException {
-		List<RecoveryGraph> result = new ArrayList<>();
-		for (RepoFile model : db.getFilesByType("qvto")) {
-			Path path = model.getRelativePath();
-			Path projectPath = model.getProjectPath();
-						
-			System.out.println("Analysing QVTO: " + path);
-			
-			try {
-				QvtoInspector inspector = new QvtoInspector(repositoryDataFolder, projectPath);
-				RecoveryGraph minigraph = inspector.process(model.getFullPath().toFile());
-				result.add(minigraph);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return result;
-	}
-
-	@Nonnull
-	private List<RecoveryGraph> fromBuildFiles(RepositoryDB db, Path repositoryDataFolder) throws SQLException {
-		List<RecoveryGraph> result = new ArrayList<>();
-		for (RepoFile model : db.getFilesByType("ant")) {
-			Path path = model.getRelativePath();
-			Path projectPath = model.getProjectPath();
-
-			System.out.println("Analysing ANT: " + path);			
-			
-			try {
-				BuildFileInspector inspector = new BuildFileInspector(repositoryDataFolder, projectPath);
-				RecoveryGraph miniGraph = inspector.process(model.getFullPath().toFile());
-				result.add(miniGraph);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return result;
-	}
-	
-	@Nonnull
-	private List<RecoveryGraph> fromXtextFiles(RepositoryDB db, Path repositoryDataFolder) throws SQLException {
-		List<RecoveryGraph> result = new ArrayList<>();
-		for (RepoFile model : db.getFilesByType("xtext")) {
-			Path path = model.getRelativePath();
-			Path projectPath = model.getProjectPath();
-
-			System.out.println("Analysing Xtext: " + path);			
-			
-			try {
-				XtextInspector inspector = new XtextInspector(repositoryDataFolder, projectPath);
-				RecoveryGraph miniGraph = inspector.process(model.getFullPath().toFile());
-				result.add(miniGraph);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return result;
 	}
 	
 	private RelationshipsGraph mergeMiniGraphs(@Nonnull Collection<RecoveryGraph> graphs, File repositoryDataFolder, AnalysisDB metamodels) {
