@@ -31,9 +31,15 @@
   }
 
   function createNetwork(document) {
-    const colorMap = {
+    const colorCategoryMap = {
       'transformation' : '#5ac477',
       'metamodel' : '#5a8bc4'
+    }
+    const colorMap = {
+      'qvto' : '#5ac477',
+      'ecore' : '#5a8bc4',
+      'xtext' : '#6e1ae5',
+      'emfatic' : '#fb04d8',
     }
     const graph: Graph = new Graph();
 
