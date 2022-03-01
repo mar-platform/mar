@@ -3,6 +3,7 @@
   // - Layout: https://codesandbox.io/s/ekjy6
   // - Layout: https://www.npmjs.com/package/graphology-layout-forceatlas2
   import Sigma from "sigma";
+  import type { Coordinates, EdgeDisplayData, NodeDisplayData } from "sigma/types";
   import Graph from "graphology"
 
   import FA2Layout from "graphology-layout-forceatlas2/worker";
@@ -20,6 +21,7 @@
 
   let container;
   let currentNode;
+  let renderer;
 
   async function call() {
     //fetch(`https://localhost:8443/graph`)
@@ -50,6 +52,7 @@
       graph.addNode(node.id, {
         x: 0,
         y: 0,
+        impl: node,
         nodeType: node.artefact.type,
         label: node.artefact.name,
         color: colorMap[node.artefact.type] || '#b34f47'
@@ -75,14 +78,67 @@
       settings: sensibleSettings,
     });
     forceAtlas2.assign(graph, {
-      iterations: 50,
+      iterations: 75,
       settings: sensibleSettings
     });
 
-    let renderer = new Sigma(graph, container);
+    renderer = new Sigma(graph, container);
     renderer.on("clickNode", (e) => {
       currentNode = nodeIds.get(e.node);
     });
+
+    renderer.setSetting("nodeReducer", (nodeId, data) => {
+      const res: Partial<NodeDisplayData> = { ...data };
+      //const node: any = nodeIds.get(nodeId);
+      //const node = data.impl;
+
+      //console.log(node.nodeType)
+      if (checkedTypes[data.nodeType]) {
+        // res.color = colorMap[data.nodeType];
+      } else {
+        //res.color = "#f6f6f6";
+        // res.color = "#ffffff";
+        res.hidden = true;
+      }
+      
+      return res;
+    });
+
+    renderer.setSetting("edgeReducer", (edge, data) => {
+      const res: Partial<EdgeDisplayData> = { ...data };
+      const src : any = graph.source(edge);
+      const tgt : any = graph.target(edge);
+      const srcType = graph.getNodeAttribute(src, "nodeType");
+      const tgtType = graph.getNodeAttribute(tgt, "nodeType");
+
+      if (! (checkedTypes[srcType] && checkedTypes[tgtType])) {
+        res.hidden = true;
+      }
+
+      return res;
+    });
+  }
+
+  function refresh() {
+    if (renderer != null)
+      renderer.refresh();
+  }
+
+  // TODO: Recover this from the web
+  let types = [
+    { type: 'qvto', checked : true },
+    { type: 'ecore', checked : true },
+    { type: 'xtext', checked : true },
+    { type: 'emfatic', checked : true },
+    { type: 'evl', checked : true },
+    { type: 'etl', checked : true },
+    { type: 'eol', checked : true },
+    { type: 'egl', checked : true },
+  ]
+
+  let checkedTypes = { }
+  for (let i = 0; i < types.length; i++) {
+    checkedTypes[types[i].type] = true;
   }
 </script>
 
@@ -95,6 +151,15 @@
 </style>
 
 <main>
+  <div>
+    Artefact types
+    {#each types as {type, checked}, idx }
+    <label>
+      <input type=checkbox bind:checked={checkedTypes[type]} on:change={(e) => refresh()}>
+      {type}
+    </label>
+    {/each}
+  </div>
   <div style="width: 100%; overflow: hidden;">
     <div style="width: 600px; float: left;"> 
       {#if currentNode != undefined}
