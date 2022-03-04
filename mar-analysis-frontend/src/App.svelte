@@ -4,11 +4,14 @@
   // - Layout: https://www.npmjs.com/package/graphology-layout-forceatlas2
   import Sigma from "sigma";
   import type { Coordinates, EdgeDisplayData, NodeDisplayData } from "sigma/types";
-  import Graph from "graphology"
+  import type Graph from "graphology";
+  import UndirectedGraph from "graphology";
 
   import FA2Layout from "graphology-layout-forceatlas2/worker";
   import forceAtlas2 from "graphology-layout-forceatlas2";
   import random from 'graphology-layout/random';
+
+  import ArtifactInfo from './ArtefactInfo.svelte'
 
   //  import logo from './assets/svelte.png'
   //  import Counter from './lib/Counter.svelte'
@@ -20,6 +23,7 @@
 
 
   let container;
+  let graph : Graph;
   let currentNode;
   let renderer;
 
@@ -43,12 +47,10 @@
       'xtext' : '#6e1ae5',
       'emfatic' : '#fb04d8',
     }
-    const graph: Graph = new Graph();
-
-    let nodeIds : Map<string, unknown> = new Map<string, number>();
+    graph = new UndirectedGraph();
 
     document.nodes.forEach(node => {
-      nodeIds.set(node.id, node);
+      // console.log("Node: ", node.id);
       graph.addNode(node.id, {
         x: 0,
         y: 0,
@@ -60,6 +62,7 @@
     });
     
     document.edges.forEach(edge => {
+      // console.log("Edge: ", edge.source, edge.target);
       graph.addEdge(edge.source, edge.target, {
         edgeType: edge.type
       });
@@ -84,15 +87,12 @@
 
     renderer = new Sigma(graph, container);
     renderer.on("clickNode", (e) => {
-      currentNode = nodeIds.get(e.node);
+      currentNode = graph.getNodeAttributes(e.node).impl;
     });
 
     renderer.setSetting("nodeReducer", (nodeId, data) => {
       const res: Partial<NodeDisplayData> = { ...data };
-      //const node: any = nodeIds.get(nodeId);
-      //const node = data.impl;
 
-      //console.log(node.nodeType)
       if (checkedTypes[data.nodeType]) {
         // res.color = colorMap[data.nodeType];
       } else {
@@ -160,12 +160,11 @@
     </label>
     {/each}
   </div>
+
   <div style="width: 100%; overflow: hidden;">
-    <div style="width: 600px; float: left;"> 
+    <div style="width: 600px; float: left;">       
       {#if currentNode != undefined}
-        <div>Id: {currentNode.id}</div>
-        <div>Type: {currentNode.artefact.type}</div>
-        <div>Name: {currentNode.artefact.name}</div>
+        <ArtifactInfo graph={graph} node={currentNode} />
       {/if}
     </div>
     <div id="container" bind:this={container} style="margin-left: 620px; width: calc(100wh - 600px)"> 
