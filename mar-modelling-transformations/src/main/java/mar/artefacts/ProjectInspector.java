@@ -18,7 +18,15 @@ public abstract class ProjectInspector {
 	protected Path getProjectFolder() {
 		return repoFolder.resolve(projectSubPath);
 	}
+
+	protected Path getRepositoryPath(File f) {
+		return getRepositoryPath(f.toPath());
+	}
 	
+	protected Path getRepositoryPath(Path p) {
+		return repoFolder.relativize(p);
+	}
+
 	public abstract RecoveryGraph process(File f) throws Exception;
 
 }
