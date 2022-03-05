@@ -4,6 +4,8 @@ import java.nio.file.Path;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Represents a path in a repository
  * 
@@ -14,12 +16,10 @@ public class RecoveredPath {
 	private Path path;
 
 	/**
-	 * 
-	 * @param root Refers to the path segment from the repository folder up to a folder of interest (e.g., a project path or where a build file is located) 
 	 * @param path The path (relative to the root) of the artefact
-	 * @param loosyFilePath Whether this file is known to exists or just recovered heuristically
 	 */
 	public RecoveredPath(Path path) {
+		Preconditions.checkArgument(! path.isAbsolute());
 		this.path = path;
 	}
 	
@@ -30,9 +30,35 @@ public class RecoveredPath {
 	@Nonnull
 	public Path getCompletePath(Path repoFolder) {
 		return repoFolder.resolve(getPath());
+	}	
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((path == null) ? 0 : path.hashCode());
+		return result;
 	}
-	
-	
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RecoveredPath other = (RecoveredPath) obj;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!path.equals(other.path))
+			return false;
+		return true;
+	}
+
+
+
 	public static class Ant extends RecoveredPath {
 		private boolean loosyFilePath;
 
