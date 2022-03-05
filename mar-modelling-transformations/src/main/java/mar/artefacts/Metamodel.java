@@ -20,6 +20,7 @@ public class Metamodel {
 	private RecoveredPath file;
 	@Nonnull
 	private Set<Metamodel> dependents = new HashSet<>();
+	private Set<Metamodel> subpackages = new HashSet<>();
 	
 	private Metamodel(@Nonnull String  name) {
 		this.name = name;
@@ -47,6 +48,14 @@ public class Metamodel {
 		return dependents;
 	}
 
+	public void addSubpackage(Metamodel mm) {
+		this.subpackages.add(mm);
+	}	
+
+	public Set<? extends Metamodel> getSubpackages() {
+		return subpackages;
+	}
+
 	public void setURI(String uri) {
 		Preconditions.checkState(file == null);
 		this.uri = uri;
@@ -63,6 +72,39 @@ public class Metamodel {
 	
 	public String getUri() {
 		return uri;
-	}	
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((file == null) ? 0 : file.hashCode());
+		result = prime * result + ((uri == null) ? 0 : uri.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Metamodel other = (Metamodel) obj;
+		if (file == null) {
+			if (other.file != null)
+				return false;
+		} else if (!file.equals(other.file))
+			return false;
+		if (uri == null) {
+			if (other.uri != null)
+				return false;
+		} else if (!uri.equals(other.uri))
+			return false;
+		return true;
+	}
+	
+	
 	
 }
