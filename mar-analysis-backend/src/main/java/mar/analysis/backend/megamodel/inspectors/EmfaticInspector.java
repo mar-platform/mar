@@ -59,7 +59,7 @@ public class EmfaticInspector extends ProjectInspector {
 				
 		RecoveryGraph graph = new RecoveryGraph();
 		
-		EmfaticProgram p = new EmfaticProgram(new RecoveredPath(f.toPath()));		
+		EmfaticProgram p = new EmfaticProgram(new RecoveredPath(getRepositoryPath(f)));		
 		graph.addProgram(p);
 		
 		if (uris.isEmpty()) {
@@ -71,13 +71,24 @@ public class EmfaticInspector extends ProjectInspector {
 			Metamodel mm = Metamodel.fromFile(filename, rp);
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		
-		} else {
+		} else {			
 			// Assume that URIs between .ecore files match
+			// Assume that the root package URIs the main URI, and the rest are dependent meta-models
+			String root = uris.get(0);
+			Metamodel rootPkg = Metamodel.fromURI(root, root);
+			for (int i = 1; i < uris.size(); i++) {
+				String uri = uris.get(i);
+				Metamodel mm = Metamodel.fromURI(uri, uri);
+				rootPkg.addSubpackage(mm);
+			}
+			graph.addMetamodel(rootPkg);
+			/*
 			for (String uri : uris) {
 				Metamodel mm = Metamodel.fromURI(uri, uri);
 				graph.addMetamodel(mm);
 				p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);
 			}
+			*/
 		}
 		
 		return graph;
