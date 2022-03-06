@@ -58,7 +58,7 @@ public class BuildFileInspector extends ProjectInspector {
 			XPath xpath = xpathfactory.newXPath();
 			FIND_LOAD_MODEL = xpath.compile("//project/target/*[name(.) = 'epsilon.emf.loadModel']");
 			// TODO: Include more epsilon languages (evl, flock, etc.)
-			FIND_PROGRAMS = xpath.compile("//project/target/*[name(.) = 'epsilon.eol' or name(.) = 'epsilon.etl' or name(.) = 'epsilon.egl' or name(.) = 'epsilon.evl']");
+			FIND_PROGRAMS = xpath.compile("//project/target/*[name(.) = 'epsilon.eol' or name(.) = 'epsilon.etl' or name(.) = 'epsilon.egl' or name(.) = 'epsilon.egx' or name(.) = 'epsilon.evl']");
 			MODEL_REFS    = xpath.compile("./model/@ref");
 		} catch (XPathExpressionException e) {
 			throw new RuntimeException(e);
