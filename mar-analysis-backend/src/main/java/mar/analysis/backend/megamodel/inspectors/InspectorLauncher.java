@@ -11,6 +11,7 @@ import mar.analysis.backend.RepositoryDB;
 import mar.analysis.backend.RepositoryDB.RepoFile;
 import mar.analysis.backend.megamodel.XtextInspector;
 import mar.artefacts.ProjectInspector;
+import mar.artefacts.acceleo.AcceleoInspector;
 import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.qvto.QvtoInspector;
@@ -41,6 +42,10 @@ public class InspectorLauncher {
 		return doInspect("emfatic", (projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath));		
 	}
 
+	public Collection<? extends RecoveryGraph> fromAcceleoFiles() throws SQLException {
+		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath));		
+	}
+	
 	private Collection<? extends RecoveryGraph> doInspect(String extension, Function<Path, ProjectInspector> factory) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
 		for (RepoFile model : db.getFilesByType(extension)) {
@@ -53,7 +58,8 @@ public class InspectorLauncher {
 				//QvtoInspector inspector = new QvtoInspector(repositoryDataFolder, projectPath);
 				ProjectInspector inspector = factory.apply(projectPath);
 				RecoveryGraph minigraph = inspector.process(model.getFullPath().toFile());
-				result.add(minigraph);
+				if (minigraph != null)
+					result.add(minigraph);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
