@@ -3,6 +3,8 @@ package mar.artefacts;
 import java.io.File;
 import java.nio.file.Path;
 
+import javax.annotation.CheckForNull;
+
 import mar.artefacts.graph.RecoveryGraph;
 
 public abstract class ProjectInspector {
@@ -27,6 +29,7 @@ public abstract class ProjectInspector {
 		return repoFolder.relativize(p);
 	}
 
+	@CheckForNull
 	public abstract RecoveryGraph process(File f) throws Exception;
 
 }
