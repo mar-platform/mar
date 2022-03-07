@@ -49,6 +49,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			result.addAll( inspector.fromQvtoFiles() );
 			result.addAll( inspector.fromXtextFiles() );
 			result.addAll( inspector.fromEmfaticFiles() );
+			result.addAll( inspector.fromAcceleoFiles() );
 			
 			return result;
 		} catch (Exception e) {
