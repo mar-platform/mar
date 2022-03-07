@@ -3,15 +3,33 @@ package mar.artefacts.graph;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
+import mar.artefacts.graph.RecoveryStats.PerFile;
 
 public class RecoveryGraph {
 	
-	private Set<Metamodel> metamodels = new HashSet<>();
-	private Set<FileProgram> programs = new HashSet<>();
+	@CheckForNull
+	private PerFile stats;
+	
+	private final Set<Metamodel> metamodels = new HashSet<>();
+	private final Set<FileProgram> programs = new HashSet<>();
+	
+	public RecoveryGraph(PerFile stats) {
+		this.stats = stats;
+	}
+	
+	public RecoveryGraph() {
+		
+	}
+	
+	@CheckForNull
+	public PerFile getStats() {
+		return stats;
+	}
 	
 	public void addMetamodel(@Nonnull Metamodel metamodel) {
 		this.metamodels.add(metamodel);
