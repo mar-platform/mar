@@ -10,6 +10,8 @@ import java.util.concurrent.Callable;
 
 import javax.annotation.Nonnull;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import mar.analysis.backend.RepositoryDB;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
@@ -22,6 +24,8 @@ import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.graph.RecoveryStats;
+import mar.artefacts.graph.RecoveryStats.Composite;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 import picocli.CommandLine;
@@ -52,8 +56,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 	}
 	
-	private RelationshipsGraph mergeMiniGraphs(@Nonnull Collection<RecoveryGraph> graphs, File repositoryDataFolder, AnalysisDB metamodels) {
+	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Collection<RecoveryGraph> graphs, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
+		RecoveryStats.Composite stats = new RecoveryStats.Composite();
+		
 		for (RecoveryGraph miniGraph : graphs) {		
 			try {
 				for (Metamodel metamodel : miniGraph.getMetamodels()) {
@@ -90,12 +96,15 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					// p.getMetamodels()
 				}
 				
+				if (miniGraph.getStats() != null)
+					stats.addStats(miniGraph.getStats());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		return graph;
+				
+		return Pair.of(graph, stats);
 	}
 	
 	@Override
@@ -110,14 +119,17 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
 		
 		List<RecoveryGraph> miniGraphs = computeMiniGraphs(repositoryDataFolder.toPath());		
-		RelationshipsGraph graph       = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
-
+		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
+		Composite stats = result.getRight();
+		
+		stats.detailedReport();
+		
 		if (output.exists())
 			output.delete();
 		
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
-		megamodelDB.dump(graph);
+		megamodelDB.dump(result.getLeft(), stats);
 		megamodelDB.close();
 		
 		return 0;
