@@ -26,7 +26,7 @@ public class QvtoInspector extends ProjectInspector {
 		Qvto tmp = new QvtoLoader().load(qvtoFile.getAbsolutePath(), Collections.emptyList());
 		Collection<String> expectedMetamodels = tmp.getMetamodelURIs();
 		
-		QvtoProgram program = new QvtoProgram(new RecoveredPath(qvtoFile.toPath()));
+		QvtoProgram program = new QvtoProgram(new RecoveredPath(getRepositoryPath(qvtoFile)));
 		
 		RecoveryGraph graph = new RecoveryGraph();
 		graph.addProgram(program);
