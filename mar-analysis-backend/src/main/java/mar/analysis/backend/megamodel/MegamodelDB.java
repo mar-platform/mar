@@ -23,6 +23,10 @@ import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
+import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.graph.RecoveryStats;
+import mar.artefacts.graph.RecoveryStats.Composite;
+import mar.artefacts.graph.RecoveryStats.PerFile;
 
 public class MegamodelDB implements Closeable {
 
@@ -56,11 +60,21 @@ public class MegamodelDB implements Closeable {
                         + "    type  varchar (255) NOT NULL"                      
                         + ");";
 
+                String stats = "CREATE TABLE IF NOT EXISTS stats (\n"
+                        + "    filename   text NOT NULL,\n"  
+                        + "    type       varchar(255) NOT NULL,\n"  
+                        + "    potential_programs  int NOT NULL,\n"
+                        + "    programs            int NOT NULL"                      
+                        + ");";
+                
                 Statement stmt = conn.createStatement();
                 stmt.execute(artefacts);
                 
                 stmt = conn.createStatement();
                 stmt.execute(relationships);
+                
+                stmt = conn.createStatement();
+                stmt.execute(stats);                
             }
                         
             this.connection = conn;
@@ -186,8 +200,24 @@ public class MegamodelDB implements Closeable {
 			throw new RuntimeException(e);		
 		}
 	}
+	
+	private void addFileStats(PerFile f) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO stats(filename, type, potential_programs, programs) VALUES (?, ?, ?, ?)");
+			preparedStatement.setString(1, f.getPath().toString());
+			preparedStatement.setString(2, f.getType());
+			preparedStatement.setInt(3, f.getPotentialPrograms());
+			preparedStatement.setInt(4, f.getPrograms());
+			preparedStatement.executeUpdate();
+			preparedStatement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);		
+		}
+	}
 
-	public void dump(@Nonnull RelationshipsGraph graph) {
+
+
+	public void dump(@Nonnull RelationshipsGraph graph, RecoveryStats.Composite composite) {
 		for (Node node : graph.getNodes()) {
 			Artefact artefact = node.getArtefact();
 			addArtefact(artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName());
@@ -196,9 +226,12 @@ public class MegamodelDB implements Closeable {
 		for (Edge edge : graph.getEdges()) {
 			addRelationship(edge.getSourceId(), edge.getTargetId(), edge.getType());
 		}		
+		
+		for (PerFile f : composite.getSingleStats()) {
+			addFileStats(f);
+		}
 	}
 
-	
 	@FunctionalInterface
 	public static interface RelationshipConsumer {
 		public void accept(String source, String target, Relationship type);

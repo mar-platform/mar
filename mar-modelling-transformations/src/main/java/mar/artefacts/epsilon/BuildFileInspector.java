@@ -32,13 +32,12 @@ import org.xml.sax.SAXException;
 
 import com.google.common.base.Preconditions;
 
-import io.vavr.collection.LinkedHashSet;
-import mar.artefacts.ProjectInspector;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
+import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
-import mar.artefacts.RecoveredPath.Ant;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.utils.AntUtils;
 
 public class BuildFileInspector extends ProjectInspector {
@@ -70,13 +69,14 @@ public class BuildFileInspector extends ProjectInspector {
 	public RecoveryGraph process(@Nonnull File f) throws Exception {
 		Path path = f.getParentFile().toPath();
 		Path relativeBuildFolder = repoFolder.relativize(path);
-		return process(relativeBuildFolder, new FileInputStream(f));
+		return process(relativeBuildFolder, f, new FileInputStream(f));
 	}
 	
-	public RecoveryGraph process(@Nonnull Path buildFileFolder, @Nonnull InputStream stream) throws Exception {
+	public RecoveryGraph process(@Nonnull Path buildFileFolder, @Nonnull File f, @Nonnull InputStream stream) throws Exception {
 		Preconditions.checkState(! buildFileFolder.isAbsolute());
 				
-		RecoveryGraph graph = new RecoveryGraph();
+		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "build.xml");
+		RecoveryGraph graph = new RecoveryGraph(stats);
 		
 		Document doc = loadDocument(stream);
 	 
@@ -91,6 +91,8 @@ public class BuildFileInspector extends ProjectInspector {
 	    
 	    result = (NodeList) FIND_PROGRAMS.evaluate(doc, XPathConstants.NODESET);
 	    
+	    stats.setPotentialPrograms(result.getLength());
+	    
 	    for(int i = 0, len = result.getLength(); i < len; i++) {	    	
 	    	Node item = result.item(i);
 	    	NamedNodeMap attrs = item.getAttributes();
@@ -102,6 +104,8 @@ public class BuildFileInspector extends ProjectInspector {
 	    	RecoveredPath file = AntUtils.parseAntPath(buildFileFolder, fileNode.getTextContent());
 	    	EpsilonProgram program = new EpsilonProgram(file);
 	    	graph.addProgram(program);
+	    	
+	    	stats.addRecoveredProgram(program);
 	    	
 	    	NodeList list = (NodeList) MODEL_REFS.evaluate(item, XPathConstants.NODESET);
 		    for(int j = 0, lenj = list.getLength(); j < lenj; j++) {
