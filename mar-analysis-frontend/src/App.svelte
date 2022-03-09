@@ -27,6 +27,21 @@
   let currentNode;
   let renderer;
 
+  // TODO: Recover this from the web
+  const types = [
+    { type: 'qvto', checked : true,   color: '#5ac477' },
+    { type: 'ecore', checked : true,  color: '#5a8bc4' },
+    { type: 'xtext', checked : true,  color: '#6e1ae5'},
+    { type: 'emfatic', checked : true, color: '#fb04d8' },
+    { type: 'evl', checked : true,  color: '#b33636' },
+    { type: 'etl', checked : true, color: '#b33636' },
+    { type: 'eol', checked : true, color: '#b33636' },
+    { type: 'egl', checked : true, color: '#b33636' },
+    { type: 'acceleo', checked : true, color: '#36b336' },
+  ]
+  
+
+
   async function call() {
     //fetch(`https://localhost:8443/graph`)
     fetch(`http://localhost:8080/graph`)
@@ -41,12 +56,12 @@
       'transformation' : '#5ac477',
       'metamodel' : '#5a8bc4'
     }
-    const colorMap = {
-      'qvto' : '#5ac477',
-      'ecore' : '#5a8bc4',
-      'xtext' : '#6e1ae5',
-      'emfatic' : '#fb04d8',
-    }
+    
+    const colorMap = types.reduce(function(map, obj) { 
+      map[obj.type] = obj.color; 
+      return map; 
+    }, {});
+
     graph = new UndirectedGraph();
 
     document.nodes.forEach(node => {
@@ -81,7 +96,7 @@
       settings: sensibleSettings,
     });
     forceAtlas2.assign(graph, {
-      iterations: 75,
+      iterations: 30, /* 75 */
       settings: sensibleSettings
     });
 
@@ -123,18 +138,6 @@
     if (renderer != null)
       renderer.refresh();
   }
-
-  // TODO: Recover this from the web
-  let types = [
-    { type: 'qvto', checked : true },
-    { type: 'ecore', checked : true },
-    { type: 'xtext', checked : true },
-    { type: 'emfatic', checked : true },
-    { type: 'evl', checked : true },
-    { type: 'etl', checked : true },
-    { type: 'eol', checked : true },
-    { type: 'egl', checked : true },
-  ]
 
   let checkedTypes = { }
   for (let i = 0; i < types.length; i++) {
