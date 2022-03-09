@@ -87,6 +87,8 @@ if __name__ == "__main__":
         '.egl': 'epsilon',
         '.egx': 'epsilon',
         '.eol': 'epsilon',
+        '.ewl': 'epsilon',
+        '.eml': 'epsilon',
         
         '.atl': 'atl',
 
@@ -100,8 +102,17 @@ if __name__ == "__main__":
         
         '.xtext': 'xtext',
 
+        '.launch': 'eclipse-launcher',        
+
         '.ecore': 'ecore',
-        '.emf': 'emfatic'
+        '.emf': 'emfatic',
+
+        '.odesign': 'sirius',
+
+        '.henshin': 'henshin',
+
+        '.jet': 'jet',
+        '.javajet': 'jet'
     }
 
     # TODO: A list of extensions which we need to inspect inside to know the content (e.g., xml files)
