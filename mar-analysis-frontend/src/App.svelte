@@ -39,8 +39,11 @@
     { type: 'egl', checked : true, color: '#b33636' },
     { type: 'acceleo', checked : true, color: '#36b336' },
   ]
-  
 
+  const colorMap = types.reduce(function(map, obj) { 
+      map[obj.type] = obj.color; 
+      return map; 
+  }, {});  
 
   async function call() {
     //fetch(`https://localhost:8443/graph`)
@@ -55,12 +58,7 @@
     const colorCategoryMap = {
       'transformation' : '#5ac477',
       'metamodel' : '#5a8bc4'
-    }
-    
-    const colorMap = types.reduce(function(map, obj) { 
-      map[obj.type] = obj.color; 
-      return map; 
-    }, {});
+    }  
 
     graph = new UndirectedGraph();
 
@@ -96,7 +94,7 @@
       settings: sensibleSettings,
     });
     forceAtlas2.assign(graph, {
-      iterations: 30, /* 75 */
+      iterations: 10, /* 75 */
       settings: sensibleSettings
     });
 
@@ -143,6 +141,7 @@
   for (let i = 0; i < types.length; i++) {
     checkedTypes[types[i].type] = true;
   }
+
 </script>
 
 <style>
@@ -157,7 +156,7 @@
   <div>
     Artefact types
     {#each types as {type, checked}, idx }
-    <label>
+    <label style="color: {colorMap[type]}">
       <input type=checkbox bind:checked={checkedTypes[type]} on:change={(e) => refresh()}>
       {type}
     </label>
