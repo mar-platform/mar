@@ -46,6 +46,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			
 			List<RecoveryGraph> result = new ArrayList<>();
 			result.addAll( inspector.fromBuildFiles() );
+			result.addAll( inspector.fromLaunchFiles() );
 			result.addAll( inspector.fromQvtoFiles() );
 			result.addAll( inspector.fromXtextFiles() );
 			result.addAll( inspector.fromEmfaticFiles() );
