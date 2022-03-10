@@ -2,7 +2,6 @@ package mar.artefacts.epsilon;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -28,19 +24,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import com.google.common.base.Preconditions;
 
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
-import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.utils.AntUtils;
 
-public class BuildFileInspector extends ProjectInspector {
+public class BuildFileInspector extends XMLProjectInspector {
 
 	private final XPathExpression FIND_LOAD_MODEL;
 	private final XPathExpression FIND_PROGRAMS;
@@ -220,11 +215,4 @@ public class BuildFileInspector extends ProjectInspector {
 		return metamodels;
 	}
 	
-	private Document loadDocument(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-	    factory.setNamespaceAware(true); // never forget this!
-	    DocumentBuilder builder = factory.newDocumentBuilder();
-	    Document doc = builder.parse(stream);
-		return doc;
-	}
 }
