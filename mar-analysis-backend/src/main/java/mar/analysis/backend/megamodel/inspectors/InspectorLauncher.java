@@ -13,6 +13,7 @@ import mar.analysis.backend.megamodel.XtextInspector;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.acceleo.AcceleoInspector;
 import mar.artefacts.epsilon.BuildFileInspector;
+import mar.artefacts.epsilon.EpsilonLaunchInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.qvto.QvtoInspector;
 
@@ -30,6 +31,10 @@ public class InspectorLauncher {
 		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath));		
 	}
 	
+	public Collection<? extends RecoveryGraph> fromLaunchFiles() throws SQLException {
+		return doInspect("eclipse-launcher", (projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath));		
+	}
+	
 	public Collection<? extends RecoveryGraph> fromQvtoFiles() throws SQLException {
 		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath));		
 	}
@@ -45,7 +50,7 @@ public class InspectorLauncher {
 	public Collection<? extends RecoveryGraph> fromAcceleoFiles() throws SQLException {
 		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath));		
 	}
-	
+		
 	private Collection<? extends RecoveryGraph> doInspect(String extension, Function<Path, ProjectInspector> factory) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
 		for (RepoFile model : db.getFilesByType(extension)) {
