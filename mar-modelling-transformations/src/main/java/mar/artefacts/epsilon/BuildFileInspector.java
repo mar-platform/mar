@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
+import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
@@ -45,7 +46,7 @@ public class BuildFileInspector extends XMLProjectInspector {
 	
 	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
 		super(repoFolder, projectSubPath);
-		this.searcher = new FileSearcher(getProjectFolder());
+		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();

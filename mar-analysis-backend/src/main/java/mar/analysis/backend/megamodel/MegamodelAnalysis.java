@@ -51,6 +51,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			result.addAll( inspector.fromXtextFiles() );
 			result.addAll( inspector.fromEmfaticFiles() );
 			result.addAll( inspector.fromAcceleoFiles() );
+			result.addAll( inspector.fromATLFiles() );
 			
 			return result;
 		} catch (Exception e) {
@@ -90,12 +91,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					for (MetamodelReference ref : p.getMetamodels()) {
 						Metamodel metamodel = ref.getMetamodel();
 						String metamodelId = toId(metamodel, metamodels);
-						System.out.println("Edge: " + id + ", " + metamodelId);
+						System.out.println("Edge: " + id + " -> " + metamodelId);
 						
 						// TODO: Analyse metamodel.getKind() to establish proper edge relationships
 						graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
 					}
-					// p.getMetamodels()
 				}
 				
 				if (miniGraph.getStats() != null)
