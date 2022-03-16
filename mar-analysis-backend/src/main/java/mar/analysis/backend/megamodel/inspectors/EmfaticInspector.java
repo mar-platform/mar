@@ -30,8 +30,11 @@ import mar.artefacts.graph.RecoveryGraph;
  */
 public class EmfaticInspector extends ProjectInspector {
 
+	private final FileSearcher searcher;
+
 	public EmfaticInspector(Path repoFolder, Path projectSubPath) {
 		super(repoFolder, projectSubPath);
+		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
 
 	public boolean isPackage(@Nonnull String line) {
@@ -66,7 +69,6 @@ public class EmfaticInspector extends ProjectInspector {
 			String filename = f.getName().replace(".emf", ".ecore");
 			File parent = f.getParentFile();
 
-			FileSearcher searcher = new FileSearcher(repoFolder);
 			RecoveredPath rp = searcher.findInFolder(parent.toPath(), filename);
 			Metamodel mm = Metamodel.fromFile(filename, rp);
 			graph.addMetamodel(mm);

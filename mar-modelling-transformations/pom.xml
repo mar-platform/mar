@@ -38,6 +38,14 @@
 			<version>4.4</version>
 			<classifier>repackaged</classifier>
 		</dependency>
+		
+		<dependency>
+			<groupId>anatlyzer</groupId>
+			<artifactId>all</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/anatlyzer/all.jar</systemPath>
+		</dependency>
 
 		<dependency>
 			<groupId>ml2.mar</groupId>

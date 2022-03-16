@@ -13,20 +13,22 @@ import mar.artefacts.RecoveredPath.HeuristicPath;
 
 public class FileSearcher {
 
-	private final Path root;
+	private final Path projectRoot;
+	private final Path repoRoot;
 
-	public FileSearcher(@Nonnull Path root) {
-		this.root = root;
+	public FileSearcher(@Nonnull Path repoRoot, @Nonnull Path projectRoot) {
+		this.repoRoot = repoRoot;
+		this.projectRoot = projectRoot;
 	}
 	
 	@CheckForNull
 	public RecoveredPath findFile(Path loosyPath) {
 		Path filename = loosyPath.getName(loosyPath.getNameCount() - 1);
 		try {
-			Optional<Path> match = Files.walk(root)
+			Optional<Path> match = Files.walk(projectRoot)
 								.filter(f -> ! f.startsWith("."))
 								.filter(f -> f.endsWith(filename))
-								.map(p -> root.relativize(p))
+								.map(p -> repoRoot.relativize(p))
 								.sorted((f1, f2) -> -1 * Integer.compare(similarity(loosyPath, f1), similarity(loosyPath, f2)))
 								.findFirst();
 			// I could return the alternatives as well

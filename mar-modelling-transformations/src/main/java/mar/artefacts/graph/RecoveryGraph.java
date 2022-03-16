@@ -6,6 +6,8 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import com.google.common.base.Preconditions;
+
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.graph.RecoveryStats.PerFile;
@@ -32,6 +34,7 @@ public class RecoveryGraph {
 	}
 	
 	public void addMetamodel(@Nonnull Metamodel metamodel) {
+		Preconditions.checkNotNull(metamodel);
 		this.metamodels.add(metamodel);
 	}
 	
