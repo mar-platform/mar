@@ -44,9 +44,11 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 
 	private final XPathExpression FIND_LOAD_MODEL;
 	private final XPathExpression FIND_PROGRAMS;
-
+    	private final FileSearcher searcher;
+    
 	public EpsilonLaunchInspector(Path repoFolder, Path projectSubPath) {
 		super(repoFolder, projectSubPath);
+		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
@@ -109,7 +111,6 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 			program = program.substring(1);
 		}
 		
-		FileSearcher searcher = new FileSearcher(getProjectFolder());
 		RecoveredPath programPath = searcher.findFile(Paths.get(program));
 		
 		EpsilonProgram epsilonProgram = new EpsilonProgram(programPath);		
