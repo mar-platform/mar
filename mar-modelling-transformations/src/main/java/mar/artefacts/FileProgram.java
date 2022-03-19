@@ -33,4 +33,8 @@ public abstract class FileProgram {
 	public abstract String getKind();
 
 	public abstract String getCategory();
+
+	public String getLanguage() {
+		return getKind();
+	}
 }
