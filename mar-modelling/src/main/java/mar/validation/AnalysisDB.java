@@ -303,20 +303,25 @@ public class AnalysisDB implements Closeable {
 
 	@CheckForNull
 	public Model getModelByPath(String relativePath, String metadataType, @Nonnull Function<String, String> relativePathTransformer) {
-		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value FROM models m, metadata mm WHERE m.id = mm.id AND relative_file = ? AND type = ?")) {
+		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value, type FROM models m, metadata mm WHERE m.id = mm.id AND relative_file = ?")) {
 			stm.setString(1, relativePath);
-			stm.setString(2, metadataType); // Typically nsURI
+			//stm.setString(2, metadataType); // Typically nsURI
 			stm.execute();
 			ResultSet rs = stm.getResultSet();			
-			if (! rs.next())
-				return null;
-			
-			String id = rs.getString(1);
-			Path relative = Paths.get(rs.getString(2));
-			File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
-			String metadataDocument = rs.getString(3);
-			String metadataValue = rs.getString(4); // This is because we have two flavours of metadata (a Json document and additional data in a string-map style, which is a pity)			
-			return new Model(id, relative, fullFile, metadataDocument).putKeyValueMetadata(metadataType, metadataValue);
+		
+			// Previously, we had 'AND type = ?' in the query above so that we get only one result. However this has a performance impact
+			// becase we can't have multi-table indexes. Since there are typically few metadata records, we check programatically.
+			while (rs.next()) {
+				if (metadataType.equals(rs.getString(5))) {
+					String id = rs.getString(1);
+					Path relative = Paths.get(rs.getString(2));
+					File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
+					String metadataDocument = rs.getString(3);
+					String metadataValue = rs.getString(4); // This is because we have two flavours of metadata (a Json document and additional data in a string-map style, which is a pity)			
+					return new Model(id, relative, fullFile, metadataDocument).putKeyValueMetadata(metadataType, metadataValue);					
+				}					
+			}
+			return null;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}			
