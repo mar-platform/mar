@@ -56,8 +56,12 @@ public class ATLDuplicateFinder extends DuplicateFinder<ATLModel> {
 				}
 			}
 			
-			for (ModelInfo info : ATLUtils.getModelInfo(resource)) {
-				addToken(tokens, (info.getURIorPath()));
+			try {
+				for (ModelInfo info : ATLUtils.getModelInfo(resource)) {
+					addToken(tokens, (info.getURIorPath()));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			
 			return tokens;
