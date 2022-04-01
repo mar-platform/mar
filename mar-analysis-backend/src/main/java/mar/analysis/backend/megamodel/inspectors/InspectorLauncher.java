@@ -28,35 +28,35 @@ public class InspectorLauncher {
 		this.repositoryDataFolder = repositoryDataFolder;	
 	}
 	
-	public Collection<? extends RecoveryGraph> fromBuildFiles() throws SQLException {
+	public Collection<RecoveryGraph> fromBuildFiles() throws SQLException {
 		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath));		
 	}
 	
-	public Collection<? extends RecoveryGraph> fromLaunchFiles() throws SQLException {
+	public Collection<RecoveryGraph> fromLaunchFiles() throws SQLException {
 		return doInspect("eclipse-launcher", (projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath));		
 	}
 	
-	public Collection<? extends RecoveryGraph> fromQvtoFiles() throws SQLException {
+	public Collection<RecoveryGraph> fromQvtoFiles() throws SQLException {
 		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath));		
 	}
 	
-	public Collection<? extends RecoveryGraph> fromXtextFiles() throws SQLException {
+	public Collection<RecoveryGraph> fromXtextFiles() throws SQLException {
 		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath));		
 	}
 	
-	public Collection<? extends RecoveryGraph> fromEmfaticFiles() throws SQLException {
+	public Collection<RecoveryGraph> fromEmfaticFiles() throws SQLException {
 		return doInspect("emfatic", (projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath));		
 	}
 
-	public Collection<? extends RecoveryGraph> fromAcceleoFiles() throws SQLException {
+	public Collection<RecoveryGraph> fromAcceleoFiles() throws SQLException {
 		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath));		
 	}
 
-    	public Collection<? extends RecoveryGraph> fromATLFiles() throws SQLException {
+    	public Collection<RecoveryGraph> fromATLFiles() throws SQLException {
 		return doInspect("atl", (projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath));		
 	}
 		
-	private Collection<? extends RecoveryGraph> doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
+	private Collection<RecoveryGraph> doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
 		for (RepoFile model : db.getFilesByType(fileType)) {
 			Path path = model.getRelativePath();

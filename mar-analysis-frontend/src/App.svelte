@@ -38,6 +38,7 @@
     { type: 'eol', checked : true, color: '#b33636' },
     { type: 'egl', checked : true, color: '#b33636' },
     { type: 'acceleo', checked : true, color: '#36b336' },
+    { type: 'atl', checked : true, color: '#2a4e6a' },
   ]
 
   const colorMap = types.reduce(function(map, obj) { 
