@@ -39,7 +39,13 @@ public class ATLDuplicateFinder extends DuplicateFinder<ATLModel> {
 				if (obj instanceof VariableDeclaration) {
 					addToken(tokens, (((VariableDeclaration) obj).getVarName()));
 				} else if (obj instanceof Helper) {
-					addToken(tokens, (ATLUtils.getHelperName((Helper) obj)));
+					Helper h = (Helper) obj;
+					try {
+						// It seems that a helper may have either getDefinition() or getOperationName(), etc. null
+						addToken(tokens, (ATLUtils.getHelperName(h)));
+					} catch (NullPointerException e) {
+						System.out.println(h);
+					}
 				} else if (obj instanceof OclModelElement) {
 					OclModelElement me = (OclModelElement) obj;
 					addToken(tokens, (me.getName()));
