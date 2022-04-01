@@ -168,6 +168,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 
 		// Detailed information about all the meta-models in the repositories
 		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
+		analysisDb.setReadOnly(true);
 		
 		Map<String, Collection<RecoveryGraph>> miniGraphs = computeMiniGraphs(repositoryDataFolder.toPath());		
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
@@ -203,7 +204,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private String toId(Metamodel metamodel, AnalysisDB metamodels) {
 		if (metamodel.getPath() != null) {
 			Path relativePath = metamodel.getPath().getPath();
-			Model model = metamodels.getModelByPath(relativePath.toString(), "nsURI", (s) -> s /* TODO: Do this properly */);
+			Model model = metamodels.getModelByPath(relativePath.toString(), (s) -> s /* TODO: Do this properly */);
 			if (model != null) {
 				return model.getKeyValueMetadata("nsURI");
 			}			
