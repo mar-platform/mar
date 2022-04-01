@@ -17,6 +17,14 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+  <repositories>
+    <repository>
+      <id>atl</id>
+      <name>Eclipse ATL repository</name>
+      <url>https://repo.eclipse.org/content/repositories/atl-releases/</url>
+    </repository>
+  </repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -45,6 +53,24 @@
 			<version>1.0</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/../thirdparty/anatlyzer/all.jar</systemPath>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.m2m.atl</groupId>
+		    <artifactId>org.eclipse.m2m.atl.core.emf</artifactId>
+		    <version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.m2m.atl</groupId>
+		    <artifactId>org.eclipse.m2m.atl.dsls</artifactId>
+		    <version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.m2m.atl</groupId>
+		    <artifactId>org.eclipse.m2m.atl.engine</artifactId>
+		    <version>4.5.0</version>
 		</dependency>
 
 		<dependency>

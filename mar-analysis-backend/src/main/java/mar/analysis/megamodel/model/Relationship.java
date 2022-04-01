@@ -7,7 +7,8 @@ import java.util.stream.Collectors;
 public enum Relationship {
 	
 	TYPED_BY("typed-by"), 
-	IMPORT("import");
+	IMPORT("import"), 
+	DUPLICATE("duplicate");
 
 	private static Map<String, Relationship> byKind = Arrays.stream(Relationship.values()).collect(Collectors.toMap(k -> k.getKind(), k -> k));
 
