@@ -70,6 +70,7 @@ public class AnalysisDB implements Closeable {
                         + ");";
                 
                 String index = "create index if not exists idx_metadata on metadata(type, value);";
+                String indexByPath = "create index if not exists by_path on models(relative_file);";
                 
                 Statement stmt = conn.createStatement();
                 stmt.execute(models);
@@ -82,6 +83,9 @@ public class AnalysisDB implements Closeable {
 
                 stmt = conn.createStatement();
                 stmt.execute(index);
+
+                stmt = conn.createStatement();
+                stmt.execute(indexByPath);                
             }
                         
             this.connection = conn;
