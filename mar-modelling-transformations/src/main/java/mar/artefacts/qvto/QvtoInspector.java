@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
+
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
@@ -23,8 +25,11 @@ public class QvtoInspector extends ProjectInspector {
 
 	@Override
 	public RecoveryGraph process(File qvtoFile) throws Exception {
-		Qvto tmp = new QvtoLoader().load(qvtoFile.getAbsolutePath(), Collections.emptyList());
-		Collection<String> expectedMetamodels = tmp.getMetamodelURIs();
+		//Qvto tmp = new QvtoLoader().load(qvtoFile.getAbsolutePath(), Collections.emptyList());
+		//Collection<String> expectedMetamodels = tmp.getMetamodelURIs();
+
+		UnitCS unit = new QvtoLoader().parse(qvtoFile.getAbsolutePath(), Collections.emptyList());
+		Collection<String> expectedMetamodels = Qvto.getMetamodelURIs(unit, qvtoFile.toString());		
 		
 		QvtoProgram program = new QvtoProgram(new RecoveredPath(getRepositoryPath(qvtoFile)));
 		
