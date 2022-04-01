@@ -54,8 +54,12 @@ public interface Transformation {
 		}
 		
 		public Set<String> getMetamodelURIs() {
-			Set<String> result = new HashSet<>();
 			UnitCS cs = getUnit().getUnitCST();
+			return getMetamodelURIs(cs, this.fileName);
+		}
+		
+		public static Set<String> getMetamodelURIs(UnitCS cs, String fileName) {
+			Set<String> result = new HashSet<>();
 			if (cs.getTopLevelElements().isEmpty()) {
 				System.out.println("No meta-models: " + fileName);
 				return result;
