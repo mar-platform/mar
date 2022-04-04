@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import org.agrona.collections.Object2IntHashMap;
 
 import com.google.common.base.Preconditions;
@@ -120,6 +122,11 @@ public class DuplicateFinder<T> {
 
 		public void addDuplicate(T resource) {
 			this.add(resource);
+		}
+
+		@Nonnull
+		public T getRepresentative() {
+			return this.iterator().next();
 		}
 		
 	}
