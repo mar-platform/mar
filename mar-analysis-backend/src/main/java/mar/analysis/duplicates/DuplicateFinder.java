@@ -61,6 +61,9 @@ public class DuplicateFinder<T> {
 				
 				if (! k1Group.isEmpty()) {
 					k1Group.addDuplicate(k1);
+					for (T resource : k1Group) {
+						groups.put(resource, k1Group);
+					}
 				}
 			}
 		});
@@ -71,7 +74,7 @@ public class DuplicateFinder<T> {
 	private boolean areDuplicates(T a, T b, double t0, double t1) {
 		Object2IntHashMap<String> t1_a = fingerprints.get(a);
 		Object2IntHashMap<String> t1_b = fingerprints.get(b);
-		
+				
 		// Multiset intersection is: for each pair of common keys, take the minimum value
 		// Multiset union is:        for each pair of common keys, take the maximum value
 		int cardinality_multiset_intersection = 0;
