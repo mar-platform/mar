@@ -44,6 +44,7 @@ public class ATLDuplicateFinder extends DuplicateFinder<ATLModel> {
 						// It seems that a helper may have either getDefinition() or getOperationName(), etc. null
 						addToken(tokens, (ATLUtils.getHelperName(h)));
 					} catch (NullPointerException e) {
+						System.out.println("Error in: " + resource.getMainFileLocation());
 						System.out.println(h);
 					}
 				} else if (obj instanceof OclModelElement) {
@@ -61,6 +62,7 @@ public class ATLDuplicateFinder extends DuplicateFinder<ATLModel> {
 					addToken(tokens, (info.getURIorPath()));
 				}
 			} catch (Exception e) {
+				System.out.println("Error in: " + resource.getMainFileLocation());
 				e.printStackTrace();
 			}
 			
