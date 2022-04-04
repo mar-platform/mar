@@ -80,7 +80,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				}
 			}
 		}
-				
+
+		/*
+		// This approach generates a lot of edges.
+		// The alternative is to introduce a special node "Duplication node" which act as the group that links everything, instead of all-to-all edges 
 		Collection<DuplicationGroup<ATLModel>> duplicates = finder.getDuplicates(0.8, 0.7);
 		for (DuplicationGroup<ATLModel> group : duplicates) {
 			for (ATLModel model1 : group) {
@@ -95,8 +98,25 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				}	
 			}
 		}
+		*/
 		
-		// This could introduce a special node "Duplication node" which act as the group that links everything, instead of all-to-all edges
+		
+		Collection<DuplicationGroup<ATLModel>> duplicates = finder.getDuplicates(0.8, 0.7);
+		System.out.println("Adding " + duplicates.size() + " duplication groups");
+		for (DuplicationGroup<ATLModel> duplicationGroup : duplicates) {
+			ATLModel representative = duplicationGroup.getRepresentative();
+			FileProgram p = programs.get(representative);
+			
+			String id = toId(p) + "#duplicate-group"; 
+			Node node = new RelationshipsGraph.Node(id, new Artefact(id, "duplication-group", "duplicates", toName(p)), duplicationGroup);
+			completeGraph.addNode(node);
+			
+			for (ATLModel m  : duplicationGroup) {
+				FileProgram p1 = programs.get(m);
+				completeGraph.addEdge(id, toId(p1), Relationship.DUPLICATE);
+			}
+		}
+
 	}
 
 	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<String, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
