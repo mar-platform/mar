@@ -60,8 +60,10 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		    String line;
 		    while ((line = br.readLine()) != null) {
 		    	line = line.stripLeading();
+		    	
+		    	// If we found a line starting with "module" we assume it is an ATL module
 		    	if (line.startsWith("module"))
-		    		break;
+		    		return graph;
 		    	
 		    	if (line.startsWith("--")) {
 		    		line = line.substring(2).stripLeading();
@@ -79,7 +81,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		    }
 		}
 		
-		return graph;
+		return null;
 	}
 
 	@Nonnull
