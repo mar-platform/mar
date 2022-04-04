@@ -31,6 +31,10 @@ public class TransformationRelationshipsAnalysis {
 		db.getRelationshipsByType(Relationship.IMPORT, (src, tgt, type) -> {
 			graph.addEdge(src, tgt, type);
 		});
+		
+		db.getRelationshipsByType(Relationship.DUPLICATE, (src, tgt, type) -> {
+			graph.addEdge(src, tgt, type);
+		});
 
 		return graph;
 	}
