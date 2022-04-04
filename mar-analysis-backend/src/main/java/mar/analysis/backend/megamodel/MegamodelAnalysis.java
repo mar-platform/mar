@@ -3,11 +3,8 @@ package mar.analysis.backend.megamodel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -19,7 +16,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import anatlyzer.atl.model.ATLModel;
 import anatlyzer.atl.tests.api.AtlLoader;
 import anatlyzer.atl.tests.api.AtlLoader.LoadException;
-import anatlyzer.atl.util.ATLUtils;
 import mar.analysis.backend.RepositoryDB;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.duplicates.ATLDuplicateFinder;
@@ -76,7 +72,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			for (FileProgram p : graph.getPrograms()) {
 				try {
 					Resource r = AtlLoader.load(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
-					ATLModel model = new ATLModel(r);
+					ATLModel model = new ATLModel(r, p.getFilePath().getPath().toString());
 					finder.addResource(model);
 					programs.put(model, p);
 				} catch (LoadException e) {
@@ -100,6 +96,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			}
 		}
 		
+		// This could introduce a special node "Duplication node" which act as the group that links everything, instead of all-to-all edges
 	}
 
 	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<String, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
