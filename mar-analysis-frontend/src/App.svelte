@@ -29,6 +29,7 @@
 
   // TODO: Recover this from the web
   const types = [
+    { type: 'duplication-group', checked : true,   color: '#ffe100' },
     { type: 'qvto', checked : true,   color: '#5ac477' },
     { type: 'ecore', checked : true,  color: '#5a8bc4' },
     { type: 'xtext', checked : true,  color: '#6e1ae5'},
