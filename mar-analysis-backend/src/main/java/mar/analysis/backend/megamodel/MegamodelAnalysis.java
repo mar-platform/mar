@@ -12,14 +12,17 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
 import anatlyzer.atl.model.ATLModel;
 import anatlyzer.atl.tests.api.AtlLoader;
-import anatlyzer.atl.tests.api.AtlLoader.LoadException;
 import mar.analysis.backend.RepositoryDB;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.duplicates.ATLDuplicateFinder;
-import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
+import mar.analysis.duplicates.DuplicateComputation;
+import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
+import mar.analysis.duplicates.DuplicateFinder;
+import mar.analysis.duplicates.QVToDuplicateFinder;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Relationship;
@@ -32,6 +35,7 @@ import mar.artefacts.MetamodelReference;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.Composite;
+import mar.artefacts.qvto.QvtoLoader;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 import picocli.CommandLine;
@@ -64,59 +68,57 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	private void computeDuplicates(Path repositoryDataFolder, Collection<? extends RecoveryGraph> graphs, RelationshipsGraph completeGraph) {
-		ATLDuplicateFinder finder = new ATLDuplicateFinder();
-		Map<ATLModel, FileProgram> programs = new HashMap<>();
-		for (RecoveryGraph graph : graphs) {			
-			for (FileProgram p : graph.getPrograms()) {
-				try {
-					Resource r = AtlLoader.load(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
-					ATLModel model = new ATLModel(r, p.getFilePath().getPath().toString());
-					finder.addResource(model);
-					programs.put(model, p);
-				} catch (LoadException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 
-		/*
-		// This approach generates a lot of edges.
-		// The alternative is to introduce a special node "Duplication node" which act as the group that links everything, instead of all-to-all edges 
-		Collection<DuplicationGroup<ATLModel>> duplicates = finder.getDuplicates(0.8, 0.7);
-		for (DuplicationGroup<ATLModel> group : duplicates) {
-			for (ATLModel model1 : group) {
-				FileProgram p1 = programs.get(model1);
-				for (ATLModel model2 : group) {
-					FileProgram p2 = programs.get(model2);
-					if (p1 != p2) {
-						String id1 = toId(p1);
-						String id2 = toId(p2);
-						completeGraph.addEdge(id1, id2, Relationship.DUPLICATE);
-					}					
-				}	
-			}
-		}
-		*/
-		
-		
-		Collection<DuplicationGroup<ATLModel>> duplicates = finder.getDuplicates(0.8, 0.7);
-		System.out.println("Adding " + duplicates.size() + " duplication groups");
-		for (DuplicationGroup<ATLModel> duplicationGroup : duplicates) {
-			ATLModel representative = duplicationGroup.getRepresentative();
-			FileProgram p = programs.get(representative);
-			
-			String id = toId(p) + "#duplicate-group"; 
-			Node node = new RelationshipsGraph.Node(id, new Artefact(id, "duplication-group", "duplicates", toName(p)), duplicationGroup);
-			completeGraph.addNode(node);
-			
-			for (ATLModel m  : duplicationGroup) {
-				FileProgram p1 = programs.get(m);
-				completeGraph.addEdge(id, toId(p1), Relationship.DUPLICATE);
-			}
-		}
+	private void computeDuplicates(@Nonnull Map<String, Collection<RecoveryGraph>> miniGraphs, @Nonnull RelationshipsGraph graph, @Nonnull Path repositoryDataFolder) {
+		DuplicateComputation computation = new DuplicateComputation(miniGraphs, graph);
 
+		computation.addType("atl", new DuplicateFinderConfiguration<ATLModel>() {
+			@Override
+			public ATLModel toResource(FileProgram p) throws Exception {
+				Resource r = AtlLoader.load(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
+				ATLModel model = new ATLModel(r, p.getFilePath().getPath().toString());
+				return model;
+			}
+
+			@Override
+			public DuplicateFinder<ATLModel> toFinder() {
+				return new ATLDuplicateFinder();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return MegamodelAnalysis.this.toId(p);
+			}			
+			
+			@Override
+			public String toName(FileProgram p) {
+				return MegamodelAnalysis.this.toName(p);
+			}
+		});
+		
+		computation.addType("qvto", new DuplicateFinderConfiguration<UnitCS>() {
+			@Override
+			public UnitCS toResource(FileProgram p) throws Exception {
+				return QvtoLoader.INSTANCE.parse(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
+			}
+
+			@Override
+			public DuplicateFinder<UnitCS> toFinder() {
+				return new QVToDuplicateFinder();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return MegamodelAnalysis.this.toId(p);
+			}
+
+			@Override
+			public String toName(FileProgram p) {
+				return MegamodelAnalysis.this.toName(p);
+			}
+		});
+		
+		computation.updateGraph();
 	}
 
 	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<String, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
@@ -166,10 +168,6 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					e.printStackTrace();
 				}
 			}
-			
-			if (type.equals("atl")) {			
-				computeDuplicates(repositoryDataFolder.toPath(), miniGraphs.get(type), graph);
-			}
 		}
 				
 		return Pair.of(graph, stats);
@@ -187,9 +185,13 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
 		analysisDb.setReadOnly(true);
 		
-		Map<String, Collection<RecoveryGraph>> miniGraphs = computeMiniGraphs(repositoryDataFolder.toPath());		
+		Map<String, Collection<RecoveryGraph>> miniGraphs        = computeMiniGraphs(repositoryDataFolder.toPath());		
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
+		
 		Composite stats = result.getRight();
+		RelationshipsGraph graph = result.getLeft();
+		
+		computeDuplicates(miniGraphs, graph, repositoryDataFolder.toPath());
 		
 		stats.detailedReport();
 		
@@ -198,11 +200,12 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
-		megamodelDB.dump(result.getLeft(), stats);
+		megamodelDB.dump(graph, stats);
 		megamodelDB.close();
 		
 		return 0;
 	}
+
 
 	private String toName(FileProgram p) {
 		return p.getFilePath().getPath().getFileName().toString();		

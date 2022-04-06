@@ -1,11 +1,11 @@
 package mar.artefacts.qvto;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.annotation.Nonnull;
 
@@ -19,12 +19,13 @@ import org.eclipse.m2m.internal.qvt.oml.ast.env.QvtOperationalFileEnv;
 import org.eclipse.m2m.internal.qvt.oml.ast.parser.QvtOperationalParser;
 import org.eclipse.m2m.internal.qvt.oml.compiler.CompiledUnit;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
-import org.eclipse.ocl.ParserException;
 
 import mar.artefacts.Transformation;
 
 public class QvtoLoader {
 
+	public static final QvtoLoader INSTANCE = new QvtoLoader();
+	
 	public Transformation.Qvto load(@Nonnull String qvtoFile, Collection<EPackage> packages) {
 		EPackage.Registry registry = getRegistry(packages);
 		InternalTransformationExecutor exec = new InternalTransformationExecutor(URI.createFileURI(qvtoFile), registry);
@@ -37,6 +38,10 @@ public class QvtoLoader {
 		EPackageRegistryImpl registry = new EPackageRegistryImpl();
 		packages.forEach(p -> registry.put(p.getNsURI(), p));
 		return registry;
+	}
+	
+	public UnitCS parse(String qvtoFile) throws IOException {
+		return parse(qvtoFile, Collections.emptyList());
 	}
 	
 	// From QVToCompiler#parse
