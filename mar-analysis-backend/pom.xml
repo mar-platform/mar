@@ -84,11 +84,9 @@
 
 		<!-- When this project is fully integrated with MAR (with the same parent pom), this should come from mar-modelling-transformations -->
 		<dependency>
-		  <groupId>anatlyzer</groupId>
-		  <artifactId>all</artifactId>
-		  <version>1.0</version>
-		  <scope>system</scope>
-		  <systemPath>${project.basedir}/../thirdparty/anatlyzer/all.jar</systemPath>
+			<groupId>anatlyzer</groupId>
+			<artifactId>anatlyzer-bundle</artifactId>
+			<version>0.8.0</version>
 		</dependency>
 
 		<dependency>
