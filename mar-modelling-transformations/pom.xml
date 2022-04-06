@@ -49,10 +49,8 @@
 		
 		<dependency>
 			<groupId>anatlyzer</groupId>
-			<artifactId>all</artifactId>
-			<version>1.0</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/../thirdparty/anatlyzer/all.jar</systemPath>
+			<artifactId>anatlyzer-bundle</artifactId>
+			<version>0.8.0</version>
 		</dependency>
 
 		<dependency>
