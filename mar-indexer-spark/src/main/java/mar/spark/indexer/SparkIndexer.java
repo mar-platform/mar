@@ -220,7 +220,7 @@ public class SparkIndexer implements Closeable {
 			Resource r = loader.load(model.getModelFile());
 			return new LoadedModel(r, model);
 		} catch (Exception e) {
-			log.error("Could not load", e);
+			log.error("Could not load: " + model.getModelFile(), e);
 			return new ErrorModel(e, model);
 		}
 	}

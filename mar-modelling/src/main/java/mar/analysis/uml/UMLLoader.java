@@ -14,6 +14,7 @@ public class UMLLoader implements ILoader {
 	@Override
 	public Resource toEMF(File file) throws IOException {
 		UMLResourceFactoryImpl factory = new UMLResourceFactoryImpl();
+		//System.out.println("Loading file: " + file);
 		Resource r = factory.createResource(URI.createFileURI(file.getAbsolutePath()));
 		try {
 			r.load(null);
