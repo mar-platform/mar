@@ -2,15 +2,22 @@
   import CodeMirror from "./codemirror/CodeMirror.svelte";
   import { createEventDispatcher } from "svelte";
   import { Stretch } from 'svelte-loading-spinners'
-
   const dispatch = createEventDispatcher();
 
   let loading = false
+
   function notifyLoading(isLoading) {
     dispatch("loading", { isLoading: isLoading} );
     loading = isLoading
   }
 
+
+
+
+  function errors() {
+    loading = false;
+    alert("An error is occured it can be the server or your web connection");
+  }
   let value = `package relational;
 class Table { 
   attr String[1] name;
@@ -34,7 +41,44 @@ class Column {
   }
 
   let searchText = null;
+  // Try to get config from mongo
+/*async function loadingTime(event) { //when the time is too long an error occured
+  function p1() {
+        return new Promise(async (resolve) => {
+            setTimeout(() => {
+                resolve(10);
+                if(loading==true){
+                  errors();
+                }
+            }, 4000)
+        });
+    }
 
+    async function handleSubmit(event) {
+    let modelType = searchModelType;
+    let syntax = "emfatic";
+    let url = MAR.toSearchURL(modelType, syntax);
+    console.log(url);
+    notifyLoading(true)
+    const res = await fetch(url, {
+      method: "POST",
+      body: value,
+      /*
+				body: JSON.stringify({
+					source: source,
+					meta: meta
+				})
+				
+      });
+      // console.log(res);
+      const json = await res.json();
+      notifyLoading(false)
+      console.log(json);
+      results = json;
+    }
+
+    return await Promise.race([handleSubmit(), p1()]);
+}*/
   async function handleSubmit(event) {
     let modelType = searchModelType;
     let syntax = "emfatic";
@@ -77,7 +121,7 @@ class Column {
       {#if loading} 
         <Stretch size="40" color="#FF3E00" unit="px"></Stretch>
       {:else}
-        <input
+        <input 
             class="btn btn-secondary"
             type="submit"
             value="Submit!" />

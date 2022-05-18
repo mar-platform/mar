@@ -18,7 +18,7 @@
     export let results = []
 
     let searchText = "";
-
+    // ajouter erreur
     async function handleSubmit(event) {
         let url = MAR.toTextSearchURL();
         if (searchText != null) {

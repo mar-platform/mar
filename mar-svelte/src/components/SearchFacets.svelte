@@ -1,6 +1,80 @@
 <script>
-  import Slider from './bootstrap/Slider.svelte'
   import { ItemHelper, intCompare } from './../lib/common.js'
+  import JSZip from 'jszip';
+  import Index  from "./../routes/Index.svelte";
+  import FileSaver from 'file-saver';
+  import Slider from './bootstrap/Slider.svelte'
+  export let fav=false;
+  let favList=[];
+  let favTab=[];
+  export let resultsButton=[]
+  let change;
+  let facetsButton;
+  let actualTab=0;
+  let lengthFavList;
+  let save; // to know if the search is the same
+
+  function removeItemWithSlice(index) {
+  return [...favTab.slice(0, index), ...favTab.slice(index + 1)]
+  }
+
+  function actualPage(index) { // the other research appeared
+    actualTab=index;
+    actualTab=actualTab;
+    fav=true;
+    resultsButton=favTab[index].result;
+    facetsButton=favTab[index].categories;
+    
+  }
+
+  function toggle(favItems) {
+		fav = !fav;
+    lengthFavList=favList.length;
+    if(lengthFavList=== undefined){
+      lengthFavList=0;
+    }
+    if(fav){
+      change=0;
+      for(let i=0;i<favTab.length;i++){ // if the page is already in fav you can't fav
+        if(favTab[i].name===search_items[0].name.toString()){
+          change=1;
+          break;
+        }
+      } 
+      if(change==0){
+        actualTab=favTab.length;
+        favTab = [...favTab, { start: lengthFavList, end: favItems.length, result : favItems , id :favTab.length, name : search_items[0].name.toString(), categories : facets.categories}];
+        for (let i=0;i<favItems.length;i++){
+            favList[lengthFavList+i]=favItems[i].urlhumanName;
+        }
+        resultsButton=favTab[actualTab].result;
+        facetsButton=favTab[actualTab].categories;
+      }
+    }
+    else{
+        favList.splice(favTab[actualTab].start,favTab[actualTab].end); // we delete the element if it exist
+        favTab=removeItemWithSlice(actualTab);
+        actualTab=favTab.length-1;
+        if(favTab.length != 0 ){ // if there's any tab in favorite the button is still in deleted
+          fav=true;
+          resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
+        }
+      }
+	}
+
+  const zip = new JSZip();
+  let bashFile ="#!/bin/sh";
+
+  function bashThis(elemBash) {
+    for (let i=0;i<elemBash.length;i++){
+      bashFile+="\nwget "+elemBash[i];
+    }
+    zip.file("myModels.sh",bashFile);
+    zip.generateAsync({ type: 'blob' }).then(function (content) {
+          FileSaver.saveAs(content, 'myModels.zip');
+      });
+    
+  }
 
   let maxSmell = 100;
   let sortType
@@ -154,8 +228,34 @@
   let new_items = [] /* This trick is to make sure that we only update the facet object when a new result is computed */
 
   $: if (search_items != new_items) {
+    if(facets != undefined){
+      for(let i=0;i<facets.categories.length;i++){  // For every new search checkboxs are reinitialised 
+        if(document.getElementById(facets.categories[i].toString()).checked==true){
+          document.getElementById(facets.categories[i].toString()).checked = false;
+        }
+      }
+    }
     new_items = search_items
     facets = new Facets(search_items)
+    if(JSON.stringify(search_items) != JSON.stringify(save)){ // when you change or not your page the buttons change or not
+      fav=false; 
+      change=0; // to see if a changement is occured
+      for(let i=0;i<favTab.length;i++){
+        if(favTab[i].name===search_items[0].name.toString()){
+          actualTab=i;
+          change=1;
+          fav=true;
+          break;
+        }
+      }
+      if(change===0){
+        actualTab=undefined;
+      }
+    }
+    actualTab=actualTab;
+    save=search_items; // to compare with the next search
+    resultsButton=resultsButton.slice(0,0); // to reinit
+    facets=facets
   }
 </script>
 
@@ -199,7 +299,7 @@
                 <li>
                   <!-- <a href="#/" class="small" data-value="{item}" tabIndex="-1"> -->
                   <!-- <input type="checkbox" style="margin-left: 5px" bind:group={facets.selectedTopics} />&nbsp;{item} -->
-                  <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addModelType(item); facets = facets} } />&nbsp;{item}
+                  <input type="checkbox" style="margin-left: 5px"  on:click={() => { facets.addModelType(item); facets = facets} } />&nbsp;{item}
                   <!-- </a> -->
                 </li>
               {/each}              
@@ -236,7 +336,7 @@
             <ul class="dropdown-menu">
               {#each facets.categories as item}
                 <li>
-                  <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addCategory(item); facets = facets} } />&nbsp;{item}
+                  <input type="checkbox" style="margin-left: 5px" id={item.toString()} on:click={() => { facets.addCategory(item); facets = facets; } } />&nbsp;{item}
                 </li>
               {/each}              
             </ul>
@@ -277,7 +377,40 @@
           </div>
         </div>
       </div>
-
+    <br>
+    {#if resultsButton.length > 0}
+      <p>Some informations about the research :</p>
+      <p>There's {resultsButton.length.toString()} {#if resultsButton.length > 1} elements {/if} {#if resultsButton.length <= 1} element {/if} corresponding to your research.</p>
+      <p>There is {facetsButton.length.toString()} {#if facetsButton.length > 1} categories {/if} {#if facetsButton.length <= 1} categorie {/if} corresponding to {#if facetsButton.length > 1} them {/if} {#if facetsButton.length <= 1} this {/if} : {facetsButton.toString()}.</p>
+    {:else}
+      <p>Some informations about the research :</p>
+      <p>There's {search_items.length.toString()} {#if search_items.length > 1} elements {/if} {#if search_items.length <= 1} element {/if} corresponding to your research.</p>
+      <p>There is {facets.categories.length.toString()} {#if facets.categories.length > 1} categories {/if} {#if facets.categories.length <= 1} categorie {/if} corresponding to {#if facets.categories.length > 1} them {/if} {#if facets.categories.length <= 1} this {/if} : {facets.categories.toString()}.</p>
+    {/if}
+      <div>
+      <button class="btn btn-outline-success btn-sm" on:click={bashThis(favList)}>Download bash</button>
+      {#if fav}
+        <button class="btn btn-danger btn-sm" on:click={() => { toggle(search_items);} }>
+          Remove to favorite
+        </button>
+      {:else}
+        <button class="btn btn-danger btn-sm" on:click={toggle(search_items)}>
+          Add to favorite
+        </button>
+      {/if}
     </div>
+  </div>
+  {#each favTab as item,i}
+  {#if i== actualTab}
+    <button class="btn btn-danger btn-sm" >
+      page {item.name} (actual page)
+    </button>
+  {/if}
+  {#if i!= actualTab}
+    <button class="btn btn-danger btn-sm" on:click={() => actualPage(i)}>
+      page {item.name}
+    </button>
+  {/if}
+  {/each}
   </form>
 </main>

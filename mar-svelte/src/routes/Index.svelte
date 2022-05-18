@@ -13,8 +13,10 @@
 
 	import ResultItem 			from "../components/ResultItem.svelte";
 	
-	let results = [];
-	let shown_results = []
+	export let results = [];
+	let resultsButton = [];
+	let shown_resultsButton = [];
+	let shown_results = [];
 
 	let selectedModelType = null;
 	let searchMode = "text";
@@ -24,8 +26,15 @@
 	}
 
 	let facets
-	$: if (facets != undefined) {
+	$: if (facets != undefined ) {
+		if(resultsButton.length == 0){
+			shown_resultsButton=shown_resultsButton.slice(0,0); 
+		}
 		shown_results = facets.filter(results)
+	}
+
+	$: if (resultsButton.length != 0) {
+		shown_resultsButton = facets.filter(resultsButton)
 	}
 </script>		
 
@@ -100,21 +109,30 @@
 		<div class="output">
 			<div class="list-group">
 				{#if results.length > 0}
-					<SearchFacets search_items={results} bind:facets={facets} />
+					<SearchFacets search_items={results} bind:facets={facets} bind:resultsButton={resultsButton} />
 				{/if}
-
-				{#if shown_results.length > 0}
+				{#if shown_resultsButton.length > 0}
 					<ul
 						class="results"
 						style="padding: 0; text-align: left;">
-						{#each shown_results as item}
-							<ResultItem bind:item />
+						{#each shown_resultsButton as item}
+							<ResultItem bind:item bind:facets />
 						{/each}
 					</ul>
 				{:else}
-					<!-- <div class="alert alert-warning" role="alert">
-						No results
-					  </div> -->
+					{#if shown_results.length > 0}
+						<ul
+							class="results"
+							style="padding: 0; text-align: left;">
+							{#each shown_results as item}
+								<ResultItem bind:item bind:facets />
+							{/each}
+						</ul>
+					{:else}
+						<!-- <div class="alert alert-warning" role="alert">
+							No results
+						</div> -->
+					{/if}
 				{/if}
 			</div>
 		</div>
