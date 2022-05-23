@@ -14,9 +14,9 @@
 
 
 
-  function errors() {
+  function errors(error) {
     loading = false;
-    alert("An error is occured it can be the server or your web connection");
+    alert("An error is occured :"+error);
   }
   let value = `package relational;
 class Table { 
@@ -94,13 +94,16 @@ class Column {
 					meta: meta
 				})
 				*/
+    }).catch(error => {
+      errors(error);
     });
 
-    // console.log(res);
-    const json = await res.json();
-    notifyLoading(false)
-    console.log(json);
-    results = json;
+    if(res!= undefined){
+      const json = await res.json();
+      notifyLoading(false)
+      console.log(json);
+      results = json;
+    }
   }
 </script>
 

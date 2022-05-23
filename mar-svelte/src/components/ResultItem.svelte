@@ -4,13 +4,22 @@
   export let item, facets
 
   let saveItem;
-	let heightImg = 64;
+	let heightImg = 128;
 	
 	function handleMouseOver(e) {
-		heightImg = 512;
+		heightImg = 350;
 	}
 	function handleMouseOut(e) {
-    heightImg = 64;
+    heightImg = 128;
+	}
+  //on:mouseover={handleMouseOver} on:mouseout={handleMouseOut}
+  function clickImg(e) {
+    if(heightImg==128){
+      heightImg=350;
+    }
+    else{
+      heightImg = 128;
+    }
 	}
   function handleClick(category) {
     facets.addCategory(category);
@@ -19,7 +28,7 @@
 	}
 </script>
 
-<main> 
+<main id="marElem"> 
     <div  class="list-group-item list-group-item-action flex-column align-items-start">
       <div class="row">
         <div class="col">
@@ -42,7 +51,8 @@
         <div class="col-0">
           <p> Score : {item.score.toFixed(2)}</p>
           <!-- svelte-ignore missing-declaration because MAR is defined in index.html -->
-          <p><a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}"><img  src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:mouseover={handleMouseOver} on:mouseout={handleMouseOut}></a></p>
+          <p><img  src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:click|preventDefault={() => { clickImg();} }></p>
+          <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank">Source</a>
           
         </div>
       </div>  

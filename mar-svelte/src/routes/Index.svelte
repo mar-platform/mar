@@ -107,14 +107,14 @@
 
 	<div class="col-8">
 		<div class="output">
-			<div class="list-group">
+			<div class="list-group" >
 				{#if results.length > 0}
 					<SearchFacets search_items={results} bind:facets={facets} bind:resultsButton={resultsButton} />
 				{/if}
 				{#if shown_resultsButton.length > 0}
 					<ul
 						class="results"
-						style="padding: 0; text-align: left;">
+						style="padding: 0; text-align: left;" id="doubleList">
 						{#each shown_resultsButton as item}
 							<ResultItem bind:item bind:facets />
 						{/each}
@@ -123,7 +123,7 @@
 					{#if shown_results.length > 0}
 						<ul
 							class="results"
-							style="padding: 0; text-align: left;">
+							style="padding: 0; text-align: left;" id="doubleList">
 							{#each shown_results as item}
 								<ResultItem bind:item bind:facets />
 							{/each}

@@ -16,6 +16,34 @@ span.item-category {
 	margin-bottom: 4px;
 }
 
+#param{
+	display: none;
+}
+
+#doubleList{
+	columns: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+}
+
+#marElem{
+	overflow: hidden; /* fix for Firefox */
+break-inside: avoid-column;
+-webkit-column-break-inside: avoid;
+}
+
+.pageBtn {
+	background-color: #2196F3;
+	color: white;
+	padding: 0.75em;
+	font-size: 0.75em;
+	border: none;
+	outline: none;
+  }
+
+.pageBtn:hover {
+background-color: #0b7dda;
+}
 
 /*
 .imgPreview:hover{
