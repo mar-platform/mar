@@ -1,6 +1,7 @@
 package mar.restservice;
 
 import static spark.Spark.get;
+import static spark.Spark.post;
 import static spark.Spark.port;
 
 import java.io.ByteArrayOutputStream;
@@ -63,7 +64,7 @@ public class Main implements IConfigurationProvider {
 	private static Map<String, MarConfiguration> configurationCache = new HashMap<String, MarConfiguration>();
 	
 	/** The system configuration in terms of model types and repositories */
-	private final IndexJobConfigurationData configuration;
+	private IndexJobConfigurationData configuration;
 	/** The list of all models by ID and its location in the filesystem */
 	private final Map<String, String> modelFilesById = new HashMap<String, String>();
 
@@ -162,6 +163,15 @@ public class Main implements IConfigurationProvider {
 		API api = new API(main);
 		APIchatbot apiChatBot = new APIchatbot(main);
 
+		if (debug) {
+			post("/read-configuration", (req, res) -> {
+				String configBody = req.body();
+				IndexJobConfigurationData data = IndexJobConfigurationData.fromJSON(configBody);
+				main.configuration = data;
+				return "ok";				
+			});
+		}
+		
 		get("/getStopWords", main::getStopWords);
 
 		Spark.exception(InvalidMarRequest.class, (exception, request, response) -> {

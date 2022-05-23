@@ -21,6 +21,7 @@ import mar.model2graph.MetaFilterNames;
 import mar.model2graph.Model2GraphAllpaths;
 import mar.paths.PathFactory;
 import mar.paths.PathFactory.DefaultPathFactory;
+import mar.paths.PathFactory.WSandCCTokenizerSWStemming;
 
 public class SingleIndexJob implements Serializable {
 
@@ -171,6 +172,8 @@ public class SingleIndexJob implements Serializable {
 		PathFactory factory;
 		if (graphFactoryOpt == null) {
 			factory = DefaultPathFactory.INSTANCE;
+		} else if ("WSandCCTokenizerSWStemming".equalsIgnoreCase(graphFactoryOpt)) {
+			factory = new WSandCCTokenizerSWStemming();
 		} else	if ("EcoreFactory".equalsIgnoreCase(getGraphFactory())) {
 			factory = new PathFactory.EcoreTokenizer();
 		} else if ("BPMNFactory".equalsIgnoreCase(getGraphFactory())) {
@@ -192,7 +195,8 @@ public class SingleIndexJob implements Serializable {
 		} else if ("BPMNFilter".equalsIgnoreCase(graph_filter)) {
 			metaFilter = MetaFilterNames.getBpmnMetaFilter();					
 		} else if ("UMLFilter".equalsIgnoreCase(graph_filter)) {
-			metaFilter = MetaFilter.getUMLEasyFilter();
+			//metaFilter = MetaFilter.getUMLEasyFilter();
+			metaFilter = MetaFilter.getUMLNameFilter();
 		}
 		return metaFilter;
 	}

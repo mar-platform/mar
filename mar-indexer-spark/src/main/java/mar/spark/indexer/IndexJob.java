@@ -61,6 +61,9 @@ public class IndexJob implements Callable<Integer> {
 
 	@Option(required = false, names = { "-s", "--split" }, description = "Split indexing")
 	private Integer indexBySpliting;
+
+	@Option(required = false, names = { "-p", "--parallel" }, description = "Parallelism number")
+	private Integer parallelism = 6;
 	
 	public static void main(String[] args) throws IOException, InvalidJobSpecification {
 		int exitCode = new CommandLine(new IndexJob()).execute(args);
@@ -204,8 +207,8 @@ public class IndexJob implements Callable<Integer> {
 	private SparkSession createSession() {
 		SparkSession spark = SparkSession.builder()
 	    		.appName("MarIndexer")
-	    		.config("spark.master", "local[6]")
-	    		.config("spark.sql.shuffle.partitions","6")
+	    		.config("spark.master", "local[" + parallelism + "]")
+	    		.config("spark.sql.shuffle.partitions", Integer.toString(parallelism))
 	    		.getOrCreate();
 		return spark;
 	}

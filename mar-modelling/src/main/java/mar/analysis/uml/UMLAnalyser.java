@@ -106,9 +106,11 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 	protected AnalysisData getAdditionalAnalysis(Resource r) {
 		Map<String, Integer> types = new HashMap<>();
 		
+		int numElements = 0;
 		TreeIterator<EObject> it = r.getAllContents();
 		while (it.hasNext()) {
 			EObject obj = it.next();
+			numElements++;
 			String type = null;
 			if (obj instanceof StateMachine) {
 				type = "sm";
@@ -133,6 +135,8 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 			}
 		}
 			
+		types.put("elements", numElements);
+		
 		return new AnalysisData(types, null, null);		
 	}		
 }
