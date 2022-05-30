@@ -23,6 +23,12 @@
 			<groupId>io.github.models-lab.mar</groupId>
 			<artifactId>mar-modelling</artifactId>
 			<version>1.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>log4j-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Project dependencies -->
@@ -85,6 +91,7 @@
 			<artifactId>hbase-client</artifactId>
 			<version>1.3.5</version>
 		</dependency>
+
 
 	</dependencies>
 

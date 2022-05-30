@@ -6,9 +6,10 @@ import javax.annotation.Nonnull;
 import org.eclipse.emf.ecore.resource.Resource;
 
 public class LoadedModel {
-	@CheckForNull Resource resource;
+	@CheckForNull
+	public final Resource resource;
 	@Nonnull
-	private ModelOrigin origin;
+	public final ModelOrigin origin;
 
 	public LoadedModel(@CheckForNull Resource r, ModelOrigin origin) {
 		this.resource = r;
@@ -22,5 +23,9 @@ public class LoadedModel {
 	@Nonnull
 	public ModelOrigin getOrigin() {
 		return origin;
+	}
+	
+	public Resource getResource() {
+		return resource;
 	}
 }
