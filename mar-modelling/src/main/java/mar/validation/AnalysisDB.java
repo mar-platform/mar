@@ -161,7 +161,7 @@ public class AnalysisDB implements Closeable {
 	public List<String> getValidModels() throws SQLException {
 		PreparedStatement statement = connection.prepareStatement(getValidModelsQuery());
 		statement.execute();
-		
+
 		List<String> result = new ArrayList<>();
 		ResultSet rs = statement.getResultSet();
 		while (rs.next()) {

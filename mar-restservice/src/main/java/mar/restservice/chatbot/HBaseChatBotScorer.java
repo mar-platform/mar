@@ -15,8 +15,8 @@ import mar.chatbot.elements.SingleElement;
 import mar.paths.PairInformation;
 import mar.paths.PathMapSerializer;
 import mar.restservice.AbstractHBaseAccess;
-import mar.restservice.BM25ScoreCalculator;
-import mar.restservice.BM25ScoreCalculator.GlobalStats;
+import mar.restservice.scoring.BM25ScoreCalculator;
+import mar.restservice.scoring.BM25ScoreCalculator.GlobalStats;
 
 public class HBaseChatBotScorer extends AbstractHBaseAccess implements IChatBotScorer{
 	

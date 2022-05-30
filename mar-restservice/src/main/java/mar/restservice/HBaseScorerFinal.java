@@ -25,7 +25,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.model2graph.PathComputation;
 import mar.paths.PairInformation;
 import mar.paths.PathMapSerializer;
-import mar.restservice.BM25ScoreCalculator.GlobalStats;
+import mar.restservice.scoring.BM25ScoreCalculator;
+import mar.restservice.scoring.BM25ScoreCalculator.GlobalStats;
 
 public class HBaseScorerFinal extends AbstractHBaseAccess implements IScorer {
 
