@@ -17,6 +17,7 @@ import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.epsilon.EpsilonLaunchInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.qvto.QvtoInspector;
+import mar.artefacts.sirius.SiriusInspector;
 
 public class InspectorLauncher {
 
@@ -52,10 +53,14 @@ public class InspectorLauncher {
 		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath));		
 	}
 
-    	public Collection<RecoveryGraph> fromATLFiles() throws SQLException {
+    public Collection<RecoveryGraph> fromATLFiles() throws SQLException {
 		return doInspect("atl", (projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath));		
 	}
-		
+
+    public Collection<RecoveryGraph> fromSirius() throws SQLException {
+		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath));		
+	}
+
 	private Collection<RecoveryGraph> doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
 		for (RepoFile model : db.getFilesByType(fileType)) {
