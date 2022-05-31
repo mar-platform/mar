@@ -40,8 +40,12 @@ public class DuplicateComputation {
 		System.out.println("Finding duplicates: " + type);
 		
 		Collection<RecoveryGraph> graphs = miniGraphs.get(type);
-		DuplicateFinderConfiguration<?> conf = typeToConfiguration.get(type);
+		if (graphs == null) {
+			System.out.println("No graphs of type: " + type);
+			return;
+		}
 		
+		DuplicateFinderConfiguration<?> conf = typeToConfiguration.get(type);
 		DuplicateFinder<T> finder = (DuplicateFinder<T>) conf.toFinder();
 		
 		Map<T, FileProgram> programs = new HashMap<>();

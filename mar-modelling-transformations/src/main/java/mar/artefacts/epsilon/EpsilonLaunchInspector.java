@@ -44,7 +44,7 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 
 	private final XPathExpression FIND_LOAD_MODEL;
 	private final XPathExpression FIND_PROGRAMS;
-    	private final FileSearcher searcher;
+    private final FileSearcher searcher;
     
 	public EpsilonLaunchInspector(Path repoFolder, Path projectSubPath) {
 		super(repoFolder, projectSubPath);
