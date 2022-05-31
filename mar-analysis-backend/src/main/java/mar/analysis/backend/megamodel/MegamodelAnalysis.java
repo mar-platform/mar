@@ -62,6 +62,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			result.put("emfatic", inspector.fromEmfaticFiles() );
 			result.put("acceleo", inspector.fromAcceleoFiles() );
 			result.put("atl", inspector.fromATLFiles());
+			result.put("sirius", inspector.fromSirius());
 			
 			return result;
 		} catch (Exception e) {
