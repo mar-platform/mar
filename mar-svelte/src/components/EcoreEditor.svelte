@@ -5,6 +5,7 @@
   const dispatch = createEventDispatcher();
 
   let loading = false
+  let errorText="";
 
   function notifyLoading(isLoading) {
     dispatch("loading", { isLoading: isLoading} );
@@ -16,7 +17,9 @@
 
   function errors(error) {
     loading = false;
-    alert("An error is occured :"+error);
+    errorText="An error is occured : \n"
+    errorText+=error;
+    window.$('.notifier-error').toggleClass('pop');
   }
   let value = `package relational;
 class Table { 
@@ -42,43 +45,6 @@ class Column {
 
   let searchText = null;
   // Try to get config from mongo
-/*async function loadingTime(event) { //when the time is too long an error occured
-  function p1() {
-        return new Promise(async (resolve) => {
-            setTimeout(() => {
-                resolve(10);
-                if(loading==true){
-                  errors();
-                }
-            }, 4000)
-        });
-    }
-
-    async function handleSubmit(event) {
-    let modelType = searchModelType;
-    let syntax = "emfatic";
-    let url = MAR.toSearchURL(modelType, syntax);
-    console.log(url);
-    notifyLoading(true)
-    const res = await fetch(url, {
-      method: "POST",
-      body: value,
-      /*
-				body: JSON.stringify({
-					source: source,
-					meta: meta
-				})
-				
-      });
-      // console.log(res);
-      const json = await res.json();
-      notifyLoading(false)
-      console.log(json);
-      results = json;
-    }
-
-    return await Promise.race([handleSubmit(), p1()]);
-}*/
   async function handleSubmit(event) {
     let modelType = searchModelType;
     let syntax = "emfatic";
@@ -131,4 +97,10 @@ class Column {
       {/if}      
     </div>
   </form>
+  <div class="notifier notifier-error">
+    <div class="notifier-content">
+      {errorText}
+      <p class="green notifier-dismiss">Dismiss automatically</p>
+    </div>
+  </div>
 </main>

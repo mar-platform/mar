@@ -1,8 +1,12 @@
 <script>
     import { createEventDispatcher } from "svelte";
     import { Stretch } from 'svelte-loading-spinners'
+    import SearchFacets from './SearchFacets.svelte'
+
 
     const dispatch = createEventDispatcher();
+
+    let errorText="";
 
     function notifyEvent(modelType) {
         dispatch("select", { modelType: modelType });
@@ -14,11 +18,19 @@
         loading = isLoading
     }
 
+    function errors(error) {
+        loading = false;
+        errorText="An error is occured : \n"
+        errorText+=error;
+        window.$('.notifier-error').toggleClass('pop');
+    }
+
+    
     /* Interface */
     export let results = []
 
-    let searchText = "";
-    // ajouter erreur
+    export let searchText = "";
+
     async function handleSubmit(event) {
         let url = MAR.toTextSearchURL();
         if (searchText != null) {
@@ -27,13 +39,17 @@
             const res = await fetch(url, {
                 method: "POST",
                 body: searchText,
-            });			
-            
-            const json = await res.json();
-            console.log(json);
-            notifyLoading(false)
-            results = json;			
-        }
+            }).catch(error => {
+                errors(error);
+            });
+
+            if(res!= undefined){
+                const json = await res.json();
+                notifyLoading(false)
+                console.log(json);
+                results = json;
+            }		
+        }   
     }
     
 </script>
@@ -43,7 +59,6 @@
     action="#xxx"
     on:submit|preventDefault={handleSubmit}
     enctype="multipart/form-data">
-    
     <div class="row" >
         <!-- I don't why I have to add the width: 100% here, but... -->
         <div class="alert alert-info" style="width: 100%; padding: 4px; padding-left: 8px"  role="alert">
@@ -74,4 +89,11 @@
     </div>
 
 </form>
+</div>
+
+<div class="notifier notifier-error">
+	<div class="notifier-content">
+		{errorText}
+		<p class="green notifier-dismiss">Dismiss automatically</p>
+	</div>
 </div>

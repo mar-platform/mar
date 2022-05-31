@@ -4,17 +4,21 @@
   import Index  from "./../routes/Index.svelte";
   import FileSaver from 'file-saver';
   import Slider from './bootstrap/Slider.svelte'
-  export let fav=false;
-  let favList=[];
+  //export let fav=false;
+  let favList=[];// to then download the zip with bash code
   let favTab=[];
+  let activeNumber=0;  // to know the actual pagination
   export let resultsButton=[]
+  export let searchText;
   let desc = false;
+  let compare =false;
   let change;
-  let param;
+  let compareTab=[];
+  let compareElem=[];
   let facetsButton;
-  let actualTab=0;
+  let actualTab=0; // to know the actual page
   let lengthFavList;
-  let save; // to know if the search is the same
+  let save; 
 
   function removeItemWithSlice(index) {
   return [...favTab.slice(0, index), ...favTab.slice(index + 1)]
@@ -23,25 +27,107 @@
   function actualPage(index) { // the other research appeared
     actualTab=index;
     actualTab=actualTab;
-    fav=true;
-    resultsButton=favTab[index].result;
+    //fav=true;
+    resultsButton=favTab[index].result.slice(0,99);
     facetsButton=favTab[index].categories;
-    
+    save=favTab[index].result; // to compare with the next search
+    activeNumber=0;
+    facets=favTab[index].facetsSave;
   }
-  function deletePage(index) { // the other research appeared
-    fav=false;
-    favList.splice(favTab[actualTab].start,favTab[actualTab].end); // we delete the element if it exist
-    //change start of the element
-    for (let i=actualTab+1;i<favTab.length;i++){
-      favTab[i].start-=favTab[actualTab].end;
+
+
+  function togglePagination(index){ // change pagination stat
+    activeNumber=index;
+    resultsButton=favTab[actualTab].result.slice(index,index+99);
+  }
+
+  function addToCompare(item){
+    if(compareTab.length<2){
+      if(compareTab.length>0){
+        if(compareTab[0].name != item.name){
+          compareTab[1]=item;
+          for(let i=(compareTab[0].end)*2+(item.end);i<(compareTab[0].end)*2+(item.end)*2;i++){
+            compareElem[i]=item.result[i-((compareTab[0].end)*2+(item.end))];
+          }
+          for(let i=compareTab[0].end;i<compareTab[0].end+item.end;i++){
+            for(let j=0;j<compareTab[0].end;j++){
+              if(compareTab[0].result[j].urlhumanName == item.result[i-compareTab[0].end].urlhumanName){
+                compareElem[j+compareTab[0].end]="true";
+                compareElem[compareTab[0].end+i]="true";
+                break;
+              }
+              if(compareElem[i] != "true"){
+                compareElem[i]="false";
+              }
+            }
+          }
+        for(let i=0;i<compareElem.length;i++){
+          if(compareElem[i]==undefined){
+            compareElem[i]="false";
+          }
+        }
+        
+        }
+      }
+      else{
+        compareTab[0]=item;
+        for(let i=0;i<item.end;i++){
+          compareElem[i]=item.result[i];
+        }
+      }
     }
-    favTab=removeItemWithSlice(actualTab);
+  }
+
+  function Compare() { 
+    compare=!compare;
+  }
+
+  //to compare the distance between two researchs we are going to use levenshtein distance
+  const levenshteinDistance = (str1 = '', str2 = '') => {
+   const track = Array(str2.length + 1).fill(null).map(() =>
+   Array(str1.length + 1).fill(null));
+   for (let i = 0; i <= str1.length; i += 1) {
+      track[0][i] = i;
+   }
+   for (let j = 0; j <= str2.length; j += 1) {
+      track[j][0] = j;
+   }
+   for (let j = 1; j <= str2.length; j += 1) {
+      for (let i = 1; i <= str1.length; i += 1) {
+         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+         track[j][i] = Math.min(
+            track[j][i - 1] + 1, // deletion
+            track[j - 1][i] + 1, // insertion
+            track[j - 1][i - 1] + indicator, // substitution
+         );
+      }
+   }
+   return track[str2.length][str1.length];
+  };  
+
+  function reinitCompare() { 
+    compareTab=[];
+    compareElem=[];
+  }
+
+  function deletePage(index) { // the other research appeared
+    //fav=false;
+    favList.splice(favTab[index].start,favTab[index].end); // we delete the element if it exist
+    //change start of the element
+    for (let i=index+1;i<favTab.length;i++){
+      favTab[i].start-=favTab[index].end;
+    }
+    favTab=removeItemWithSlice(index);
     actualTab=favTab.length-1;
     if(favTab.length != 0 ){ // if there's any tab in favorite the button is still in deleted
-      fav=true;
+      //fav=true;
       resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
     }
-    console.log(favList)
+    else{
+      resultsButton[0]="1";
+      resultsButton=resultsButton;
+    }
+    save=resultsButton; // use for pagination
   }
 
   function changeParam() {
@@ -61,7 +147,7 @@
 		desc = !desc;
   }
 
-  function toggle(favItems) {
+  /*function toggle(favItems) {
 		fav = !fav;
     lengthFavList=favList.length;
     if(lengthFavList=== undefined){
@@ -77,7 +163,7 @@
       } 
       if(change==0){
         actualTab=favTab.length;
-        favTab = [...favTab, { start: lengthFavList, end: favItems.length, result : favItems , id :favTab.length, name : search_items[0].name.toString(), categories : facets.categories}];
+        favTab = [...favTab, { start: lengthFavList, end: favItems.length, result : favItems , id :favTab.length, name : search_items[0].name.toString(), categories : facets.categories, search : searchText}];
         for (let i=0;i<favItems.length;i++){
             favList[lengthFavList+i]=favItems[i].urlhumanName;
         }
@@ -98,7 +184,8 @@
           //resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
         //}
       }
-	}
+      console.log(favTab[actualTab].search)
+	}*/
 
   const zip = new JSZip();
   let bashFile ="#!/bin/sh";
@@ -264,10 +351,11 @@
 
   export let search_items
   export let facets
+
   let new_items = [] /* This trick is to make sure that we only update the facet object when a new result is computed */
 
   $: if (search_items != new_items) {
-    if(facets != undefined){
+    if(facets != undefined && save!=undefined){
       for(let i=0;i<facets.categories.length;i++){  // For every new search checkboxs are reinitialised 
         if(document.getElementById(facets.categories[i].toString()).checked==true){
           document.getElementById(facets.categories[i].toString()).checked = false;
@@ -276,25 +364,38 @@
     }
     new_items = search_items
     facets = new Facets(search_items)
-    if(JSON.stringify(search_items) != JSON.stringify(save)){ // when you change or not your page the buttons change or not
-      fav=false; 
+    //if(JSON.stringify(search_items) != JSON.stringify(save)){ // when you change or not your page the buttons change or not
+      //fav=false; 
       change=0; // to see if a changement is occured
       for(let i=0;i<favTab.length;i++){
         if(favTab[i].name===search_items[0].name.toString()){
           actualTab=i;
           change=1;
-          fav=true;
+          //fav=true;
           break;
         }
       }
       if(change===0){
-        actualTab=undefined;
+        //actualTab=undefined;
+        lengthFavList=favList.length;
+        if(lengthFavList=== undefined){
+          lengthFavList=0;
+        }
+        actualTab=favTab.length;
+        favTab = [...favTab, { start: lengthFavList, end: search_items.length, result : search_items , id :favTab.length, name : search_items[0].name.toString(), categories : facets.categories, search : searchText, facetsSave : facets}];
+        for (let i=0;i<search_items.length;i++){
+            favList[lengthFavList+i]=search_items[i].urlhumanName;
+        }
+        resultsButton=favTab[actualTab].result; 
+        facetsButton=favTab[actualTab].categories;
+        console.log(favTab)
       }
-    }
+    //}
     actualTab=actualTab;
-    save=search_items; // to compare with the next search
+    save=search_items; // use for pagination
+    activeNumber=0;
     resultsButton=resultsButton.slice(0,0); // to reinit
-    facets=facets
+    facets=facets;
   }
 </script>
 
@@ -303,9 +404,11 @@
       <div
         class="list-group-item list-group-item-action flex-column align-items-start"
       >
-      <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => { changeParam();} }>
-        Parameters
-      </button>
+      {#if favList.length != 0}
+        <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => { changeParam();} }>
+          Parameters
+        </button>
+      {/if}
       <div id="param">
         <div class="row">
           <div class="col">
@@ -341,7 +444,7 @@
                   <li>
                     <!-- <a href="#/" class="small" data-value="{item}" tabIndex="-1"> -->
                     <!-- <input type="checkbox" style="margin-left: 5px" bind:group={facets.selectedTopics} />&nbsp;{item} -->
-                    <input type="checkbox" style="margin-left: 5px"  on:click={() => { facets.addModelType(item); facets = facets} } />&nbsp;{item}
+                    <input type="checkbox" style="margin-left: 5px" id={item.toString()} on:click={() => { facets.addModelType(item); facets = facets} } />&nbsp;{item}
                     <!-- </a> -->
                   </li>
                 {/each}              
@@ -360,7 +463,7 @@
               <ul class="dropdown-menu">
                 {#each facets.origins as item}
                   <li>
-                    <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addOrigin(item); facets = facets} } />&nbsp;{item}
+                    <input type="checkbox" style="margin-left: 5px" id={item.toString()} on:click={() => { facets.addOrigin(item); facets = facets} } />&nbsp;{item}
                   </li>
                 {/each}              
               </ul>
@@ -396,7 +499,7 @@
               <ul class="dropdown-menu">
                 {#each facets.topics as item}
                   <li>
-                    <input type="checkbox" style="margin-left: 5px" on:click={() => { facets.addTopic(item); facets = facets} } />&nbsp;{item}
+                    <input type="checkbox" style="margin-left: 5px" id={item.toString()} on:click={() => { facets.addTopic(item); facets = facets} } />&nbsp;{item}
                   </li>
                 {/each}              
               </ul>
@@ -420,22 +523,56 @@
           </div>
         </div>
       </div>
+    {#if favList.length != 0}
     <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => { changeDesc();} }>
       Description
     </button>
+    {/if}
     {#if desc == true}
       {#if resultsButton.length > 0}
         <p>Some informations about the research :</p>
-        <p>There's {resultsButton.length.toString()} {#if resultsButton.length > 1} elements {/if} {#if resultsButton.length <= 1} element {/if} corresponding to your research.</p>
+        <p>There's {resultsButton.length.toString()} {#if resultsButton.length > 1} elements {/if} {#if resultsButton.length <= 1} element {/if} corresponding to your research in the page.</p>
         <p>There is {facetsButton.length.toString()} {#if facetsButton.length > 1} categories {/if} {#if facetsButton.length <= 1} categorie {/if} corresponding to {#if facetsButton.length > 1} them {/if} {#if facetsButton.length <= 1} this {/if} : {facetsButton.toString()}.</p>
       {:else}
         <p>Some informations about the research :</p>
-        <p>There's {search_items.length.toString()} {#if search_items.length > 1} elements {/if} {#if search_items.length <= 1} element {/if} corresponding to your research.</p>
+        <p>There's {search_items.length.toString()} {#if search_items.length > 1} elements {/if} {#if search_items.length <= 1} element {/if} corresponding to your research in the page.</p>
         <p>There is {facets.categories.length.toString()} {#if facets.categories.length > 1} categories {/if} {#if facets.categories.length <= 1} categorie {/if} corresponding to {#if facets.categories.length > 1} them {/if} {#if facets.categories.length <= 1} this {/if} : {facets.categories.toString()}.</p>
       {/if}
     {/if}
+    <!--
+      add compare button and others elements
+    -->
+    {#if favTab.length >= 2}
+      <br>
+      <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => {Compare()}}>Compare two researchs</button>
+      {#if compareTab.length>0}
+      <button class="btn btn-danger btn-sm" on:click|preventDefault={() => {reinitCompare()}}>Reinit</button>
+      <br>
+      {/if}
+      {#each compareTab as item,i}
+        {#if i==0}
+          {item.name} Vs .
+        {:else}
+          {item.name}
+        {/if}
+      {/each}
+      {#if compareTab.length == 2}
+          There's {levenshteinDistance(compareTab[0].name,compareTab[0].search)} differences between the search and the result with the first search {compareTab[0].name} 
+          There's {levenshteinDistance(compareTab[1].name,compareTab[1].search)} differences between the search and the result with the first search {compareTab[1].name} 
+      {/if}
+      {#if compare == true && compareTab.length<2}  
+        <br>
+        {#each favTab as item,i}
+        <button class="pageBtn"  on:click|preventDefault={() => { addToCompare(item);} }>
+          page {item.name}
+        </button>
+        {/each}
+      {/if}
+      <br>
+    {/if}
+    <br>
       <div>
-      {#if fav}
+      <!--{#if fav}
         <button class="btn btn-danger btn-sm" on:click|preventDefault={() => { toggle(search_items);} }>
           Remove to favorite
         </button>
@@ -443,25 +580,38 @@
         <button class="btn btn-danger btn-sm" on:click|preventDefault={() => {toggle(search_items);} }>
           Add to favorite
         </button>
-      {/if}
+      {/if }-->
       {#if favList.length != 0}
-      <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => {bashThis(favList)}}>Download bash favories</button>
+        <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => {bashThis(favList)}}>Download bash favories</button>
       {/if}
     </div>
   </div>
-  {#each favTab as item,i}
-  {#if i== actualTab}
-    <button class="pageBtn"  on:click|preventDefault>
-      page {item.name} (actual page)
-    </button>
-    <button class="pageBtn" on:click|preventDefault={() => deletePage(i)}>X</button>
-  {/if}
-  {#if i!= actualTab}
-    <button class="pageBtn" on:click|preventDefault={() => actualPage(i)}>
-      page {item.name}
-    </button>
-    <button class="pageBtn" on:click|preventDefault={() => deletePage(i)}>X</button>
-  {/if}
-  {/each}
+    {#each favTab as item,i}
+      {#if i== actualTab}
+        <button class="pageBtn"  on:click|preventDefault>
+          page {item.name} (actual page)
+        </button>
+        <button class="pageBtn" on:click|preventDefault={() => deletePage(i)}>X</button>
+      {/if}
+      {#if i!= actualTab}
+        <button class="pageBtn" on:click|preventDefault={() => actualPage(i)}>
+          page {item.name}
+        </button>
+        <button class="pageBtn" on:click|preventDefault={() => deletePage(i)}>X</button>
+      {/if}
+    {/each}
   </form>
+  {#if favList.length != 0}
+    <ul class="pagination bottomPage">
+      {#each save as item,i}
+        {#if i%100 == false}
+          {#if i == activeNumber}
+            <li class="page-item active"><a  class="page-link "ref="#">{i/100+1}</a></li>
+          {:else}
+            <li class="page-item" on:click|preventDefault={() => togglePagination(i)}><a  class="page-link"ref="#">{i/100+1}</a></li>
+          {/if}
+        {/if}
+      {/each}
+    </ul> 
+  {/if}
 </main>

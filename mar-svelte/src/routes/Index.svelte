@@ -14,6 +14,8 @@
 	import ResultItem 			from "../components/ResultItem.svelte";
 	
 	export let results = [];
+	export let searchText;
+	let save=[];
 	let resultsButton = [];
 	let shown_resultsButton = [];
 	let shown_results = [];
@@ -30,7 +32,21 @@
 		if(resultsButton.length == 0){
 			shown_resultsButton=shown_resultsButton.slice(0,0); 
 		}
-		shown_results = facets.filter(results)
+		if(results.length == 0){
+			results=save;
+			console.log(results)
+			shown_results = facets.filter(results.slice(0,99))
+		}
+		if(resultsButton[0]=="1"){// to manage a reload of nothing
+			for(let i=0;i<resultsButton.length;i++){
+				resultsButton[i]=[];
+			}
+			shown_resultsButton = facets.filter(resultsButton)
+		}
+		else{
+			shown_results = facets.filter(results.slice(0,99))
+		}
+		save=results;
 	}
 
 	$: if (resultsButton.length != 0) {
@@ -68,7 +84,7 @@
 			</div>
 			<div class="col">
 				{#if searchMode == 'text'}
-					<SearchBox bind:results={results} />
+					<SearchBox bind:results={results} bind:searchText={searchText}/>
 				{:else if searchMode == 'example'}
 					<ModelTypeSelection
 						bind:selected={selectedModelType} />
@@ -105,16 +121,16 @@
 		</div>
 	</div>
 
-	<div class="col-8">
-		<div class="output">
-			<div class="list-group" >
+	<div class="col-8" >
+		<div class="output" >
+			<div class="list-group"  >
 				{#if results.length > 0}
-					<SearchFacets search_items={results} bind:facets={facets} bind:resultsButton={resultsButton} />
+					<SearchFacets search_items={results} bind:facets={facets} bind:resultsButton={resultsButton} bind:searchText={searchText}/>
 				{/if}
 				{#if shown_resultsButton.length > 0}
 					<ul
 						class="results"
-						style="padding: 0; text-align: left;" id="doubleList">
+						style="padding: 0; text-align: left;" >
 						{#each shown_resultsButton as item}
 							<ResultItem bind:item bind:facets />
 						{/each}
@@ -123,7 +139,7 @@
 					{#if shown_results.length > 0}
 						<ul
 							class="results"
-							style="padding: 0; text-align: left;" id="doubleList">
+							style="padding: 0; text-align: left;" >
 							{#each shown_results as item}
 								<ResultItem bind:item bind:facets />
 							{/each}
