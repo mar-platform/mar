@@ -75,6 +75,8 @@
     <module>mar-modelling-transformations</module>
 
     <module>mar-indexer-lucene</module>
-    <module>mar-indexer-spark</module>    
+    <module>mar-indexer-spark</module>
+
+    <module>mar-analysis-backend</module>
   </modules>
 </project>
