@@ -46,7 +46,8 @@ public class SqliteIndexDatabase implements AutoCloseable {
                         + ");";
                 
                 
-                String index = "create index if not exists idx_path on mar_index(path);";
+                //String index = "create index if not exists idx_path on mar_index(path);";
+                String index = "create index if not exists idx_path on mar_index(path, doc_id, n_occurences, n_tokens, n_docs_t);";
                 
                 Statement stmt = conn.createStatement();
                 stmt.execute(index_tbl);

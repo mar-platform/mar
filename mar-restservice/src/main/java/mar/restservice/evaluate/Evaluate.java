@@ -3,10 +3,13 @@ package mar.restservice.evaluate;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
@@ -25,6 +28,7 @@ import mar.indexer.common.configuration.SingleIndexJob;
 import mar.model2graph.AbstractPathComputation;
 import mar.model2graph.MetaFilter;
 import mar.model2graph.Model2GraphAllpaths;
+import mar.model2graph.PathComputation;
 import mar.paths.PathFactory;
 import mar.restservice.HBaseScorerFinal;
 import mar.restservice.Profiler;
@@ -43,38 +47,40 @@ public class Evaluate implements Callable<Integer> {
 	private File configurationFile;
 	@Parameters(index = "1", description = "The SQLite db file.")
 	private File indexDb;
+	@Parameters(index = "2", description = "The repository name")
+	private String repoName;
 	
-	public static void evaluate(List<Model> models, SqliteIndexDatabase db) throws IOException {
-		AbstractPathComputation path = new Model2GraphAllpaths(3).withPathFactory(new PathFactory.DefaultPathFactory());
-		
+	public static void evaluate(List<Model> models, SqliteIndexDatabase db, SingleIndexJob job) throws IOException, InvalidJobSpecification {
+		//AbstractPathComputation path = new Model2GraphAllpaths(3).withPathFactory(new PathFactory.DefaultPathFactory());
+		PathComputation pathComputation = job.toPathComputation();
+		ModelLoader loader = job.getModelLoader();
+				
 		Profiler profilerHBase = new Profiler();
 		Profiler profilerSqlite = new Profiler();
 		List<Model> differences = new ArrayList<>();
 		
-		try(HBaseScorerFinal scorer = new HBaseScorerFinal(path, "ecore")) {			
-			SqliteScorer sqliteScorer = new SqliteScorer(path, db);
+		try(HBaseScorerFinal scorer = new HBaseScorerFinal(pathComputation, job.getType())) {			
+			SqliteScorer sqliteScorer = new SqliteScorer(pathComputation, db);
 
 			try {
 				for (Model model : models) {
-					//if (! (model.getId().equals("github:ecore:/data/andymcr/webgen-pim/work.andycarpenter.webgen.pims.security/model/security.ecore") ||
-					//		model.getId().equals("github:ecore:/data/gssi/metamodel-dataset-analysis-toolchain/metamodels/apidesc.ecore")))
-					//	continue;
-					
-					Resource r = ModelLoader.DEFAULT.load(new File(model.getFile().getAbsolutePath()));
+					Resource r = loader.load(new File(model.getFile().getAbsolutePath()));
 					
 					System.out.println("Evaluating: " + model.getId());
 					
 					profilerHBase.start();
-					Map<String, Double> result1 = scorer.score(r);
+					Map<String, Double> result1 = scorer.sortedScore(r);
 					profilerHBase.stop("HBase: " + model.getId(), System.out);
 					
 					profilerSqlite.start();
-					Map<String, Double> result2 = sqliteScorer.score(r);
+					Map<String, Double> result2 = sqliteScorer.sortedScore(r);
 					profilerSqlite.stop("SQLite: " + model.getId(), System.out);
 					
-					if (! result1.equals(result2)) {
-						System.out.println("Different results for " + model.getFile().getAbsolutePath());
-						differences.add(model);
+					if (areEqual(differences, model, result1, result2)) {
+						if (! result1.isEmpty()) {
+						Entry<String, Double> first = result1.entrySet().iterator().next();
+						System.out.println("Result: " + first.getKey() + " - " + first.getValue());
+						}
 					}
 					
 					r.unload();
@@ -94,6 +100,32 @@ public class Evaluate implements Callable<Integer> {
 			
 		}
 	}
+
+	private static boolean areEqual(List<Model> differences, Model model, Map<String, Double> result1,
+			Map<String, Double> result2) {
+		if (! result1.equals(result2)) {
+			AtomicBoolean isDifferent = new AtomicBoolean(false);
+			result1.forEach((k, v) -> {
+				Double v2 = result2.get(k);
+				if (v2 == null) {
+					System.out.println("Model " + k + " not in result");
+					isDifferent.set(true);
+				} else {				
+					if (Math.abs(v - v2) > 0.001) {
+						System.out.println("Model " + k + " with different scoring: " + v + " - " + v2);
+						isDifferent.set(true);
+					}
+				}
+			});
+
+			if (isDifferent.get()) {
+				System.out.println("Different results for " + model.getFile().getAbsolutePath());
+				differences.add(model);
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	@Override
 	public Integer call() throws Exception {	
@@ -105,8 +137,7 @@ public class Evaluate implements Callable<Integer> {
 		//AbstractPathComputation model2graphTrue = new Model2GraphAllpaths(3).withPathFactory(new PathFactory.EcoreTokenizer());
 		//model2graphTrue.withFilter(MetaFilter.getEcoreFilterNames());
 		
-		SingleIndexJob job = data.getRepo("repo-ecore-all");
-		
+		SingleIndexJob job = data.getRepo(repoName);
 		
 		String root = job.getRootFolder();
 		try(AnalysisDB analysis = new AnalysisDB(job.getModelDbFile())) {
@@ -118,8 +149,8 @@ public class Evaluate implements Callable<Integer> {
 				int idx = random.nextInt(models.size());
 				selected.add(models.get(idx));
 			}
-			
-			evaluate(selected, db);
+						
+			evaluate(selected, db, job);
 		}		
 		
 		return 0;

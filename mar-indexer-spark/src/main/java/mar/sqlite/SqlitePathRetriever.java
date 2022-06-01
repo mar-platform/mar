@@ -22,19 +22,26 @@ public class SqlitePathRetriever {
 		List<List<String>> subqueries = new ArrayList<>(paths.size()); 
 		List<String> newList = new ArrayList<>();
 		
+		List<String> inPaths = new ArrayList<>();
 		paths.forEach((head, rest_list) -> {
 			rest_list.forEach((rest, count) -> {
 				String p = head + rest;
 				p = p.replace("'", "''");
-				String s = "select path, doc_id, n_docs_t, n_occurences, n_tokens from mar_index where path = '" + p + "'";
-				newList.add(s);
-				if (newList.size() == 500) {
-					subqueries.add(new ArrayList<>(newList));
-					newList.clear();
-				}							
-			});
-			
+				inPaths.add(p);
+//				String s = "select path, doc_id, n_docs_t, n_occurences, n_tokens from mar_index where path = '" + p + "'";
+//				newList.add(s);
+//				if (newList.size() == 500) {
+//					subqueries.add(new ArrayList<>(newList));
+//					newList.clear();
+//				}							
+			});			
 		});
+		
+		String inSet = "(" + inPaths.stream().map(p -> "'" + p + "'").collect(Collectors.joining(",")) + ")";
+		String s = "select path, doc_id, n_docs_t, n_occurences, n_tokens from mar_index where path in " + inSet + "";
+		newList.add(s);
+		subqueries.add(new ArrayList<>(newList));
+		newList.clear();
 		
 		if (! newList.isEmpty())
 			subqueries.add(newList);

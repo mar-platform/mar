@@ -40,6 +40,8 @@ public class SqliteIndexer extends AbstractIndexer {
 				
 				totalTokens    += count._2;
 				totalDocuments += 1;
+				
+				m.resource.unload();
 			} catch (InvalidJobSpecification e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
