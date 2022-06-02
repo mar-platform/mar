@@ -7,12 +7,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import mar.analysis.backend.RepositoryDB;
-import mar.analysis.backend.RepositoryDB.RepoFile;
 import mar.analysis.backend.megamodel.XtextInspector;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.acceleo.AcceleoInspector;
 import mar.artefacts.atl.AnATLyzerFileInspector;
+import mar.artefacts.db.RepositoryDB;
+import mar.artefacts.db.RepositoryDB.RepoFile;
 import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.epsilon.EpsilonLaunchInspector;
 import mar.artefacts.graph.RecoveryGraph;
