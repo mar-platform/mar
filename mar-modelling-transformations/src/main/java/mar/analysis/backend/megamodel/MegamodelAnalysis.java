@@ -16,7 +16,6 @@ import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
 import anatlyzer.atl.model.ATLModel;
 import anatlyzer.atl.tests.api.AtlLoader;
-import mar.analysis.backend.RepositoryDB;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.duplicates.ATLDuplicateFinder;
 import mar.analysis.duplicates.DuplicateComputation;
@@ -32,6 +31,7 @@ import mar.analysis.uml.UMLAnalyser;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.Composite;

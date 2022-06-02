@@ -78,5 +78,6 @@
     <module>mar-indexer-spark</module>
 
     <module>mar-analysis-backend</module>
+    <module>mar-spring-webserver</module>
   </modules>
 </project>
