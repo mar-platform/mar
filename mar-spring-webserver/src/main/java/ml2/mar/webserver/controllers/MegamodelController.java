@@ -1,6 +1,7 @@
 package ml2.mar.webserver.controllers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -10,19 +11,24 @@ import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
 @RestController
 public class MegamodelController {
 
+	@Autowired
+	private MegamodelDB db;
 	@Autowired
 	private TransformationRelationshipsAnalysis analysis;
 	@Autowired
@@ -34,6 +40,14 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getRelationships());    	
     }
 
+	@GetMapping(value = "/search-project", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:3000")
+    public List<Project> searchProject(@RequestParam String value) throws JsonProcessingException {
+		if (value.length() < 3)
+			return Collections.emptyList();
+		return db.searchProjects(value);
+	}
+	
 	@GetMapping(value = "/clustering/label-propagation", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")
     public String clusteringLabelPropagation() throws JsonProcessingException {
