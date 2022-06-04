@@ -118,5 +118,9 @@ public class RelationshipsGraph {
 
 	}
 
+	
+	public Graph<Node, Edge> getGraph() {
+		return impl;
+	}
 
 }
