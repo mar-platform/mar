@@ -11,7 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -19,6 +21,7 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Preconditions;
 
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
@@ -160,6 +163,18 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 
+
+	public List<Project> searchProjects(String value) {
+		// TODO: Do this better. The db should have the notion of project
+		return getAllArtefacts().values().stream().
+			filter(a -> a.getId().toLowerCase().contains(value.toLowerCase())).
+			map(a -> a.getId()).
+			filter(p -> p.contains("/")).
+			map(p -> p.split("/")[0] + "/" + p.split("/")[1]).
+			distinct().
+			map(p -> new Project(p)).
+			collect(Collectors.toList());
+	}
 	
 	@CheckForNull
 	public void addRelationship(@Nonnull String sourceId, @Nonnull String targetId, @Nonnull Relationship type) {		
@@ -236,5 +251,6 @@ public class MegamodelDB implements Closeable {
 	public static interface RelationshipConsumer {
 		public void accept(String source, String target, Relationship type);
 	}
+
 
 }
