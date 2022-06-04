@@ -12,12 +12,14 @@
     DropdownMenu,
     NavLink,
   } from "sveltestrap";
-import ClusterExploration from "./ClusterExploration.svelte";
 
+  import ClusterExploration from "./ClusterExploration.svelte";
   import GraphExploration from './GraphExploration.svelte';
+  import InterProjectExploration from "./InterProjectExploration.svelte";
+  import ProjectExploration from "./ProjectExploration.svelte";
 
-  let isOpen = false;
-  let selection : string = 'graph'
+  let selection : string = 'graph';
+  let graphSelection : string = 'all_graph';
 </script>
 
 <Nav pills>
@@ -54,7 +56,24 @@ import ClusterExploration from "./ClusterExploration.svelte";
 </Nav>
 
 {#if selection == 'graph'} 
-  <GraphExploration />
+  <Nav pills>
+    <NavItem>
+      <NavLink active={graphSelection == 'all_graph'} on:click={e => graphSelection = 'all_graph'} href="#" >All</NavLink>
+    </NavItem>
+    <NavItem>
+      <NavLink active={graphSelection == 'inter_project'} on:click={e => graphSelection = 'inter_project'} href="#" >Inter-project</NavLink>
+    </NavItem>
+    <NavItem>
+      <NavLink active={graphSelection == 'project'} on:click={e => graphSelection = 'project'} href="#" >Project</NavLink>
+    </NavItem>
+  </Nav>
+  {#if graphSelection == 'all_graph'} 
+    <GraphExploration />
+  {:else if graphSelection == 'inter_project'}
+    <InterProjectExploration />
+  {:else if graphSelection == 'project'}
+    <ProjectExploration />
+  {/if}
 {:else if selection == 'clusters'}
   <ClusterExploration />
 {/if}

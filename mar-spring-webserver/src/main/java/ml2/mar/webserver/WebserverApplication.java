@@ -41,5 +41,11 @@ public class WebserverApplication {
 		return new TransformationRelationshipsAnalysis(db);
 	}
 	
-	
+	@Bean
+	@Scope("application")
+	public MegamodelDB getMegamodelDB(@Autowired ApplicationArguments args) {
+		String fileName = args.getNonOptionArgs().get(0);
+    	MegamodelDB db = new MegamodelDB(new File(fileName));
+    	return db;
+	}
 }
