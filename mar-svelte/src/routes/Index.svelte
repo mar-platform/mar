@@ -34,7 +34,6 @@
 		}
 		if(results.length == 0){
 			results=save;
-			console.log(results)
 			shown_results = facets.filter(results.slice(0,99))
 		}
 		if(resultsButton[0]=="1"){// to manage a reload of nothing
@@ -50,7 +49,8 @@
 	}
 
 	$: if (resultsButton.length != 0) {
-		shown_resultsButton = facets.filter(resultsButton)
+		shown_resultsButton = facets.filter(resultsButton);
+		
 	}
 </script>		
 
@@ -128,11 +128,9 @@
 					<SearchFacets search_items={results} bind:facets={facets} bind:resultsButton={resultsButton} bind:searchText={searchText}/>
 				{/if}
 				{#if shown_resultsButton.length > 0}
-					<ul
-						class="results"
-						style="padding: 0; text-align: left;" >
+					<ul class="results" style="padding: 0; text-align: left;" >
 						{#each shown_resultsButton as item}
-							<ResultItem bind:item bind:facets />
+							<ResultItem bind:item  bind:facets />
 						{/each}
 					</ul>
 				{:else}
@@ -141,7 +139,7 @@
 							class="results"
 							style="padding: 0; text-align: left;" >
 							{#each shown_results as item}
-								<ResultItem bind:item bind:facets />
+								<ResultItem bind:item bind:facets  />
 							{/each}
 						</ul>
 					{:else}

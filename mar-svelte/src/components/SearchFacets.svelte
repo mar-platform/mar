@@ -1,7 +1,6 @@
 <script>
   import { ItemHelper, intCompare } from './../lib/common.js'
   import JSZip from 'jszip';
-  import Index  from "./../routes/Index.svelte";
   import FileSaver from 'file-saver';
   import Slider from './bootstrap/Slider.svelte'
   //export let fav=false;
@@ -12,6 +11,7 @@
   export let searchText;
   let desc = false;
   let compare =false;
+  let nbIdElements;
   let change;
   let compareTab=[];
   let compareElem=[];
@@ -25,14 +25,16 @@
   }
 
   function actualPage(index) { // the other research appeared
-    actualTab=index;
-    actualTab=actualTab;
-    //fav=true;
-    resultsButton=favTab[index].result.slice(0,99);
-    facetsButton=favTab[index].categories;
-    save=favTab[index].result; // to compare with the next search
-    activeNumber=0;
-    facets=favTab[index].facetsSave;
+    if(compareTab.length==0){
+      actualTab=index;
+      actualTab=actualTab;
+      //fav=true;
+      resultsButton=favTab[index].result.slice(0,99);
+      facetsButton=favTab[index].categories;
+      save=favTab[index].result; // to compare with the next search
+      activeNumber=0;
+      facets=favTab[index].facetsSave;
+    }
   }
 
 
@@ -46,34 +48,69 @@
       if(compareTab.length>0){
         if(compareTab[0].name != item.name){
           compareTab[1]=item;
-          for(let i=(compareTab[0].end)*2+(item.end);i<(compareTab[0].end)*2+(item.end)*2;i++){
+          /*for(let i=(compareTab[0].end)*2+(item.end);i<(compareTab[0].end)*2+(item.end)*2;i++){
             compareElem[i]=item.result[i-((compareTab[0].end)*2+(item.end))];
           }
           for(let i=compareTab[0].end;i<compareTab[0].end+item.end;i++){
             for(let j=0;j<compareTab[0].end;j++){
               if(compareTab[0].result[j].urlhumanName == item.result[i-compareTab[0].end].urlhumanName){
-                compareElem[j+compareTab[0].end]="true";
-                compareElem[compareTab[0].end+i]="true";
-                break;
+                compareElem[j+item.end+compareTab[0].end]="true";
+                compareElem[i]="true";
+                nbIdElements++;
+                break;  
               }
               if(compareElem[i] != "true"){
                 compareElem[i]="false";
               }
             }
+          }*/
+          for(let i=0;i<compareTab[0].end;i++){
+            for(let j=0;j<compareTab[1].end;j++){
+              if(compareTab[0].result[i].urlhumanName == item.result[j].urlhumanName){
+                compareElem[j+compareTab[0].end]=item.result[j];
+                compareElem[j+compareTab[0].end].description="true2"
+                compareElem[i]=compareTab[0].result[i];
+                compareElem[i].description="true1";
+                nbIdElements++;
+                break;  
+              }
+            }
           }
-        for(let i=0;i<compareElem.length;i++){
+        for(let i=0;i<compareTab[0].end;i++){
           if(compareElem[i]==undefined){
-            compareElem[i]="false";
+            compareElem[i]=compareTab[0].result[i];
+            compareElem[i].description="false1";
           }
         }
-        
+        for(let i=compareTab[0].end;i<compareTab[0].end+item.end;i++){
+          if(compareElem[i]==undefined){
+            compareElem[i]=item.result[i-compareTab[0].end];
+            compareElem[i].description="false2";
+          }
+        }
+        resultsButton=compareElem.slice(0,99);
+        //actualTab=-1;
+        facets= new Facets(compareElem); // needed to do a good research
+        lengthFavList=favList.length;
+        actualTab=favTab.length;
+        favTab = [...favTab, { start: 0, end: 0, result : compareElem , id :favTab.length, name : "", categories : facets.categories, search : "", facetsSave : facets}];
+        facetsButton=favTab[actualTab].categories;
+        actualTab=actualTab;
+        save=compareElem; // use for pagination
+        activeNumber=0;
+        /*setTimeout(
+        function addDoubleList() {
+          var x = document.getElementsByClassName("results");
+              x[0].id="doubleList";
+        },50); // to set the doubleList on*/
         }
       }
       else{
+        nbIdElements=0;
         compareTab[0]=item;
-        for(let i=0;i<item.end;i++){
+        /*for(let i=0;i<item.end;i++){
           compareElem[i]=item.result[i];
-        }
+        }*/
       }
     }
   }
@@ -83,7 +120,7 @@
   }
 
   //to compare the distance between two researchs we are going to use levenshtein distance
-  const levenshteinDistance = (str1 = '', str2 = '') => {
+  /*const levenshteinDistance = (str1 = '', str2 = '') => {
    const track = Array(str2.length + 1).fill(null).map(() =>
    Array(str1.length + 1).fill(null));
    for (let i = 0; i <= str1.length; i += 1) {
@@ -103,31 +140,50 @@
       }
    }
    return track[str2.length][str1.length];
-  };  
+  }; */ 
 
   function reinitCompare() { 
+    for(let i=0;i<compareElem.length;i++){
+      compareElem[i].description="";
+    }
     compareTab=[];
     compareElem=[];
+    actualTab=0;
+    resultsButton=favTab[actualTab].result.slice(0,99);
+    facetsButton=favTab[actualTab].categories;
+    activeNumber=0;
+    facets=favTab[actualTab].facetsSave;
+    save=favTab[actualTab].result; // use for pagination
+    favTab=favTab.slice(0,favTab.length-1);
+    /*setTimeout(
+        function addDoubleList() {
+          var x = document.getElementsByClassName("results");
+              x[0].id="";
+        },100); // to set the doubleList off*/
   }
 
   function deletePage(index) { // the other research appeared
     //fav=false;
-    favList.splice(favTab[index].start,favTab[index].end); // we delete the element if it exist
-    //change start of the element
-    for (let i=index+1;i<favTab.length;i++){
-      favTab[i].start-=favTab[index].end;
+    if(compareTab.length==0){
+      favList.splice(favTab[index].start,favTab[index].end); // we delete the element if it exist
+      //change start of the element
+      for (let i=index+1;i<favTab.length;i++){
+        favTab[i].start-=favTab[index].end;
+      }
+      favTab=removeItemWithSlice(index);
+      actualTab=favTab.length-1;
+      if(favTab.length != 0 ){ // if there's any tab in favorite the button is still in deleted
+        //fav=true;
+        resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
+        facetsButton=favTab[actualTab].categories;
+        facets=favTab[actualTab].facetsSave; // needed to do a good research
+      }
+      else{
+        resultsButton[0]="1";
+        resultsButton=resultsButton;
+      }
+      save=resultsButton; // use for pagination
     }
-    favTab=removeItemWithSlice(index);
-    actualTab=favTab.length-1;
-    if(favTab.length != 0 ){ // if there's any tab in favorite the button is still in deleted
-      //fav=true;
-      resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
-    }
-    else{
-      resultsButton[0]="1";
-      resultsButton=resultsButton;
-    }
-    save=resultsButton; // use for pagination
   }
 
   function changeParam() {
@@ -354,7 +410,7 @@
 
   let new_items = [] /* This trick is to make sure that we only update the facet object when a new result is computed */
 
-  $: if (search_items != new_items) {
+  $: if (search_items != new_items && compareTab.length==0) {
     if(facets != undefined && save!=undefined){
       for(let i=0;i<facets.categories.length;i++){  // For every new search checkboxs are reinitialised 
         if(document.getElementById(facets.categories[i].toString()).checked==true){
@@ -531,7 +587,7 @@
     {#if desc == true}
       {#if resultsButton.length > 0}
         <p>Some informations about the research :</p>
-        <p>There's {resultsButton.length.toString()} {#if resultsButton.length > 1} elements {/if} {#if resultsButton.length <= 1} element {/if} corresponding to your research in the page.</p>
+        <p>There's {save.length.toString()} {#if save.length > 1} elements {/if} {#if save.length <= 1} element {/if} corresponding to your research in the page.</p>
         <p>There is {facetsButton.length.toString()} {#if facetsButton.length > 1} categories {/if} {#if facetsButton.length <= 1} categorie {/if} corresponding to {#if facetsButton.length > 1} them {/if} {#if facetsButton.length <= 1} this {/if} : {facetsButton.toString()}.</p>
       {:else}
         <p>Some informations about the research :</p>
@@ -557,8 +613,8 @@
         {/if}
       {/each}
       {#if compareTab.length == 2}
-          There's {levenshteinDistance(compareTab[0].name,compareTab[0].search)} differences between the search and the result with the first search {compareTab[0].name} 
-          There's {levenshteinDistance(compareTab[1].name,compareTab[1].search)} differences between the search and the result with the first search {compareTab[1].name} 
+          <br>
+          There's {nbIdElements} elements in commun between the two searchs.
       {/if}
       {#if compare == true && compareTab.length<2}  
         <br>
