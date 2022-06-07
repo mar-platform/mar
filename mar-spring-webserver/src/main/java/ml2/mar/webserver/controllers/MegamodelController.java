@@ -21,6 +21,8 @@ import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
+import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
@@ -63,8 +65,11 @@ public class MegamodelController {
 			results.add(cluster);
 			buffer.append("Cluster: \n");
 			for (Node node : set) {
-				buffer.append("    " + node.getArtefact().getId() + "\n");
-				cluster.add(node.getArtefact());
+				if (node instanceof RelationshipsGraph.ArtefactNode) {
+					ArtefactNode an = (RelationshipsGraph.ArtefactNode) node;
+					buffer.append("    " + an.getArtefact().getId() + "\n");
+					cluster.add(an.getArtefact());
+				}
 			}
 		}
         
