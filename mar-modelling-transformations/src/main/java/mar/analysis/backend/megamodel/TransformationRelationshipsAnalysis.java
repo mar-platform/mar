@@ -24,17 +24,9 @@ public class TransformationRelationshipsAnalysis {
 		});
 		
 		System.out.println("Getting edges...");
-		db.getRelationshipsByType(Relationship.TYPED_BY, (src, tgt, type) -> {
+		db.getRelationshipsByType((src, tgt, type) -> {
 			graph.addEdge(src, tgt, type);
-		});
-
-		db.getRelationshipsByType(Relationship.IMPORT, (src, tgt, type) -> {
-			graph.addEdge(src, tgt, type);
-		});
-		
-		db.getRelationshipsByType(Relationship.DUPLICATE, (src, tgt, type) -> {
-			graph.addEdge(src, tgt, type);
-		});
+		}, Relationship.TYPED_BY, Relationship.IMPORT, Relationship.DUPLICATE);
 
 		return graph;
 	}
