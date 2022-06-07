@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import javax.annotation.CheckForNull;
 
+import mar.analysis.megamodel.model.Project;
 import mar.artefacts.graph.RecoveryGraph;
 
 public abstract class ProjectInspector {
@@ -29,6 +30,13 @@ public abstract class ProjectInspector {
 		return repoFolder.relativize(p);
 	}
 
+	protected Project getProject() {
+		String id = projectSubPath.subpath(0, 2).toString();
+		return new Project(id);
+	}
+	
+	
+	
 	@CheckForNull
 	public abstract RecoveryGraph process(File f) throws Exception;
 

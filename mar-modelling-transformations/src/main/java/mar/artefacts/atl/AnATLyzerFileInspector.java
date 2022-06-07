@@ -53,7 +53,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	public RecoveryGraph process(File f) throws Exception {
 		ATLProgram program = new ATLProgram(new RecoveredPath(getRepositoryPath(f)));
 		
-		RecoveryGraph graph = new RecoveryGraph();
+		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
 		try (BufferedReader br = new BufferedReader(new FileReader(f))) {

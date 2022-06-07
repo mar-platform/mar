@@ -60,7 +60,7 @@ public class EmfaticInspector extends ProjectInspector {
 								map(this::extractURI).
 								collect(Collectors.toList());
 				
-		RecoveryGraph graph = new RecoveryGraph();
+		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
 		EmfaticProgram p = new EmfaticProgram(new RecoveredPath(getRepositoryPath(f)));		
 		graph.addProgram(p);

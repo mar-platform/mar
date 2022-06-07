@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
+import mar.analysis.megamodel.model.Project;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.graph.RecoveryStats.PerFile;
@@ -19,18 +20,25 @@ public class RecoveryGraph {
 	
 	private final Set<Metamodel> metamodels = new HashSet<>();
 	private final Set<FileProgram> programs = new HashSet<>();
+
+	private Project project;
 	
-	public RecoveryGraph(PerFile stats) {
+	public RecoveryGraph(Project project, PerFile stats) {
+		this(project);
 		this.stats = stats;
 	}
 	
-	public RecoveryGraph() {
-		
+	public RecoveryGraph(Project project) {
+		this.project = project;
 	}
 	
 	@CheckForNull
 	public PerFile getStats() {
 		return stats;
+	}
+	
+	public Project getProject() {
+		return project;
 	}
 	
 	public void addMetamodel(@Nonnull Metamodel metamodel) {

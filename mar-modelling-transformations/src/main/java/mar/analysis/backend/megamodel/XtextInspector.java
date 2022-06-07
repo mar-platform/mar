@@ -23,7 +23,7 @@ public class XtextInspector extends ProjectInspector {
 		XtextLoader loader = new XtextLoader();
 		XtextAnalysisResult r = loader.doAnalysis(f);
 		
-		RecoveryGraph graph = new RecoveryGraph();
+		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
 		XtextProgram p = new XtextProgram(new RecoveredPath(getRepositoryPath(f.toPath())));
 		graph.addProgram(p);

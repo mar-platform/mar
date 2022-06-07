@@ -2,7 +2,10 @@ package mar.analysis.megamodel.model;
 
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 public class Artefact {
 
@@ -14,8 +17,12 @@ public class Artefact {
 	private final String name;
 	@JsonProperty
 	private final String category;
+	@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+	@JsonIdentityReference(alwaysAsId=true)
+	private final Project project;
 
-	public Artefact(@Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
+	public Artefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
+		this.project = project;
 		this.id = id;
 		this.type = type;
 		this.category = category;
@@ -36,5 +43,9 @@ public class Artefact {
 
 	public String getCategory() {
 		return category;
+	}
+	
+	public Project getProject() {
+		return project;
 	}
 }
