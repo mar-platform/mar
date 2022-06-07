@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
@@ -25,8 +26,10 @@ import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
+import mar.analysis.megamodel.model.RelationshipsGraph.VirtualNode;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.Composite;
@@ -37,6 +40,7 @@ public class MegamodelDB implements Closeable {
 	@Nonnull
 	private Connection connection;
 	private Map<String, Artefact> allArtefacts;
+	private Map<String, String> allVirtualNodes;
 	
 	@Nonnull	
 	public MegamodelDB(File file) {					
@@ -64,6 +68,11 @@ public class MegamodelDB implements Closeable {
                         + "    project_id    varchar(255)\n"
                         + ");";
 
+                String virtualNodes = "CREATE TABLE IF NOT EXISTS virtual_nodes (\n"
+                        + "    id            varchar(255) PRIMARY KEY,\n"
+                        + "    kind          varchar(255) NOT NULL"
+                        + ");";
+                
                 String relationships = "CREATE TABLE IF NOT EXISTS relationships (\n"
                         + "    source    varchar(255) NOT NULL,\n"  // FK (artefact)
                         + "    target    varchar(255) NOT NULL,\n"  // FK (artefact)
@@ -84,6 +93,9 @@ public class MegamodelDB implements Closeable {
                 stmt.execute(artefacts);
                 
                 stmt = conn.createStatement();
+                stmt.execute(virtualNodes);
+                
+                stmt = conn.createStatement();
                 stmt.execute(relationships);
                 
                 stmt = conn.createStatement();
@@ -93,7 +105,9 @@ public class MegamodelDB implements Closeable {
             this.connection = conn;
             this.connection.setAutoCommit(true);
             
-            this.allArtefacts = getArtefacts();            
+            this.allArtefacts = getArtefacts(); 
+            this.allVirtualNodes = new HashMap<String, String>();
+            getVirtualNodes(allVirtualNodes::put);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -101,7 +115,7 @@ public class MegamodelDB implements Closeable {
 
 	private Map<String, Artefact> getArtefacts() throws SQLException {
 		Map<String, Artefact> result = new HashMap<String, Artefact>();     
-		PreparedStatement allArtefactsStm = connection.prepareStatement("SELECT id, type, category, name FROM artefacts");
+		PreparedStatement allArtefactsStm = connection.prepareStatement("SELECT id, type, category, name, project_id FROM artefacts");
 		allArtefactsStm.execute();
 		ResultSet rs = allArtefactsStm.getResultSet();
 		while (rs.next()) {
@@ -109,10 +123,25 @@ public class MegamodelDB implements Closeable {
 			String type = rs.getString(2);
 			String category = rs.getString(3);
 			String name = rs.getString(4);
-			result.put(id, new Artefact(id, type, category, name));
+			String projectId = rs.getString(5);
+			result.put(id, new Artefact(new Project(projectId), id, type, category, name));
 		}
 		allArtefactsStm.close();
 		return result;
+	}
+	
+	public void getVirtualNodes(BiConsumer<String, String> consumer) {
+		try (PreparedStatement allVirtualStm = connection.prepareStatement("SELECT id, kind FROM virtual_nodes")) {
+			allVirtualStm.execute();
+			ResultSet rs = allVirtualStm.getResultSet();
+			while (rs.next()) {
+				String id = rs.getString(1);
+				String kind = rs.getString(2);
+				consumer.accept(id, kind);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public void setAutocommit(boolean autocommit) {
@@ -189,8 +218,8 @@ public class MegamodelDB implements Closeable {
 	@CheckForNull
 	public void addRelationship(@Nonnull String sourceId, @Nonnull String targetId, @Nonnull Relationship type) {		
 		try {
-			Preconditions.checkState(allArtefacts.containsKey(sourceId));
-			Preconditions.checkState(allArtefacts.containsKey(targetId));						
+			Preconditions.checkState(allArtefacts.containsKey(sourceId) || allVirtualNodes.containsKey(sourceId));
+			Preconditions.checkState(allArtefacts.containsKey(targetId) || allVirtualNodes.containsKey(targetId) );						
 
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO relationships(source, target, type) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, sourceId);
@@ -205,22 +234,54 @@ public class MegamodelDB implements Closeable {
 
 
 	@CheckForNull
-	public void addArtefact(@Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
+	public void addArtefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
 		try {
 			if (allArtefacts.containsKey(id)) {				
 				return;
 			}
 						
 			// We can insert
-			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO artefacts(id, type, category, name) VALUES (?, ?, ?, ?)");
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO artefacts(id, type, category, name, project_id) VALUES (?, ?, ?, ?, ?)");
 			preparedStatement.setString(1, id);
 			preparedStatement.setString(2, type);
 			preparedStatement.setString(3, category);
 			preparedStatement.setString(4, name);
+			preparedStatement.setString(5, project.getId());
 			preparedStatement.executeUpdate();
 			preparedStatement.close();			
 			
-			allArtefacts.put(id, new Artefact(id, type, category, name));
+			allArtefacts.put(id, new Artefact(project, id, type, category, name));
+		} catch (SQLException e) {
+			throw new RuntimeException(e);		
+		}
+	}
+
+	@CheckForNull
+	public void addVirtualNode(@Nonnull String id, @Nonnull String kind) {
+		if (this.allVirtualNodes.containsKey(id))
+			return;
+		
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO virtual_nodes(id, kind) VALUES (?, ?)");
+			preparedStatement.setString(1, id);
+			preparedStatement.setString(2, kind);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();			
+			allVirtualNodes.put(id, kind);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);		
+		}
+	}
+
+	
+	@CheckForNull
+	public void addProject(@Nonnull String id, @Nonnull String url) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO projects(id, url) VALUES (?, ?)");
+			preparedStatement.setString(1, id);
+			preparedStatement.setString(2, url);
+			preparedStatement.executeUpdate();
+			preparedStatement.close();			
 		} catch (SQLException e) {
 			throw new RuntimeException(e);		
 		}
@@ -240,12 +301,19 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 
-
-
 	public void dump(@Nonnull RelationshipsGraph graph, RecoveryStats.Composite composite) {
+		for (Project p : graph.getProjects()) {
+			addProject(p.getId(), p.getURL());
+		}
+		
 		for (Node node : graph.getNodes()) {
-			Artefact artefact = node.getArtefact();
-			addArtefact(artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName());
+			if (node instanceof ArtefactNode) {
+				Artefact artefact = ((ArtefactNode) node).getArtefact();
+				addArtefact(artefact.getProject(), artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName());
+			} else if (node instanceof VirtualNode) {
+				VirtualNode vn = (VirtualNode) node;
+				addVirtualNode(vn.getId(), vn.getKind());
+			}
 		}
 		
 		for (Edge edge : graph.getEdges()) {

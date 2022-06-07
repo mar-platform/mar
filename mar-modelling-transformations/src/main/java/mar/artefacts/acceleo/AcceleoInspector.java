@@ -44,7 +44,7 @@ public class AcceleoInspector extends ProjectInspector {
 	    
 		AcceleoProgram program = new AcceleoProgram(new RecoveredPath(getRepositoryPath(f)));
 		
-		RecoveryGraph graph = new RecoveryGraph();
+		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
 		for (String uri : uris) {

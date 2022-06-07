@@ -127,13 +127,14 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();
 		
 		for (String type : miniGraphs.keySet()) {
-			for (RecoveryGraph miniGraph : miniGraphs.get(type)) {				
+			for (RecoveryGraph miniGraph : miniGraphs.get(type)) {	
+				graph.addProject(miniGraph.getProject());
 				try {
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
 						String id = toId(metamodel, metamodels);
 						String name = toName(metamodel);
 						System.out.println("Adding id: " + id);
-						Node node = new RelationshipsGraph.Node(id, new Artefact(id, "ecore", "metamodel", name), metamodel);
+						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name));
 						graph.addNode(node);							
 					}
 					
@@ -149,7 +150,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						String id = toId(p);
 						String name = toName(p);
 						
-						Node node = new RelationshipsGraph.Node(id, new Artefact(id, p.getKind(), p.getCategory(), name), p);
+						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, p.getKind(), p.getCategory(), name));
 						graph.addNode(node);
 						
 						for (MetamodelReference ref : p.getMetamodels()) {

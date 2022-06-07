@@ -68,7 +68,7 @@ public class DuplicateComputation {
 			FileProgram p = programs.get(representative);
 			
 			String id = conf.toId(p) + "#duplicate-group"; 
-			Node node = new RelationshipsGraph.Node(id, new Artefact(id, "duplication-group", "duplicates", conf.toName(p)), duplicationGroup);
+			Node node = new RelationshipsGraph.VirtualNode(id, "duplication");
 			completeGraph.addNode(node);
 			
 			for (T m  : duplicationGroup) {

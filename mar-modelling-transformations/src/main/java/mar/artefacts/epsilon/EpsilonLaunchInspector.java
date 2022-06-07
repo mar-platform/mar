@@ -63,7 +63,7 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "eclipse-launcher");
-		RecoveryGraph graph = new RecoveryGraph(stats);
+		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 				
 		Document doc = loadDocument(new FileInputStream(f));		
 		Node root = doc.getFirstChild();
