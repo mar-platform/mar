@@ -19,9 +19,15 @@ public class TransformationRelationshipsAnalysis {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		System.out.println("Getting artefacts...");
 		this.db.getAllArtefacts().forEach((id, artefact) -> {
-			Node node = new RelationshipsGraph.Node(id, artefact);
+			Node node = new RelationshipsGraph.ArtefactNode(id, artefact);
 			graph.addNode(node);
 		});
+		
+		this.db.getVirtualNodes((id, kind) -> {
+			Node node = new RelationshipsGraph.VirtualNode(id, kind);
+			graph.addNode(node);
+		});
+		
 		
 		System.out.println("Getting edges...");
 		db.getRelationshipsByType((src, tgt, type) -> {

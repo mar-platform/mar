@@ -2,9 +2,10 @@ package mar.analysis.megamodel.model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.jgrapht.Graph;
@@ -12,16 +13,28 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Preconditions;
 
 public class RelationshipsGraph {
 	
+	private Set<Project> projects = new HashSet<>();
 	private Graph<Node, Edge> impl;
 	private Map<String, Node> idToNode = new HashMap<>();
 
 	public RelationshipsGraph() {
 		impl = new DefaultDirectedGraph<>(Edge.class);	
+	}
+	
+	public void addProject(@Nonnull Project project) {
+		this.projects.add(project);
+	}
+	
+	public Set<? extends Project> getProjects() {
+		return projects;
 	}
 	
 	public void addNode(@Nonnull Node node) {
@@ -50,38 +63,63 @@ public class RelationshipsGraph {
 		return impl.edgeSet();
 	}
 	
-	@JsonTypeName("node")
-	public static class Node {
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME, 
+        include = As.PROPERTY, 
+        property = "_type")
+    @JsonSubTypes({
+        @JsonSubTypes.Type(value = ArtefactNode.class, name = "artefact"),
+        @JsonSubTypes.Type(value = VirtualNode.class, name = "virtual"),
+    })
+	public static abstract class Node {
 
 		@Nonnull
 		@JsonProperty
 		private final String id;
+
+		public Node(@Nonnull String id) {
+			this.id = Preconditions.checkNotNull(id);
+		}
+		
+		public String getId() {
+			return id;
+		}
+	}
+
+	@JsonTypeName("artefact")
+	public static class ArtefactNode extends Node {
 		@Nonnull
 		@JsonProperty
 		private final Artefact artefact;
-		@CheckForNull
-		private Object element;
 
-		public Node(@Nonnull String id, @Nonnull Artefact artefact) {
-			this.id = Preconditions.checkNotNull(id);
+		public ArtefactNode(@Nonnull String id, @Nonnull Artefact artefact) {
+			super(id);
 			this.artefact = artefact;
-		}
-		
-		public Node(@Nonnull String id, @Nonnull Artefact artefact, Object element) {
-			this(id, artefact);
-			this.element = element;
 		}
 		
 		@Nonnull
 		public Artefact getArtefact() {
 			return artefact;
 		}
-		
-		@CheckForNull
-		public Object getElement() {
-			return element;
-		}
 	}
+	
+
+	@JsonTypeName("virtual")
+	public static class VirtualNode extends Node {
+
+		@JsonProperty
+		private final String kind;
+
+		public VirtualNode(@Nonnull String id, String kind) {
+			super(id);
+			this.kind = kind;
+		}
+		
+		public String getKind() {
+			return kind;
+		}
+		
+	}	
 	
 	@JsonTypeName("edge")
 	public static class Edge extends DefaultEdge {

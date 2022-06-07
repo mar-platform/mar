@@ -72,7 +72,7 @@ public class BuildFileInspector extends XMLProjectInspector {
 		Preconditions.checkState(! buildFileFolder.isAbsolute());
 				
 		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "build.xml");
-		RecoveryGraph graph = new RecoveryGraph(stats);
+		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 		
 		Document doc = loadDocument(stream);
 	 

@@ -75,10 +75,8 @@ public class SiriusInspector extends XMLProjectInspector {
 	public RecoveryGraph process(@Nonnull Path odesignFolder, @Nonnull File f, @Nonnull InputStream stream) throws Exception {
 		Preconditions.checkState(! odesignFolder.isAbsolute());
 				
-		
-		
 		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "sirius");
-		RecoveryGraph graph = new RecoveryGraph(stats);
+		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 		
 		SiriusProgram program = new SiriusProgram(new RecoveredPath(getRepositoryPath(f)));
 		graph.addProgram(program);

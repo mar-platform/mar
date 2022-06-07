@@ -33,7 +33,7 @@ public class QvtoInspector extends ProjectInspector {
 		
 		QvtoProgram program = new QvtoProgram(new RecoveredPath(getRepositoryPath(qvtoFile)));
 		
-		RecoveryGraph graph = new RecoveryGraph();
+		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
 		for (String uri : expectedMetamodels) {
