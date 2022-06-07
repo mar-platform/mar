@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,11 +51,17 @@ public class MegamodelDB implements Closeable {
 	                System.out.println("A new database has been created.");
             	}
             	
+            	String projects = "CREATE TABLE IF NOT EXISTS projects (\n"
+                        + "    id            varchar(255) PRIMARY KEY,\n"
+                        + "    url           text NOT NULL"
+                        + ");";
+            	
                 String artefacts = "CREATE TABLE IF NOT EXISTS artefacts (\n"
                         + "    id            varchar(255) PRIMARY KEY,\n"
                         + "    type          varchar(255) NOT NULL,\n"
                         + "    category      varchar(255) NOT NULL,\n"
-                        + "    name          varchar(255) NOT NULL\n"
+                        + "    name          varchar(255) NOT NULL,"
+                        + "    project_id    varchar(255)\n"
                         + ");";
 
                 String relationships = "CREATE TABLE IF NOT EXISTS relationships (\n"
@@ -71,6 +78,9 @@ public class MegamodelDB implements Closeable {
                         + ");";
                 
                 Statement stmt = conn.createStatement();
+                stmt.execute(projects);
+                
+                stmt = conn.createStatement();
                 stmt.execute(artefacts);
                 
                 stmt = conn.createStatement();
@@ -145,10 +155,10 @@ public class MegamodelDB implements Closeable {
 		return allArtefacts;
 	}
 
-	public void getRelationshipsByType(Relationship relationship, @Nonnull RelationshipConsumer consumer) {
+	public void getRelationshipsByType(@Nonnull RelationshipConsumer consumer, Relationship... relationship) {
 		try {
-			PreparedStatement stm = connection.prepareStatement("SELECT source, target, type FROM relationships WHERE type = ?");
-			stm.setString(1, relationship.getKind());
+			String types = Arrays.stream(relationship).map(r -> "'" + r.getKind() + "'").collect(Collectors.joining(","));
+			PreparedStatement stm = connection.prepareStatement("SELECT source, target, type FROM relationships WHERE type in (" + types + ")");
 			stm.execute();
 			ResultSet rs = stm.getResultSet();
 	        while (rs.next()) {
