@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>ml2.mar</groupId>
+		<artifactId>mar-main</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>mar-modelling-transformations</artifactId>
+	<name>mar-modelling-transformations</name>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+  <repositories>
+    <repository>
+      <id>atl</id>
+      <name>Eclipse ATL repository</name>
+      <url>https://repo.eclipse.org/content/repositories/atl-releases/</url>
+    </repository>
+  </repositories>
+	
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Project dependencies -->
+		<dependency>
+			<groupId>ml2.mar</groupId>
+			<artifactId>mar-common</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>at.ac.wu.nm</groupId>
+			<artifactId>qvt-bundle</artifactId>
+			<version>4.4</version>
+			<classifier>repackaged</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>anatlyzer</groupId>
+			<artifactId>anatlyzer-bundle</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.m2m.atl</groupId>
+		    <artifactId>org.eclipse.m2m.atl.core.emf</artifactId>
+		    <version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.m2m.atl</groupId>
+		    <artifactId>org.eclipse.m2m.atl.dsls</artifactId>
+		    <version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.m2m.atl</groupId>
+		    <artifactId>org.eclipse.m2m.atl.engine</artifactId>
+		    <version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ml2.mar</groupId>
+			<artifactId>mar-modelling</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<!-- To avoid module conflicts with java.xml -->
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Java 11 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

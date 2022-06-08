@@ -10,9 +10,9 @@ import mar.paths.PartitionedPathMap;
 public class ModelPaths implements IModelPaths, Serializable {
 
 	@Nonnull
-	final PartitionedPathMap pathMap;
+	public final PartitionedPathMap pathMap;
 	@Nonnull
-	final ModelOrigin origin;
+	public final ModelOrigin origin;
 
 	public ModelPaths(@Nonnull PartitionedPathMap pathMap, @Nonnull ModelOrigin origin) {
 		this.pathMap = pathMap;
