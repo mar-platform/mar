@@ -37,4 +37,20 @@ public class TransformationRelationshipsAnalysis {
 		return graph;
 	}
 	
+	public RelationshipsGraph getProjectRelationship(String projectId) {
+		RelationshipsGraph graph = new RelationshipsGraph();
+		this.db.getProjectArtefacts(projectId, (id, artefact) -> {
+			Node node = new RelationshipsGraph.ArtefactNode(id, artefact);
+			graph.addNode(node);			
+		});
+		
+		// This traverse all relationships, which is inneficient. Not sure if a getRelationshipsByTypeAndProject could be better
+		db.getRelationshipsByType((src, tgt, type) -> {
+			if (graph.hasNode(src) && graph.hasNode(tgt))
+				graph.addEdge(src, tgt, type);
+		}, Relationship.TYPED_BY, Relationship.IMPORT);
+		
+		return graph;
+	}
+	
 }

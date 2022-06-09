@@ -5,6 +5,9 @@ const API = {
     },
     searchProject : function(value) {
         return `http://localhost:8080/search-project?value=${value}`;        
+    },
+    projectGraph : function(id) {
+        return `http://localhost:8080/project-graph?projectId=${id}`;        
     }
 }
 
