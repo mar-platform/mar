@@ -43,8 +43,12 @@ public class RelationshipsGraph {
 		idToNode.put(node.id, node);
 	}
 
+	public boolean hasNode(String id) {
+		return idToNode.containsKey(id);
+	}
+	
 	public Node getNode(String id) {
-		return Preconditions.checkNotNull(idToNode.get(id));
+		return Preconditions.checkNotNull(idToNode.get(id), "No node with id: " + id);
 	}
 	
 	public void addEdge(String src, String tgt, Relationship type) {

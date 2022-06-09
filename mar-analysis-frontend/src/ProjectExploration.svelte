@@ -1,18 +1,23 @@
 <script lang="ts">
-    import { Form, FormGroup, FormText, Input, Label } from 'sveltestrap';
-import API from './API';
-    let radioGroup;
+  import { Form, FormGroup, FormText, Input, Label } from 'sveltestrap';
+  import API from './API';
+  import GraphVisualizer from './GraphVisualizer.svelte';  
 
-    let container;
+  let projects = [];
+  let document;
 
-    let projects = [];
+  const searchOnChange = (e: Event) => {
+      const changeValue = (e.target as HTMLInputElement).value;
+      fetch(API.searchProject(changeValue)).
+          then(res => res.json()).
+          then(doc => projects = doc);
+  };
 
-    const searchOnChange = (e: Event) => {
-        const changeValue = (e.target as HTMLInputElement).value;
-        fetch(API.searchProject(changeValue)).
-            then(res => res.json()).
-            then(doc => projects = doc);
-    };
+  const selectProject = (p : string) => {
+      fetch(API.projectGraph(p)).
+        then(res => res.json()).
+        then(res => document = res);
+  };
 </script>
 
 <main>
@@ -33,11 +38,14 @@ import API from './API';
 
         <ul>
         {#each projects as project (project.id)}
-            <li>{project.id}</li>    
+            <li><a href="#/" on:click={e => selectProject(project.id)}>{project.id}</a></li>    
         {/each}
         </ul>
       </div>
-      <div id="container" bind:this={container} style="margin-left: 620px; width: calc(100wh - 600px)"> 
+      <div id="container" style="margin-left: 620px; width: calc(100wh - 600px)"> 
+        <GraphVisualizer document={document} /> 
       </div>
     </div>  
+
   </main>
+
