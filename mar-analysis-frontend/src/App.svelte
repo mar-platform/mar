@@ -18,11 +18,21 @@
   import InterProjectExploration from "./InterProjectExploration.svelte";
   import ProjectExploration from "./ProjectExploration.svelte";
 
-  let selection : string = 'graph';
-  let graphSelection : string = 'all_graph';
+  let selection : string = 'stats';
+  let graphSelection : string = 'project';
 </script>
 
+<style>
+  .content {
+    margin-top: 10px;
+    margin-left: 20px;
+  }
+</style>
+
 <Nav pills>
+  <NavItem>
+    <NavLink active={selection == 'stats'} on:click={e => selection = 'stats'} href="#" >Stats</NavLink>
+  </NavItem>
   <NavItem>
     <NavLink active={selection == 'graph'} on:click={e => selection = 'graph'} href="#" >Graph exploration</NavLink>
   </NavItem>
@@ -67,13 +77,21 @@
       <NavLink active={graphSelection == 'project'} on:click={e => graphSelection = 'project'} href="#" >Project</NavLink>
     </NavItem>
   </Nav>
-  {#if graphSelection == 'all_graph'} 
-    <GraphExploration />
-  {:else if graphSelection == 'inter_project'}
-    <InterProjectExploration />
-  {:else if graphSelection == 'project'}
-    <ProjectExploration />
-  {/if}
+  <div class="content">
+    {#if graphSelection == 'all_graph'} 
+      <GraphExploration />
+    {:else if graphSelection == 'inter_project'}
+      <InterProjectExploration />
+    {:else if graphSelection == 'project'}
+      <ProjectExploration />
+    {/if}
+  </div>
+{:else if selection == 'stats'}
+<div class="content">
+  SomeStatsHere
+</div>
 {:else if selection == 'clusters'}
+<div class="content">
   <ClusterExploration />
+</div>
 {/if}

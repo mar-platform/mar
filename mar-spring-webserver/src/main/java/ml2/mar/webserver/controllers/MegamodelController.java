@@ -42,6 +42,12 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getRelationships());    	
     }
 
+	@GetMapping(value = "/project-graph", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:3000")
+	public RelationshipsGraph getProjectGraph(@RequestParam String projectId) {
+		return analysis.getProjectRelationship(projectId);
+	}
+	
 	@GetMapping(value = "/search-project", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")
     public List<Project> searchProject(@RequestParam String value) throws JsonProcessingException {
@@ -49,6 +55,8 @@ public class MegamodelController {
 			return Collections.emptyList();
 		return db.searchProjects(value);
 	}
+	
+	
 	
 	@GetMapping(value = "/clustering/label-propagation", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")

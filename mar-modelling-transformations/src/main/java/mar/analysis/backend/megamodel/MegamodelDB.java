@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
@@ -30,9 +31,7 @@ import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 import mar.analysis.megamodel.model.RelationshipsGraph.VirtualNode;
-import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
-import mar.artefacts.graph.RecoveryStats.Composite;
 import mar.artefacts.graph.RecoveryStats.PerFile;
 
 public class MegamodelDB implements Closeable {
@@ -64,7 +63,7 @@ public class MegamodelDB implements Closeable {
                         + "    id            varchar(255) PRIMARY KEY,\n"
                         + "    type          varchar(255) NOT NULL,\n"
                         + "    category      varchar(255) NOT NULL,\n"
-                        + "    name          varchar(255) NOT NULL,"
+                        + "    name          varchar(255) NOT NULL,\n"
                         + "    project_id    varchar(255)\n"
                         + ");";
 
@@ -184,6 +183,16 @@ public class MegamodelDB implements Closeable {
 		return allArtefacts;
 	}
 
+	@Nonnull
+	public void getProjectArtefacts(String projectId, BiConsumer<String, Artefact> consumer) {
+		allArtefacts.forEach((id, a) -> {
+			if (a.getProject().getId().equals(projectId)) {
+				consumer.accept(id, a);
+			}
+		});
+	}
+
+	
 	public void getRelationshipsByType(@Nonnull RelationshipConsumer consumer, Relationship... relationship) {
 		try {
 			String types = Arrays.stream(relationship).map(r -> "'" + r.getKind() + "'").collect(Collectors.joining(","));
