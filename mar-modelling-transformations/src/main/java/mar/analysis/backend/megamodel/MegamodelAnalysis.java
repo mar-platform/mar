@@ -73,7 +73,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			@Override
 			public Resource toResource(Metamodel p) throws Exception {
 				if (p.getPath() == null)
-					throw new UnsupportedOperationException("Ecore duplication for URIs not supported");
+					throw new UnsupportedOperationException("Ecore duplication for URIs not supported: " + p.getUri());
 
 				return ModelLoader.DEFAULT.load(p.getPath().getCompletePath(repositoryDataFolder).toFile());
 			}
