@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
-import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
