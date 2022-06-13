@@ -12,16 +12,13 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
-import anatlyzer.atl.model.ATLModel;
-import anatlyzer.atl.tests.api.AtlLoader;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
-import mar.analysis.duplicates.ATLDuplicateFinder;
 import mar.analysis.duplicates.DuplicateComputation;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
+import mar.analysis.duplicates.DuplicateConfiguration;
 import mar.analysis.duplicates.DuplicateFinder;
-import mar.analysis.duplicates.QVToDuplicateFinder;
+import mar.analysis.duplicates.EcoreDuplicateFinder;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Relationship;
@@ -35,7 +32,7 @@ import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.Composite;
-import mar.artefacts.qvto.QvtoLoader;
+import mar.indexer.common.configuration.ModelLoader;
 import mar.validation.AnalysisDB;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -49,19 +46,19 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	@Parameters(index = "1", description = "Output file.")
 	private File output;
 	
-	private Map<String, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder) {
+	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder) {
 		try(RepositoryDB db = new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile())) {
 			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder);
 			
-			Map<String, Collection<RecoveryGraph>> result = new HashMap<>();
-			result.put("ant", inspector.fromBuildFiles() );
-			result.put("launch", inspector.fromLaunchFiles() );
-			result.put("qvto", inspector.fromQvtoFiles() );
-			result.put("xtext", inspector.fromXtextFiles() );
-			result.put("emfatic", inspector.fromEmfaticFiles() );
-			result.put("acceleo", inspector.fromAcceleoFiles() );
-			result.put("atl", inspector.fromATLFiles());
-			result.put("sirius", inspector.fromSirius());
+			Map<ArtefactType, Collection<RecoveryGraph>> result = new HashMap<>();
+			result.put(ArtefactType.ANT, inspector.fromBuildFiles() );
+			result.put(ArtefactType.LAUNCH, inspector.fromLaunchFiles() );
+			result.put(ArtefactType.QVTO, inspector.fromQvtoFiles() );
+			result.put(ArtefactType.XTEXT, inspector.fromXtextFiles() );
+			result.put(ArtefactType.EMFATIC, inspector.fromEmfaticFiles() );
+			result.put(ArtefactType.ACCELEO, inspector.fromAcceleoFiles() );
+			result.put(ArtefactType.ATL, inspector.fromATLFiles());
+			result.put(ArtefactType.SIRIUS, inspector.fromSirius());
 			
 			return result;
 		} catch (Exception e) {
@@ -69,68 +66,47 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 	}
 
-	private void computeDuplicates(@Nonnull Map<String, Collection<RecoveryGraph>> miniGraphs, @Nonnull RelationshipsGraph graph, @Nonnull Path repositoryDataFolder) {
-		DuplicateComputation computation = new DuplicateComputation(miniGraphs, graph);
-
-		computation.addType("atl", new DuplicateFinderConfiguration<ATLModel>() {
+	private void computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull RelationshipsGraph graph, @Nonnull Path repositoryDataFolder) {
+		DuplicateConfiguration configuration = new DuplicateConfiguration(repositoryDataFolder, MegamodelAnalysis.this::toId, MegamodelAnalysis.this::toName);		
+		DuplicateComputation computation = configuration.newComputation(miniGraphs, graph);
+		computation.setMetamodelConfiguration(new DuplicateFinderConfiguration<Metamodel, Resource>() {
 			@Override
-			public ATLModel toResource(FileProgram p) throws Exception {
-				Resource r = AtlLoader.load(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
-				ATLModel model = new ATLModel(r, p.getFilePath().getPath().toString());
-				return model;
+			public Resource toResource(Metamodel p) throws Exception {
+				if (p.getPath() == null)
+					throw new UnsupportedOperationException("Ecore duplication for URIs not supported");
+
+				return ModelLoader.DEFAULT.load(p.getPath().getCompletePath(repositoryDataFolder).toFile());
 			}
 
 			@Override
-			public DuplicateFinder<ATLModel> toFinder() {
-				return new ATLDuplicateFinder();
+			public DuplicateFinder<Metamodel, Resource> toFinder() {
+				return new EcoreDuplicateFinder();
 			}
 
 			@Override
-			public String toId(FileProgram p) {
+			public String toId(Metamodel p) {
 				return MegamodelAnalysis.this.toId(p);
 			}			
 			
 			@Override
-			public String toName(FileProgram p) {
+			public String toName(Metamodel p) {
 				return MegamodelAnalysis.this.toName(p);
 			}
-		});
-		
-		computation.addType("qvto", new DuplicateFinderConfiguration<UnitCS>() {
-			@Override
-			public UnitCS toResource(FileProgram p) throws Exception {
-				return QvtoLoader.INSTANCE.parse(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
-			}
-
-			@Override
-			public DuplicateFinder<UnitCS> toFinder() {
-				return new QVToDuplicateFinder();
-			}
-
-			@Override
-			public String toId(FileProgram p) {
-				return MegamodelAnalysis.this.toId(p);
-			}
-
-			@Override
-			public String toName(FileProgram p) {
-				return MegamodelAnalysis.this.toName(p);
-			}
-		});
+		});				
 		
 		computation.updateGraph();
 	}
 
-	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<String, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
+	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();
 		
-		for (String type : miniGraphs.keySet()) {
-			for (RecoveryGraph miniGraph : miniGraphs.get(type)) {	
+		for (ArtefactType type : miniGraphs.keySet()) {
+			for (RecoveryGraph miniGraph : miniGraphs.get(type)) {				
 				graph.addProject(miniGraph.getProject());
 				try {
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
-						String id = toId(metamodel, metamodels);
+						String id = toId(metamodel); /* , metamodels); */
 						String name = toName(metamodel);
 						System.out.println("Adding id: " + id);
 						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name));
@@ -138,9 +114,9 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					}
 					
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
-						String id = toId(metamodel, metamodels);
+						String id = toId(metamodel); /* , metamodels); */
 						for (Metamodel dep : metamodel.getDependents()) {
-							String depId = toId(dep, metamodels);
+							String depId = toId(dep); /* , metamodels); */
 							graph.addEdge(id, depId, Relationship.IMPORT);
 						}
 					}
@@ -154,7 +130,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						
 						for (MetamodelReference ref : p.getMetamodels()) {
 							Metamodel metamodel = ref.getMetamodel();
-							String metamodelId = toId(metamodel, metamodels);
+							String metamodelId = toId(metamodel); /* , metamodels); */
 							System.out.println("Edge: " + id + " -> " + metamodelId);
 							
 							// TODO: Analyse metamodel.getKind() to establish proper edge relationships
@@ -186,7 +162,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
 		analysisDb.setReadOnly(true);
 		
-		Map<String, Collection<RecoveryGraph>> miniGraphs        = computeMiniGraphs(repositoryDataFolder.toPath());		
+		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath());		
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
 		
 		Composite stats = result.getRight();
@@ -207,7 +183,6 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return 0;
 	}
 
-
 	private String toName(FileProgram p) {
 		return p.getFilePath().getPath().getFileName().toString();		
 	}
@@ -222,7 +197,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return p.getFilePath().getPath().toString();
 	}
 
-	private String toId(Metamodel metamodel, AnalysisDB metamodels) {
+	private String toId(Metamodel metamodel) {  /*, AnalysisDB metamodels) */
 		if (metamodel.getPath() != null) {
 			Path relativePath = metamodel.getPath().getPath();
 			return relativePath.toString();
