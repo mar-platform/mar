@@ -12,6 +12,7 @@ import anatlyzer.atl.util.ATLUtils.ModelInfo;
 import anatlyzer.atlext.ATL.Helper;
 import anatlyzer.atlext.OCL.OclModelElement;
 import anatlyzer.atlext.OCL.VariableDeclaration;
+import mar.artefacts.FileProgram;
 
 /**
  * For transformations we may need to add an additional constraint:
@@ -22,7 +23,7 @@ import anatlyzer.atlext.OCL.VariableDeclaration;
  * @author jesus
  *
  */
-public class ATLDuplicateFinder extends DuplicateFinder<ATLModel> {
+public class ATLDuplicateFinder extends DuplicateFinder<FileProgram, ATLModel> {
 
 	public ATLDuplicateFinder() {
 		super(new ATLTokenExtractor());

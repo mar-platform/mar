@@ -19,23 +19,23 @@ import com.google.common.base.Preconditions;
  * 
  * @author jesus
  */
-public class DuplicateFinder<T> {
+public class DuplicateFinder<I, T> {
 
 	private final ITokenExtractor<T> extractor;
-	private final Map<T, Object2IntHashMap<String>> fingerprints = new HashMap<>();
+	private final Map<I, Object2IntHashMap<String>> fingerprints = new HashMap<>();
 		
 	public DuplicateFinder(ITokenExtractor<T> extractor) {
 		this.extractor = extractor;
 	}
 	
-	public void addResource(T resource) {
+	public void addResource(I artefact, T resource) {
 		List<String> elements = extractor.extract(resource);
 		Object2IntHashMap<String> identifierMultiset = new Object2IntHashMap<String>(0);
 		for (String token : elements) {
 			Preconditions.checkNotNull(token);
 			identifierMultiset.put(token, identifierMultiset.getValue(token) + 1);
 		}		
-		fingerprints.put(resource, identifierMultiset);
+		fingerprints.put(artefact, identifierMultiset);
 	}
 	
 	/**
@@ -47,12 +47,12 @@ public class DuplicateFinder<T> {
 	 * @param t1 Typically 0.7
 	 * @return
 	 */
-	public Collection<DuplicationGroup<T>> getDuplicates(double t0, double t1) {
-		Map<T, DuplicationGroup<T>> groups = new HashMap<>();
+	public Collection<DuplicationGroup<I>> getDuplicates(double t0, double t1) {
+		Map<I, DuplicationGroup<I>> groups = new HashMap<>();
 		fingerprints.forEach((k1, v1) -> {
 			if (! groups.containsKey(k1)) {
 				
-				DuplicationGroup<T> k1Group = new DuplicationGroup<T>();
+				DuplicationGroup<I> k1Group = new DuplicationGroup<I>();
 				fingerprints.forEach((k2, v2) -> {
 					if (k1 != k2 && ! groups.containsKey(k2)) {
 						if (areDuplicates(k1, k2, t0, t1)) {							
@@ -63,7 +63,7 @@ public class DuplicateFinder<T> {
 				
 				if (! k1Group.isEmpty()) {
 					k1Group.addDuplicate(k1);
-					for (T resource : k1Group) {
+					for (I resource : k1Group) {
 						groups.put(resource, k1Group);
 					}
 				}
@@ -73,7 +73,7 @@ public class DuplicateFinder<T> {
 		return new HashSet<>(groups.values());
 	}
 	
-	private boolean areDuplicates(T a, T b, double t0, double t1) {
+	private boolean areDuplicates(I a, I b, double t0, double t1) {
 		Object2IntHashMap<String> t1_a = fingerprints.get(a);
 		Object2IntHashMap<String> t1_b = fingerprints.get(b);
 				
@@ -120,8 +120,8 @@ public class DuplicateFinder<T> {
 	public static class DuplicationGroup<T> extends HashSet<T> {
 		private static final long serialVersionUID = 1L;
 
-		public void addDuplicate(T resource) {
-			this.add(resource);
+		public void addDuplicate(T artefact) {
+			this.add(artefact);
 		}
 
 		@Nonnull
