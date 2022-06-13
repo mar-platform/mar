@@ -43,7 +43,7 @@ public class DuplicateComputation {
 		}
 		
 		Collection<DuplicationGroup<Metamodel>> groups = metamodelDuplicateFinder.getDuplicates(0.7, 0.8);
-		updateGraph(metamodelConfiguration, groups);
+		updateGraph(metamodelConfiguration, groups, "ecore");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -82,17 +82,17 @@ public class DuplicateComputation {
 		}		
 		
 		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(0.8, 0.7);
-		updateGraph(conf, duplicates);
+		updateGraph(conf, duplicates, type.id);
 
 	}
 
-	private <T> void updateGraph(DuplicateFinderConfiguration<T, ?> conf, Collection<DuplicationGroup<T>> duplicates) {
+	private <T> void updateGraph(DuplicateFinderConfiguration<T, ?> conf, Collection<DuplicationGroup<T>> duplicates, String type) {
 		System.out.println("Adding " + duplicates.size() + " duplication groups");
 		for (DuplicationGroup<T> duplicationGroup : duplicates) {
 			T representative = duplicationGroup.getRepresentative();
 			
 			String id = conf.toId(representative) + "#duplicate-group"; 
-			Node node = new RelationshipsGraph.VirtualNode(id, "duplication");
+			Node node = new RelationshipsGraph.VirtualNode(id, "duplication-" + type);
 			completeGraph.addNode(node);
 			
 			for (T p1  : duplicationGroup) {
