@@ -37,7 +37,6 @@ import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.Composite;
 import mar.artefacts.qvto.QvtoLoader;
 import mar.validation.AnalysisDB;
-import mar.validation.AnalysisDB.Model;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -226,11 +225,15 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private String toId(Metamodel metamodel, AnalysisDB metamodels) {
 		if (metamodel.getPath() != null) {
 			Path relativePath = metamodel.getPath().getPath();
-			Model model = metamodels.getModelByPath(relativePath.toString(), (s) -> s /* TODO: Do this properly */);
-			if (model != null) {
-				return model.getKeyValueMetadata("nsURI");
-			}			
-			return metamodel.getPath().getPath().toString();
+			return relativePath.toString();
+			
+// This is an attempt to merge similar meta-models by URI, but there are downsides (different meta-models with the same URI; e.g., MyDSL).
+// The current approach is to use duplication groups
+//			Model model = metamodels.getModelByPath(relativePath.toString(), (s) -> s /* TODO: Do this properly */);
+//			if (model != null) {
+//				return model.getKeyValueMetadata("nsURI");
+//			}			
+//			return metamodel.getPath().getPath().toString();
 		}
 		return metamodel.getUri();
 	}
