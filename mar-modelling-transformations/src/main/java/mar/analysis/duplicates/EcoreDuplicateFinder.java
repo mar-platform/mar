@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.artefacts.Metamodel;
@@ -23,9 +23,13 @@ public class EcoreDuplicateFinder extends DuplicateFinder<Metamodel, Resource> {
 			List<String> tokens = new ArrayList<>();
 			TreeIterator<EObject> it = resource.getAllContents();
 			while (it.hasNext()) {
-				EObject obj = it.next();				
-				String value = (String) obj.eGet(EcorePackage.Literals.ENAMED_ELEMENT__NAME);
-				addToken(tokens, value);				
+				EObject obj = it.next();		
+				//String value = (String) obj.eGet(EcorePackage.Literals.ENAMED_ELEMENT__NAME);
+				EStructuralFeature f = obj.eClass().getEStructuralFeature("name");
+				if (f != null) {
+					String value = (String) obj.eGet(f);
+					addToken(tokens, value);				
+				}
 			}
 			
 			return tokens;
