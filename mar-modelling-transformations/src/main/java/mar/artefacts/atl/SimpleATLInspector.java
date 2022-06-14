@@ -1,19 +1,16 @@
 package mar.artefacts.atl;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.eclipse.emf.ecore.resource.Resource;
+import org.apache.commons.lang3.tuple.Pair;
 
-import anatlyzer.atl.model.ATLModel;
-import anatlyzer.atl.tests.api.AtlLoader;
-import anatlyzer.atl.util.ATLUtils;
-import anatlyzer.atl.util.ATLUtils.ModelInfo;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
@@ -36,7 +33,7 @@ import mar.artefacts.graph.RecoveryGraph;
  * * detect typing errors and compare with other meta-models
  * 
  */
-public class AnATLyzerFileInspector extends ProjectInspector {
+public class SimpleATLInspector extends ProjectInspector {
 
 	private static final String NS_URI = "@nsURI";
 	private static final String PATH   = "@path";
@@ -46,7 +43,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	
 	private final FileSearcher searcher;
 
-	public AnATLyzerFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
+	public SimpleATLInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
 		super(repoFolder, projectSubPath);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
@@ -56,36 +53,41 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	public RecoveryGraph process(File f) throws Exception {
 		ATLProgram program = new ATLProgram(new RecoveredPath(getRepositoryPath(f)));
 		
-		Resource trafo = AtlLoader.load(f.getAbsolutePath());
-		ATLModel m = new ATLModel(trafo, trafo.getURI().toFileString(), true);
-		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
-		for (ModelInfo modelInfo : ATLUtils.getModelInfo(m)) {
-			Metamodel mm;
-			if (modelInfo.isURI()) {
-				mm = extractPath(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
-			} else {
-    			mm = Metamodel.fromURI(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
-			}
-			
-			List<MetamodelReference.Kind> kinds = new ArrayList<>();
-			kinds.add(MetamodelReference.Kind.TYPED_BY);
-			if (modelInfo.isInput()) 
-				kinds.add(MetamodelReference.Kind.INPUT_OF);
-			if (modelInfo.isOutput()) 
-				kinds.add(MetamodelReference.Kind.OUTPUT_OF);
-			
-			graph.addMetamodel(mm);
-			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
+		try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+		    String line;
+		    while ((line = br.readLine()) != null) {
+		    	line = line.stripLeading();
+		    	
+		    	// If we found a line starting with "module" we assume it is an ATL module
+		    	if (line.startsWith("module"))
+		    		return graph;
+		    	
+		    	if (line.startsWith("--")) {
+		    		line = line.substring(2).stripLeading();
+		    		if (line.startsWith(PATH)) {
+		    			Metamodel mm = extractPath(line);
+		    			graph.addMetamodel(mm);
+		    			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
+		    		} else if (line.startsWith(NS_URI)) {
+		    			Metamodel mm = extractURI(line);
+		    			graph.addMetamodel(mm);
+		    			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
+		    			// TODO: Check whether this is input or output
+		    		}
+		    	}
+		    }
 		}
 		
 		return null;
 	}
 
 	@Nonnull
-	private Metamodel extractPath(String name, String file) {
+	private Metamodel extractPath(String line) {
+		Pair<String, String> parts = extractParts(line, PATH_LENGTH);
+		String file = parts.getRight();
 		// @path routes are normally rooted in the workspace, so we make it relative
 		if (file.startsWith("/")) 
 			file = file.substring(1);
@@ -96,7 +98,23 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		
 		RecoveredPath p = searcher.findFile(loosyPath);
 		System.out.println("Recovered: " + p.getPath());
-		return Metamodel.fromFile(name, p);
+		return Metamodel.fromFile(parts.getLeft(), p);
+	}
+
+	@CheckForNull
+	private Metamodel extractURI(String line) {
+		Pair<String, String> parts = extractParts(line, NS_URI_LENGTH);
+		return Metamodel.fromURI(parts.getLeft(), parts.getRight());
+	}
+
+	private Pair<String, String> extractParts(String line, int skip) {
+		line = line.substring(skip).stripLeading();
+		int idx = line.indexOf("=");
+		if (idx == -1)
+			return null;
+		String name = line.substring(0, idx);
+		String mm   = line.substring(idx + 1);
+		return Pair.of(name, mm);
 	}
 
 }
