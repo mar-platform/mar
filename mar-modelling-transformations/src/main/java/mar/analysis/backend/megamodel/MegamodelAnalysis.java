@@ -133,8 +133,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 							String metamodelId = toId(metamodel); /* , metamodels); */
 							System.out.println("Edge: " + id + " -> " + metamodelId);
 							
-							// TODO: Analyse metamodel.getKind() to establish proper edge relationships
-							graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
+							addEdge(graph, id, metamodelId, ref);					
 						}
 					}
 					
@@ -150,6 +149,16 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return Pair.of(graph, stats);
 	}
 	
+	private void addEdge(RelationshipsGraph graph, String id, String metamodelId, MetamodelReference ref) {
+		if (ref.is(MetamodelReference.Kind.TYPED_BY)) {
+			graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
+		} else if (ref.is(MetamodelReference.Kind.INPUT_OF)) {
+			graph.addEdge(metamodelId, id, Relationship.INPUT_TYPE);
+		} else if (ref.is(MetamodelReference.Kind.OUTPUT_OF)) {
+			graph.addEdge(id, metamodelId, Relationship.OUTPUT_TYPE);
+		}
+	}
+
 	@Override
 	public Integer call() throws Exception {
 		new SingleEcoreFileAnalyser.Factory().configureEnvironment();
