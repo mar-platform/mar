@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.xml.xpath.XPath;
@@ -111,13 +113,24 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 			program = program.substring(1);
 		}
 		
+		String readOnLoad = properties.getProperty("readOnLoad");
+		String storeOnDisposal = properties.getProperty("storeOnDisposal");
+		
 		RecoveredPath programPath = searcher.findFile(Paths.get(program));
 		
 		EpsilonProgram epsilonProgram = new EpsilonProgram(programPath);		
 		graph.addProgram(epsilonProgram);
 		for (String uri : uris) {
 			Metamodel mm = Metamodel.fromURI(uri, uri);
-			epsilonProgram.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
+			
+			List<MetamodelReference.Kind> kinds = new ArrayList<>();
+			kinds.add(MetamodelReference.Kind.TYPED_BY);
+			if (readOnLoad != null && readOnLoad.equals("true")) 
+				kinds.add(MetamodelReference.Kind.INPUT_OF);
+			if (storeOnDisposal != null && storeOnDisposal.equals("true")) 
+				kinds.add(MetamodelReference.Kind.OUTPUT_OF);
+    		
+			epsilonProgram.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
 			graph.addMetamodel(mm);
 		}
 		
