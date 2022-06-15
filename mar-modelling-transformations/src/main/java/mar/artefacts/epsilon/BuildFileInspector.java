@@ -78,12 +78,12 @@ public class BuildFileInspector extends XMLProjectInspector {
 	 
 	    NodeList result = (NodeList) FIND_LOAD_MODEL.evaluate(doc, XPathConstants.NODESET);
 	    
-	    Map<String, Metamodel> metamodels = extractMetamodels(buildFileFolder, result);    
+	    Map<String, ExtractedMetamodel> metamodels = extractMetamodels(buildFileFolder, result);    
 	    Pair<Map<String, String>, Map<String, List<Metamodel>>> aliases = getAliases(result, metamodels);
 	    Map<String, String> nameToAlias = aliases.getLeft();
 	    Map<String, List<Metamodel>> aliasToModel = aliases.getRight();
 	    
-	    metamodels.forEach((k, m) -> graph.addMetamodel(m));
+	    metamodels.forEach((k, m) -> graph.addMetamodel(m.metamodel));
 	    
 	    result = (NodeList) FIND_PROGRAMS.evaluate(doc, XPathConstants.NODESET);
 	    
@@ -108,14 +108,22 @@ public class BuildFileInspector extends XMLProjectInspector {
 		    	Node mitem = list.item(j);
 		    	String modelName = mitem.getTextContent();
 		    	if (metamodels.containsKey(modelName)) {
-		    		Metamodel metamodel = metamodels.get(modelName);
-		    		program.addMetamodel(metamodel, MetamodelReference.Kind.TYPED_BY);
+		    		ExtractedMetamodel metamodel = metamodels.get(modelName);
+		    		
+					List<MetamodelReference.Kind> kinds = new ArrayList<>();
+					kinds.add(MetamodelReference.Kind.TYPED_BY);
+					if (metamodel.read) 
+						kinds.add(MetamodelReference.Kind.INPUT_OF);
+					if (metamodel.store) 
+						kinds.add(MetamodelReference.Kind.OUTPUT_OF);
+		    		
+		    		program.addMetamodel(metamodel.metamodel, kinds.toArray(MetamodelReference.EMPTY_KIND));
 		    		
 		    		String alias = nameToAlias.get(modelName);
 		    		if (alias != null && aliasToModel.containsKey(alias)) {
 		    			for(Metamodel aliasedMetamodel : aliasToModel.get(alias)) {
-		    				if (aliasedMetamodel != metamodel)
-		    					metamodel.addDependent(aliasedMetamodel);		    				
+		    				if (aliasedMetamodel != metamodel.metamodel)
+		    					metamodel.metamodel.addDependent(aliasedMetamodel);		    				
 		    			}
 		    		}
 		    	}
@@ -126,7 +134,7 @@ public class BuildFileInspector extends XMLProjectInspector {
 	}
 
 	@Nonnull
-	private Pair<Map<String, String>, Map<String, List<Metamodel>>> getAliases(NodeList result, Map<String, Metamodel> metamodels) {
+	private Pair<Map<String, String>, Map<String, List<Metamodel>>> getAliases(NodeList result, Map<String, ExtractedMetamodel> metamodels) {
 		// Try to match aliases
 		HashMap<String, String> nameToAlias = new HashMap<>();
 		HashMap<String, List<Metamodel>> aliases = new HashMap<>();
@@ -140,13 +148,13 @@ public class BuildFileInspector extends XMLProjectInspector {
 
 	    	String name  = attrs.getNamedItem("name").getTextContent();
 	    	String alias = aliasesNode.getTextContent();
-	    	Metamodel root = metamodels.get(name);
+	    	ExtractedMetamodel root = metamodels.get(name);
 	    	if (root == null)
 	    		continue;
 	    	
 	    	nameToAlias.put(name, alias);
 	    	List<Metamodel> list = aliases.computeIfAbsent(alias, (k) -> new ArrayList<>());
-	    	list.add(root);	    	
+	    	list.add(root.metamodel);	    	
 	    }
 	    
 	    return Pair.of(nameToAlias, aliases);
@@ -183,9 +191,14 @@ public class BuildFileInspector extends XMLProjectInspector {
 //	    }
 //	}
 
+	/**
+	 *  Example loadModel tags (from njhurtado/generadorCodigo)
+	 *  <epsilon.emf.loadModel name="Sql" modelfile="${models.location}/modeloContribuyentes.xmi" metamodeluri="${.metamodel.uri}" read="true" store="false" />
+     *  <epsilon.emf.loadModel name="Arq" modelfile="${models.location}/arqdestino-generado.xmi" metamodeluri="${destinoarq.metamodel.uri}" read="false" store="true" />
+	 */
 	@Nonnull
-	private Map<String, Metamodel> extractMetamodels(Path buildFileFolder, NodeList result) {
-		Map<String, Metamodel> metamodels = new HashMap<>();
+	private Map<String, ExtractedMetamodel> extractMetamodels(Path buildFileFolder, NodeList result) {
+		Map<String, ExtractedMetamodel> metamodels = new HashMap<>();
 		for(int i = 0, len = result.getLength(); i < len; i++) {	    	
 	    	Node item = result.item(i);
 	    	NamedNodeMap attrs = item.getAttributes();
@@ -210,10 +223,28 @@ public class BuildFileInspector extends XMLProjectInspector {
 	    	} else {
 	    		metamodel = Metamodel.fromURI(name, metamodelURINode.getTextContent());
 	    	}
-	    		
-	    	metamodels.put(name, metamodel);
+	    	
+	    	Node readAttr = attrs.getNamedItem("read");
+	    	Node storeAttr = attrs.getNamedItem("store");
+	    	
+	    	boolean read  = readAttr != null && readAttr.getTextContent().toLowerCase().equals("true");
+	    	boolean store = readAttr != null && storeAttr.getTextContent().toLowerCase().equals("true");
+	    	
+	    	metamodels.put(name, new ExtractedMetamodel(metamodel, read, store));
 	    }
 		return metamodels;
+	}
+	
+	private static class ExtractedMetamodel {
+		private final Metamodel metamodel;
+		private final boolean read;
+		private final boolean store;
+
+		public ExtractedMetamodel(Metamodel metamodel, boolean read, boolean store) {
+			this.metamodel = metamodel;
+			this.read = read;
+			this.store = store;
+		}
 	}
 	
 }
