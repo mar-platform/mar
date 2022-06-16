@@ -3,6 +3,7 @@ package mar.artefacts;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -11,7 +12,11 @@ import org.eclipse.m2m.internal.qvt.oml.compiler.CompiledUnit;
 import org.eclipse.m2m.internal.qvt.oml.cst.MappingModuleCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.ModelTypeCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.PackageRefCS;
+import org.eclipse.m2m.internal.qvt.oml.cst.ParameterDeclarationCS;
+import org.eclipse.m2m.internal.qvt.oml.cst.TypeSpecCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
+import org.eclipse.ocl.cst.PathNameCS;
+import org.eclipse.ocl.cst.TypeCS;
 
 import mar.analysis.ecore.EcoreRepository.EcoreModel;
 
@@ -54,18 +59,23 @@ public interface Transformation {
 		}
 		
 		public Set<String> getMetamodelURIs() {
-			UnitCS cs = getUnit().getUnitCST();
-			return getMetamodelURIs(cs, this.fileName);
+			return getModelParameters().stream().map(TransformationParameter::getUri).collect(Collectors.toSet());
 		}
 		
-		public static Set<String> getMetamodelURIs(UnitCS cs, String fileName) {
-			Set<String> result = new HashSet<>();
+		public Set<TransformationParameter> getModelParameters() {
+			UnitCS cs = getUnit().getUnitCST();
+			return getModelParameters(cs, this.fileName);
+		}
+		
+		public static Set<TransformationParameter> getModelParameters(UnitCS cs, String fileName) {
+			Set<TransformationParameter> result = new HashSet<>();
 			if (cs.getTopLevelElements().isEmpty()) {
 				System.out.println("No meta-models: " + fileName);
 				return result;
 			}
 			MappingModuleCS x = (MappingModuleCS) cs.getTopLevelElements().get(0);
 			for (ModelTypeCS modelTypeCS : x.getMetamodels()) {
+				String modelId = modelTypeCS.getIdentifierCS().getValue();
 				for (PackageRefCS packageRefCS : modelTypeCS.getPackageRefs()) {
 					if (packageRefCS.getUriCS() == null) {
 						System.out.println("No URI: " + fileName);
@@ -73,8 +83,40 @@ public interface Transformation {
 						// TODO: Find out how to handle this
 						continue;
 					}
+					
 					String uri = packageRefCS.getUriCS().getStringSymbol();
-					result.add(uri);
+					
+					boolean isIn = false;
+					boolean isOut = false;
+					for (ParameterDeclarationCS p : x.getHeaderCS().getParameters()) {
+						TypeCS type = p.getTypeSpecCS().getTypeCS();
+						if (! (type instanceof PathNameCS))
+							continue;
+						PathNameCS path = (PathNameCS) type;
+						Set<String> names = path.getSimpleNames().stream().map(s -> s.getValue()).collect(Collectors.toSet());
+						if (names.contains(modelId)) {
+							switch(p.getDirectionKind()) {
+							case DEFAULT:
+							case IN:
+								isIn = true;
+								break;
+							case OUT:
+								isOut = true;
+								break;
+							case INOUT:
+								isIn = isOut = true;
+								break;
+							}
+						}						
+					}
+					
+					
+					if (!isIn && !isOut) {
+						// We couldn't find a parameter. Assume it is in.
+						isIn = true;
+					}
+					
+					result.add(new TransformationParameter(uri, isIn, isOut));
 				}
 			}			
 			return result;
@@ -101,6 +143,30 @@ public interface Transformation {
 		
 	}
 
+	public static class TransformationParameter {
+		private String uri;
+		private boolean isIn;
+		private boolean isOut;
+
+		public TransformationParameter(String uri, boolean isIn, boolean isOut) {
+			this.uri = uri;
+			this.isIn = isIn;
+			this.isOut = isOut;
+		}
+		
+		public boolean isIn() {
+			return isIn;
+		}
+		
+		public boolean isOut() {
+			return isOut;
+		}
+		
+		public String getUri() {
+			return uri;
+		}
+	}
+	
 	public boolean  hasErrors();
 		
 	void addMetamodels(@Nonnull Collection<EcoreModel> metamodels);
