@@ -326,7 +326,9 @@ public class MegamodelDB implements Closeable {
 		}
 		
 		for (Edge edge : graph.getEdges()) {
-			addRelationship(edge.getSourceId(), edge.getTargetId(), edge.getType());
+			for (Relationship relationship : edge.getTypes()) {
+				addRelationship(edge.getSourceId(), edge.getTargetId(), relationship);				
+			}
 		}		
 		
 		for (PerFile f : composite.getSingleStats()) {

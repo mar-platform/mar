@@ -54,7 +54,13 @@ public class RelationshipsGraph {
 	public void addEdge(String src, String tgt, Relationship type) {
 		Node srcNode = getNode(src);
 		Node tgtNode = getNode(tgt);
-		impl.addEdge(srcNode, tgtNode, new Edge(type));
+		Edge edge = impl.getEdge(srcNode, tgtNode);
+		if (edge != null) {
+			edge.addType(type);
+		} else {
+			impl.addEdge(srcNode, tgtNode, new Edge(type));
+		}
+		
 	}	
 	
 	@JsonProperty(value = "nodes")
@@ -131,12 +137,16 @@ public class RelationshipsGraph {
 				
 		@Nonnull
 		@JsonProperty
-		private Relationship type;
+		private Set<Relationship> types = new HashSet<>();
 
 		public Edge(Relationship type) {
-			this.type = type;
+			this.types.add(type);
 		}
 		
+		public void addType(Relationship type) {
+			this.types.add(type);
+		}
+
 		@JsonProperty(value = "source")
 		public String getSourceId() {
 			return ((Node) super.getSource()).id;
@@ -145,17 +155,11 @@ public class RelationshipsGraph {
 		@JsonProperty(value = "target")
 		public String getTargetId() {
 			return ((Node) super.getTarget()).id;
-		}
-		
-		@JsonProperty(value = "type")
-		public String getTypeKind() {
-			return type.getKind();
-		}
-		
+		}	
 		
 		@Nonnull
-		public Relationship getType() {
-			return type;
+		public Set<? extends Relationship> getTypes() {
+			return types;
 		}
 
 	}
