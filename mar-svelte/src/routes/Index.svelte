@@ -13,6 +13,7 @@
 
 	import ResultItem 			from "../components/ResultItem.svelte";
 	
+	
 	export let results = [];
 	export let searchText;
 	let save=[];
@@ -22,6 +23,7 @@
 
 	let selectedModelType = null;
 	let searchMode = "text";
+
 
 	$: if (searchMode != "syntax") {
 		selectedModelType = null;
@@ -131,6 +133,7 @@
 					<ul class="results" style="padding: 0; text-align: left;" >
 						{#each shown_resultsButton as item}
 							<ResultItem bind:item  bind:facets />
+							
 						{/each}
 					</ul>
 				{:else}

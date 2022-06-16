@@ -2,7 +2,7 @@
 <script>
   import { ItemHelper } from './../lib/common.js'
   export let item, facets //,compare
-
+  
   let saveItem;
 	let heightImg = 128;
 	
@@ -127,9 +127,9 @@
           <p> Score : {item.score.toFixed(2)}</p>
           <!-- svelte-ignore missing-declaration because MAR is defined in index.html -->
           {#if item.description != "false1" && item.description != "false2" && item.description != "true2" && item.description != "true1"}
-              <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank"><img src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:mouseover={handleMouseOver} on:mouseout={handleMouseOut}></a>
+              <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank"><img loading="lazy" src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:mouseover={handleMouseOver} on:mouseout={handleMouseOut}></a>
           {:else}
-              <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank"><img  src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg}></a>
+              <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank"><img loading="lazy" src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg}></a>
           {/if}
           <!--  <p><img  src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:click|preventDefault={() => { clickImg();} }></p>
           <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank">Source</a>-->
@@ -162,47 +162,3 @@
       </div>
 </main>
 {/if}
-<!--
-{#if item.description == "true"}
-<main id="marElem"> 
-  <div  class="list-group-item list-group-item-action flex-column align-items-start">
-    <div class="row">
-      <div class="col">
-        <p class="align-items-right item-information-bar">
-         
-        </p>  
-      </div>
-      <div class="col-0">
-        <p> Score : 0</p>
-        <!-- svelte-ignore missing-declaration because MAR is defined in index.html --><!--
-        <a href="https://cdn.pixabay.com/photo/2012/04/18/19/01/check-37583_960_720.png" target="_blank"><img  src="https://cdn.pixabay.com/photo/2012/04/18/19/01/check-37583_960_720.png" alt="Correct" width={heightImg} height={heightImg} ></a>
-        
-        <!--  <p><img  src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:click|preventDefault={() => { clickImg();} }></p>
-        <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank">Source</a>-->
-      <!--</div>
-    </div>  
-  </div>
-</main>
-{/if}
-
-{#if item.description== "false"}
-<main id="marElem"> 
-  <div  class="list-group-item list-group-item-action flex-column align-items-start">
-    <div class="row">
-      <div class="col">
-        <p class="align-items-right item-information-bar">
-         
-        </p>  
-      </div>
-      <div class="col-0">
-        <p> Score : 0</p>
-        <!-- svelte-ignore missing-declaration because MAR is defined in index.html --><!--
-        <a href="https://cdn.pixabay.com/photo/2017/02/12/21/29/false-2061132_960_720.png" target="_blank"><img  src="https://cdn.pixabay.com/photo/2017/02/12/21/29/false-2061132_960_720.png" alt="False" width={heightImg} height={heightImg} ></a>
-        
-        <!--  <p><img  src="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" alt="See diagram" width={heightImg} height={heightImg} on:click|preventDefault={() => { clickImg();} }></p>
-        <a href="{MAR.toImageURL(item.id, ItemHelper.modelType(item))}" target="_blank">Source</a>-->
-      <!--</div>
-    </div>  
-  </div>
-</main>
-{/if} -->

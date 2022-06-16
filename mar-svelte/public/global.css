@@ -30,7 +30,7 @@ span.item-category {
 	overflow: hidden; /* fix for Firefox */
 break-inside: avoid-column;
 -webkit-column-break-inside: avoid;
-min-height: 13em;
+/*min-height: 13em;*/
 }
 
 .pageBtn {

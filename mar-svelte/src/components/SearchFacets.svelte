@@ -19,6 +19,7 @@
   let actualTab=0; // to know the actual page
   let lengthFavList;
   let save; 
+ 
 
   function removeItemWithSlice(index) {
   return [...favTab.slice(0, index), ...favTab.slice(index + 1)]
@@ -28,7 +29,6 @@
     if(compareTab.length==0){
       actualTab=index;
       actualTab=actualTab;
-      //fav=true;
       resultsButton=favTab[index].result.slice(0,99);
       facetsButton=favTab[index].categories;
       save=favTab[index].result; // to compare with the next search
@@ -38,7 +38,7 @@
   }
 
 
-  function togglePagination(index){ // change pagination stat
+  function togglePagination(index){ // change pagination number
     activeNumber=index;
     resultsButton=favTab[actualTab].result.slice(index,index+99);
   }
@@ -68,9 +68,9 @@
             for(let j=0;j<compareTab[1].end;j++){
               if(compareTab[0].result[i].urlhumanName == item.result[j].urlhumanName){
                 compareElem[j+compareTab[0].end]=item.result[j];
-                compareElem[j+compareTab[0].end].description="true2"
+                compareElem[j+compareTab[0].end].description="true2";
                 compareElem[i]=compareTab[0].result[i];
-                compareElem[i].description="true1";
+                compareElem[i].description="true1";//problem if we use description but now it's not the case because it will change also the desc of the others necessary to make a copy of the object
                 nbIdElements++;
                 break;  
               }
@@ -89,7 +89,6 @@
           }
         }
         resultsButton=compareElem.slice(0,99);
-        //actualTab=-1;
         facets= new Facets(compareElem); // needed to do a good research
         lengthFavList=favList.length;
         actualTab=favTab.length;
@@ -108,9 +107,6 @@
       else{
         nbIdElements=0;
         compareTab[0]=item;
-        /*for(let i=0;i<item.end;i++){
-          compareElem[i]=item.result[i];
-        }*/
       }
     }
   }
@@ -118,29 +114,6 @@
   function Compare() { 
     compare=!compare;
   }
-
-  //to compare the distance between two researchs we are going to use levenshtein distance
-  /*const levenshteinDistance = (str1 = '', str2 = '') => {
-   const track = Array(str2.length + 1).fill(null).map(() =>
-   Array(str1.length + 1).fill(null));
-   for (let i = 0; i <= str1.length; i += 1) {
-      track[0][i] = i;
-   }
-   for (let j = 0; j <= str2.length; j += 1) {
-      track[j][0] = j;
-   }
-   for (let j = 1; j <= str2.length; j += 1) {
-      for (let i = 1; i <= str1.length; i += 1) {
-         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-         track[j][i] = Math.min(
-            track[j][i - 1] + 1, // deletion
-            track[j - 1][i] + 1, // insertion
-            track[j - 1][i - 1] + indicator, // substitution
-         );
-      }
-   }
-   return track[str2.length][str1.length];
-  }; */ 
 
   function reinitCompare() { 
     for(let i=0;i<compareElem.length;i++){
@@ -163,7 +136,6 @@
   }
 
   function deletePage(index) { // the other research appeared
-    //fav=false;
     if(compareTab.length==0){
       favList.splice(favTab[index].start,favTab[index].end); // we delete the element if it exist
       //change start of the element
@@ -172,8 +144,7 @@
       }
       favTab=removeItemWithSlice(index);
       actualTab=favTab.length-1;
-      if(favTab.length != 0 ){ // if there's any tab in favorite the button is still in deleted
-        //fav=true;
+      if(favTab.length != 0 ){ // if there's any tab in favorite the page have a research
         resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
         facetsButton=favTab[actualTab].categories;
         facets=favTab[actualTab].facetsSave; // needed to do a good research
@@ -202,46 +173,6 @@
   function changeDesc() {
 		desc = !desc;
   }
-
-  /*function toggle(favItems) {
-		fav = !fav;
-    lengthFavList=favList.length;
-    if(lengthFavList=== undefined){
-      lengthFavList=0;
-    }
-    if(fav){
-      change=0;
-      for(let i=0;i<favTab.length;i++){ // if the page is already in fav you can't fav
-        if(favTab[i].name===search_items[0].name.toString()){
-          change=1;
-          break;
-        }
-      } 
-      if(change==0){
-        actualTab=favTab.length;
-        favTab = [...favTab, { start: lengthFavList, end: favItems.length, result : favItems , id :favTab.length, name : search_items[0].name.toString(), categories : facets.categories, search : searchText}];
-        for (let i=0;i<favItems.length;i++){
-            favList[lengthFavList+i]=favItems[i].urlhumanName;
-        }
-        resultsButton=favTab[actualTab].result;
-        facetsButton=favTab[actualTab].categories;
-      }
-    }
-    else{
-        favList.splice(favTab[actualTab].start,favTab[actualTab].end); // we delete the element if it exist
-        //change start of the element
-        for (let i=actualTab+1;i<favTab.length;i++){
-          favTab[i].start-=favTab[actualTab].end;
-        }
-        favTab=removeItemWithSlice(actualTab);
-        //actualTab=favTab.length-1;
-        //if(favTab.length != 0 ){ // if there's any tab in favorite the button is still in deleted
-          //fav=true;
-          //resultsButton=favTab[actualTab].result; // we change the result page if there's still one available
-        //}
-      }
-      console.log(favTab[actualTab].search)
-	}*/
 
   const zip = new JSZip();
   let bashFile ="#!/bin/sh";
@@ -421,7 +352,6 @@
     new_items = search_items
     facets = new Facets(search_items)
     //if(JSON.stringify(search_items) != JSON.stringify(save)){ // when you change or not your page the buttons change or not
-      //fav=false; 
       change=0; // to see if a changement is occured
       for(let i=0;i<favTab.length;i++){
         if(favTab[i].name===search_items[0].name.toString()){
@@ -432,7 +362,6 @@
         }
       }
       if(change===0){
-        //actualTab=undefined;
         lengthFavList=favList.length;
         if(lengthFavList=== undefined){
           lengthFavList=0;
@@ -444,7 +373,6 @@
         }
         resultsButton=favTab[actualTab].result; 
         facetsButton=favTab[actualTab].categories;
-        console.log(favTab)
       }
     //}
     actualTab=actualTab;
@@ -452,6 +380,7 @@
     activeNumber=0;
     resultsButton=resultsButton.slice(0,0); // to reinit
     facets=facets;
+    
   }
 </script>
 
@@ -628,15 +557,6 @@
     {/if}
     <br>
       <div>
-      <!--{#if fav}
-        <button class="btn btn-danger btn-sm" on:click|preventDefault={() => { toggle(search_items);} }>
-          Remove to favorite
-        </button>
-      {:else}
-        <button class="btn btn-danger btn-sm" on:click|preventDefault={() => {toggle(search_items);} }>
-          Add to favorite
-        </button>
-      {/if }-->
       {#if favList.length != 0}
         <button class="btn btn-outline-success btn-sm" on:click|preventDefault={() => {bashThis(favList)}}>Download bash favories</button>
       {/if}
@@ -662,7 +582,7 @@
       {#each save as item,i}
         {#if i%100 == false}
           {#if i == activeNumber}
-            <li class="page-item active"><a  class="page-link "ref="#">{i/100+1}</a></li>
+            <li class="page-item active"><a class="page-link "ref="#">{i/100+1}</a></li>
           {:else}
             <li class="page-item" on:click|preventDefault={() => togglePagination(i)}><a  class="page-link"ref="#">{i/100+1}</a></li>
           {/if}
