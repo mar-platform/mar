@@ -2,8 +2,10 @@ package mar.artefacts.qvto;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
@@ -12,6 +14,7 @@ import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.Transformation.Qvto;
+import mar.artefacts.Transformation.TransformationParameter;
 import mar.artefacts.graph.RecoveryGraph;
 
 public class QvtoInspector extends ProjectInspector {
@@ -29,18 +32,27 @@ public class QvtoInspector extends ProjectInspector {
 		//Collection<String> expectedMetamodels = tmp.getMetamodelURIs();
 
 		UnitCS unit = new QvtoLoader().parse(qvtoFile.getAbsolutePath(), Collections.emptyList());
-		Collection<String> expectedMetamodels = Qvto.getMetamodelURIs(unit, qvtoFile.toString());		
+		Collection<TransformationParameter> expectedMetamodels = Qvto.getModelParameters(unit, qvtoFile.toString());		
 		
 		QvtoProgram program = new QvtoProgram(new RecoveredPath(getRepositoryPath(qvtoFile)));
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
-		for (String uri : expectedMetamodels) {
+		for (TransformationParameter p : expectedMetamodels) {
 			// Do I have a way to extract the logical name of the meta-model from QVTo file?
-			Metamodel mm = Metamodel.fromURI(uri, uri);
+			Metamodel mm = Metamodel.fromURI(p.getUri(), p.getUri());
 			graph.addMetamodel(mm);
-			program.addMetamodel(mm, MetamodelReference.Kind.IMPORT, MetamodelReference.Kind.TYPED_BY);
+			
+			List<MetamodelReference.Kind> kinds = new ArrayList<>();
+			kinds.add(MetamodelReference.Kind.TYPED_BY);
+			// kinds.add(MetamodelReference.Kind.IMPORT);
+			if (p.isIn()) 
+				kinds.add(MetamodelReference.Kind.INPUT_OF);
+			if (p.isOut()) 
+				kinds.add(MetamodelReference.Kind.OUTPUT_OF);
+
+			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
 		}
 		
 		return graph;
