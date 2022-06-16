@@ -150,13 +150,12 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 	
 	private void addEdge(RelationshipsGraph graph, String id, String metamodelId, MetamodelReference ref) {
-		if (ref.is(MetamodelReference.Kind.TYPED_BY)) {
+		if (ref.is(MetamodelReference.Kind.TYPED_BY))
 			graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
-		} else if (ref.is(MetamodelReference.Kind.INPUT_OF)) {
+		if (ref.is(MetamodelReference.Kind.INPUT_OF))
 			graph.addEdge(metamodelId, id, Relationship.INPUT_TYPE);
-		} else if (ref.is(MetamodelReference.Kind.OUTPUT_OF)) {
+		if (ref.is(MetamodelReference.Kind.OUTPUT_OF))
 			graph.addEdge(id, metamodelId, Relationship.OUTPUT_TYPE);
-		}
 	}
 
 	@Override
