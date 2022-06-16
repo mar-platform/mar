@@ -63,6 +63,10 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		graph.addProgram(program);
 		
 		for (ModelInfo modelInfo : ATLUtils.getModelInfo(m)) {
+			// Some ATL transformations are not annotated with meta-model information
+			if (modelInfo.getURIorPath() == null)
+				continue;
+			
 			Metamodel mm;
 			if (modelInfo.isURI()) {
 				mm = extractPath(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
@@ -81,7 +85,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
 		}
 		
-		return null;
+		return graph;
 	}
 
 	@Nonnull
