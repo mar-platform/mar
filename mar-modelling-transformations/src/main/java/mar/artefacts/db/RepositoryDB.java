@@ -78,6 +78,10 @@ public class RepositoryDB implements AutoCloseable {
 			this.filePath = Paths.get(filePath).normalize();
 		}
 
+		public Path getRootFolder() {
+			return rootFolder;
+		}
+		
 		public Path getFullPath() {
 			return rootFolder.resolve(filePath);
 		}

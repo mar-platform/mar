@@ -4,6 +4,7 @@ public enum ArtefactType {
 	ANT("ant"),
 	LAUNCH("launch"),
 	QVTO("qvto"),
+	OCL("ocl"),
 	XTEXT("xtext"),
 	EMFATIC("emfatic"),
 	ACCELEO("acceleo"),
