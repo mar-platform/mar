@@ -45,6 +45,11 @@ public class FileSearcher {
 		return new RecoveredPath.MissingPath(path);
 	}
 
+	public boolean fileExistsInFolder(Path folderPath, String filename) {
+		Path p = projectRoot.resolve(folderPath).resolve(filename);
+		return Files.exists(p);
+	}
+	
 	
 	protected static int similarity(Path loosyPath, Path projectFilePath) {
 		int i, len = loosyPath.getNameCount();
