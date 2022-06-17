@@ -30,6 +30,7 @@
     const types = [
       { type: 'duplication', checked : true,   color: '#ffe100' },
       { type: 'qvto', checked : true,   color: '#5ac477' },
+      { type: 'ocl', checked : true,   color: '#8a8477' },
       { type: 'ecore', checked : true,  color: '#5a8bc4' },
       { type: 'xtext', checked : true,  color: '#6e1ae5'},
       { type: 'emfatic', checked : true, color: '#fb04d8' },
