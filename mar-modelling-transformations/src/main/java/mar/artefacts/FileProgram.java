@@ -1,5 +1,6 @@
 package mar.artefacts;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +14,8 @@ public abstract class FileProgram {
 
 	@Nonnull
 	private final List<MetamodelReference> metamodels = new ArrayList<>();
+	
+	private final List<Path> importedPrograms = new ArrayList<>();
 	
 	public FileProgram(@Nonnull RecoveredPath path) {
 		this.path = path;
@@ -29,7 +32,15 @@ public abstract class FileProgram {
 	public Collection<? extends MetamodelReference> getMetamodels() {
 		return metamodels;
 	}
+
+	public void addImportDependency(Path path) {
+		importedPrograms.add(path);
+	}
 	
+	public List<? extends Path> getImportedPrograms() {
+		return importedPrograms;
+	}
+
 	public abstract String getKind();
 
 	public abstract String getCategory();

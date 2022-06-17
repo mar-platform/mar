@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -115,6 +116,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();
 		
+		List<FileProgram> withImports = new ArrayList<>();
+		
 		for (ArtefactType type : miniGraphs.keySet()) {
 			for (RecoveryGraph miniGraph : miniGraphs.get(type)) {				
 				graph.addProject(miniGraph.getProject());
@@ -149,6 +152,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 							
 							addEdge(graph, id, metamodelId, ref);					
 						}
+						
+						if (! p.getImportedPrograms().isEmpty()) {
+							withImports.add(p);
+						}
 					}
 					
 					if (miniGraph.getStats() != null)
@@ -160,6 +167,12 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			}
 		}
 				
+		for (FileProgram fileProgram : withImports) {
+			for (Path path : fileProgram.getImportedPrograms()) {
+				graph.addEdge(toId(fileProgram), toId(path), Relationship.IMPORT);
+			}
+		}
+		
 		return Pair.of(graph, stats);
 	}
 	
@@ -232,9 +245,13 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	private String toId(FileProgram p) {
-		return p.getFilePath().getPath().toString();
+		return toId(p.getFilePath().getPath());
 	}
 
+	private String toId(Path p) {
+		return p.toString();
+	}
+	
 	private String toId(Metamodel metamodel) {  /*, AnalysisDB metamodels) */
 		if (metamodel.getPath() != null) {
 			Path relativePath = metamodel.getPath().getPath();

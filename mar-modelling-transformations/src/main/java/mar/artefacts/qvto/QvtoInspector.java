@@ -1,13 +1,19 @@
 package mar.artefacts.qvto;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.m2m.internal.qvt.oml.cst.ImportCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
+import org.eclipse.ocl.cst.PathNameCS;
+import org.eclipse.ocl.cst.SimpleNameCS;
 
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
@@ -34,7 +40,8 @@ public class QvtoInspector extends ProjectInspector {
 		UnitCS unit = new QvtoLoader().parse(qvtoFile.getAbsolutePath(), Collections.emptyList());
 		Collection<TransformationParameter> expectedMetamodels = Qvto.getModelParameters(unit, qvtoFile.toString());		
 		
-		QvtoProgram program = new QvtoProgram(new RecoveredPath(getRepositoryPath(qvtoFile)));
+		Path qvtoFilePath = getRepositoryPath(qvtoFile);
+		QvtoProgram program = new QvtoProgram(new RecoveredPath(qvtoFilePath));
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
@@ -53,6 +60,20 @@ public class QvtoInspector extends ProjectInspector {
 				kinds.add(MetamodelReference.Kind.OUTPUT_OF);
 
 			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
+		}
+		
+		for (ImportCS import_ : unit.getImports()) {
+			PathNameCS pathName = import_.getPathNameCS();
+			if (pathName != null) {
+				List<SimpleNameCS> names = pathName.getSimpleNames();
+				if (names.size() > 0) {
+					String name = names.stream().map(n -> n.getValue()).collect(Collectors.joining("/")) + ".qvto";					
+					if (getFileSearcher().fileExistsInFolder(qvtoFilePath.getParent(), name)) {
+						Path path = qvtoFilePath.getParent().resolve(name);
+						program.addImportDependency(path);
+					}
+				}
+			}
 		}
 		
 		return graph;
