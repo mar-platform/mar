@@ -3,10 +3,13 @@ package mar.analysis.backend.megamodel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -33,9 +36,17 @@ import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.Composite;
 import mar.indexer.common.configuration.ModelLoader;
+import mar.validation.AnalyserRegistry;
 import mar.validation.AnalysisDB;
+import mar.validation.IFileInfo;
+import mar.validation.IFileProvider;
+import mar.validation.ISingleFileAnalyser;
+import mar.validation.ISingleFileAnalyser.Remote;
+import mar.validation.ResourceAnalyser;
+import mar.validation.ResourceAnalyser.Factory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "analyser", mixinStandardHelpOptions = true, description = "Generates a mega-model from different sources")
@@ -45,15 +56,18 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private File rootFolder;
 	@Parameters(index = "1", description = "Output file.")
 	private File output;
+	@Option(required = false, names = { "--analysis-ecore" }, description = "Force analysis of Ecore")
+	private boolean analysisEcore;
 	
-	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder) {
-		try(RepositoryDB db = new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile())) {
-			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder);
+	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
+		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
+			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);
 			
 			Map<ArtefactType, Collection<RecoveryGraph>> result = new HashMap<>();
 			result.put(ArtefactType.ANT, inspector.fromBuildFiles() );
 			result.put(ArtefactType.LAUNCH, inspector.fromLaunchFiles() );
 			result.put(ArtefactType.QVTO, inspector.fromQvtoFiles() );
+			result.put(ArtefactType.OCL, inspector.fromOclFiles() );
 			result.put(ArtefactType.XTEXT, inspector.fromXtextFiles() );
 			result.put(ArtefactType.EMFATIC, inspector.fromEmfaticFiles() );
 			result.put(ArtefactType.ACCELEO, inspector.fromAcceleoFiles() );
@@ -166,11 +180,27 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		File repositoryDataFolder = Paths.get(rootFolder.getAbsolutePath(), "repos").toFile();
 		File ecoreAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
 
+		if (!analysisEcore && !ecoreAnalysisDbFile.exists()) {
+			System.out.println("No analysis file. Run with --analysis-ecore");
+			return -1;
+		}
+		
+		if (analysisEcore) {
+			Factory factory = AnalyserRegistry.INSTANCE.getFactory(mar.analysis.ecore.SingleEcoreFileAnalyser.ID);
+			try (ISingleFileAnalyser.Remote singleAnalyser = (Remote) factory.newRemoteAnalyser();
+				 RepositoryDB repoDB = openRepositoryDB(repositoryDataFolder.toPath())) {
+				try (ResourceAnalyser analyser = new ResourceAnalyser(singleAnalyser, new RepositoryDBProvider(repoDB), ecoreAnalysisDbFile)) {
+					analyser.withParallelThreads(4);
+					analyser.check();
+				}
+			}
+		}
+		
 		// Detailed information about all the meta-models in the repositories
 		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
 		analysisDb.setReadOnly(true);
 		
-		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath());		
+		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);		
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
 		
 		Composite stats = result.getRight();
@@ -221,6 +251,31 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return metamodel.getUri();
 	}
 
+	private RepositoryDB openRepositoryDB(Path repositoryDataFolder) throws SQLException {
+		return new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile());
+	}
+
+	public static class RepositoryDBProvider implements IFileProvider {
+
+		private RepositoryDB repoDB;
+
+		public RepositoryDBProvider(RepositoryDB repoDB) {
+			this.repoDB = repoDB;
+		}
+		
+		@Override
+		public List<? extends IFileInfo> getLocalFiles() {			
+			try {
+				return repoDB.getFilesByType("ecore").stream()
+						.map(f -> new IFileInfo.FileInfo(f.getRootFolder().toFile(), f.getFullPath().toFile()))
+						.collect(Collectors.toList());
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+	}
+	
 	public static void main(String[] args) {
 		int exitCode = new CommandLine(new MegamodelAnalysis()).execute(args);
 		System.exit(exitCode);

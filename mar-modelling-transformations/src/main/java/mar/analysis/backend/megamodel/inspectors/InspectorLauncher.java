@@ -16,17 +16,21 @@ import mar.artefacts.db.RepositoryDB.RepoFile;
 import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.epsilon.EpsilonLaunchInspector;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.ocl.OCLInspector;
 import mar.artefacts.qvto.QvtoInspector;
 import mar.artefacts.sirius.SiriusInspector;
+import mar.validation.AnalysisDB;
 
 public class InspectorLauncher {
 
 	private final RepositoryDB db;
 	private final Path repositoryDataFolder;
+	private AnalysisDB analysisDb;
 
-	public InspectorLauncher(RepositoryDB db, Path repositoryDataFolder) {
+	public InspectorLauncher(RepositoryDB db, Path repositoryDataFolder, AnalysisDB analysisDb) {
 		this.db = db;
 		this.repositoryDataFolder = repositoryDataFolder;	
+		this.analysisDb = analysisDb;
 	}
 	
 	public Collection<RecoveryGraph> fromBuildFiles() throws SQLException {
@@ -41,6 +45,10 @@ public class InspectorLauncher {
 		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath));		
 	}
 	
+	public Collection<RecoveryGraph> fromOclFiles() throws SQLException {
+		return doInspect("ocl", (projectPath) -> new OCLInspector(repositoryDataFolder, projectPath, analysisDb));		
+	}
+		
 	public Collection<RecoveryGraph> fromXtextFiles() throws SQLException {
 		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath));		
 	}
