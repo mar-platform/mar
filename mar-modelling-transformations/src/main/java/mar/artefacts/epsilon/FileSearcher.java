@@ -46,7 +46,7 @@ public class FileSearcher {
 	}
 
 	public boolean fileExistsInFolder(Path folderPath, String filename) {
-		Path p = projectRoot.resolve(folderPath).resolve(filename);
+		Path p = repoRoot.resolve(folderPath).resolve(filename);
 		return Files.exists(p);
 	}
 	
