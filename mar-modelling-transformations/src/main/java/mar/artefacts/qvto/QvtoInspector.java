@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.m2m.internal.qvt.oml.cst.ImportCS;
+import org.eclipse.m2m.internal.qvt.oml.cst.MappingModuleCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 import org.eclipse.ocl.cst.PathNameCS;
 import org.eclipse.ocl.cst.SimpleNameCS;
@@ -62,7 +63,9 @@ public class QvtoInspector extends ProjectInspector {
 			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
 		}
 		
-		for (ImportCS import_ : unit.getImports()) {
+		MappingModuleCS mod = (MappingModuleCS) unit.getTopLevelElements().get(0);
+		
+		for (ImportCS import_ : mod.getImports()) {
 			PathNameCS pathName = import_.getPathNameCS();
 			if (pathName != null) {
 				List<SimpleNameCS> names = pathName.getSimpleNames();
