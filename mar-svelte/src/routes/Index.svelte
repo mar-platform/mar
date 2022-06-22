@@ -13,19 +13,46 @@
 
 	import ResultItem 			from "../components/ResultItem.svelte";
 	
-	let results = [];
-	let shown_results = []
+	
+	export let results = [];
+	export let searchText;
+	let save=[];
+	let resultsButton = [];
+	let shown_resultsButton = [];
+	let shown_results = [];
 
 	let selectedModelType = null;
 	let searchMode = "text";
+
 
 	$: if (searchMode != "syntax") {
 		selectedModelType = null;
 	}
 
 	let facets
-	$: if (facets != undefined) {
-		shown_results = facets.filter(results)
+	$: if (facets != undefined ) {
+		if(resultsButton.length == 0){
+			shown_resultsButton=shown_resultsButton.slice(0,0); 
+		}
+		if(results.length == 0){
+			results=save;
+			shown_results = facets.filter(results.slice(0,99))
+		}
+		if(resultsButton[0]=="1"){// to manage a reload of nothing
+			for(let i=0;i<resultsButton.length;i++){
+				resultsButton[i]=[];
+			}
+			shown_resultsButton = facets.filter(resultsButton)
+		}
+		else{
+			shown_results = facets.filter(results.slice(0,99))
+		}
+		save=results;
+	}
+
+	$: if (resultsButton.length != 0) {
+		shown_resultsButton = facets.filter(resultsButton);
+		
 	}
 </script>		
 
@@ -59,7 +86,7 @@
 			</div>
 			<div class="col">
 				{#if searchMode == 'text'}
-					<SearchBox bind:results={results} />
+					<SearchBox bind:results={results} bind:searchText={searchText}/>
 				{:else if searchMode == 'example'}
 					<ModelTypeSelection
 						bind:selected={selectedModelType} />
@@ -96,25 +123,33 @@
 		</div>
 	</div>
 
-	<div class="col-8">
-		<div class="output">
-			<div class="list-group">
+	<div class="col-8" >
+		<div class="output" >
+			<div class="list-group"  >
 				{#if results.length > 0}
-					<SearchFacets search_items={results} bind:facets={facets} />
+					<SearchFacets search_items={results} bind:facets={facets} bind:resultsButton={resultsButton} bind:searchText={searchText}/>
 				{/if}
-
-				{#if shown_results.length > 0}
-					<ul
-						class="results"
-						style="padding: 0; text-align: left;">
-						{#each shown_results as item}
-							<ResultItem bind:item />
+				{#if shown_resultsButton.length > 0}
+					<ul class="results" style="padding: 0; text-align: left;" >
+						{#each shown_resultsButton as item}
+							<ResultItem bind:item  bind:facets />
+							
 						{/each}
 					</ul>
 				{:else}
-					<!-- <div class="alert alert-warning" role="alert">
-						No results
-					  </div> -->
+					{#if shown_results.length > 0}
+						<ul
+							class="results"
+							style="padding: 0; text-align: left;" >
+							{#each shown_results as item}
+								<ResultItem bind:item bind:facets  />
+							{/each}
+						</ul>
+					{:else}
+						<!-- <div class="alert alert-warning" role="alert">
+							No results
+						</div> -->
+					{/if}
 				{/if}
 			</div>
 		</div>

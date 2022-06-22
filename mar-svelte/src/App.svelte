@@ -33,7 +33,7 @@
 				<li class="nav-item">
 					<Link
 						to="about"
-						class="nav-link m-2 menu-item nav-active">About</Link>
+						class="nav-link m-2 menu-item nav-active" >About</Link>
 				</li>
 			</ul>
 		</div>

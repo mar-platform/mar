@@ -2,15 +2,25 @@
   import CodeMirror from "./codemirror/CodeMirror.svelte";
   import { createEventDispatcher } from "svelte";
   import { Stretch } from 'svelte-loading-spinners'
-
   const dispatch = createEventDispatcher();
 
   let loading = false
+  let errorText="";
+
   function notifyLoading(isLoading) {
     dispatch("loading", { isLoading: isLoading} );
     loading = isLoading
   }
 
+
+
+
+  function errors(error) {
+    loading = false;
+    errorText="An error is occured : \n"
+    errorText+=error;
+    window.$('.notifier-error').toggleClass('pop');
+  }
   let value = `package relational;
 class Table { 
   attr String[1] name;
@@ -34,7 +44,7 @@ class Column {
   }
 
   let searchText = null;
-
+  // Try to get config from mongo
   async function handleSubmit(event) {
     let modelType = searchModelType;
     let syntax = "emfatic";
@@ -50,13 +60,16 @@ class Column {
 					meta: meta
 				})
 				*/
+    }).catch(error => {
+      errors(error);
     });
 
-    // console.log(res);
-    const json = await res.json();
-    notifyLoading(false)
-    console.log(json);
-    results = json;
+    if(res!= undefined){
+      const json = await res.json();
+      notifyLoading(false)
+      console.log(json);
+      results = json;
+    }
   }
 </script>
 
@@ -77,11 +90,17 @@ class Column {
       {#if loading} 
         <Stretch size="40" color="#FF3E00" unit="px"></Stretch>
       {:else}
-        <input
+        <input 
             class="btn btn-secondary"
             type="submit"
             value="Submit!" />
       {/if}      
     </div>
   </form>
+  <div class="notifier notifier-error">
+    <div class="notifier-content">
+      {errorText}
+      <p class="green notifier-dismiss">Dismiss automatically</p>
+    </div>
+  </div>
 </main>
