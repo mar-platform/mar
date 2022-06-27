@@ -1,12 +1,9 @@
-package mar.artefacts.sirius;
+package mar.artefacts.henshin;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.xml.xpath.XPath;
@@ -23,42 +20,22 @@ import com.google.common.base.Preconditions;
 
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
-import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
-import mar.artefacts.atl.ATLProgram;
-import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 
-/**
- * Sirius is a dynamic framework, in the sense that it is only when the .aird file is created
- * to link a concrete model to the editor that types are checked. This means that you can write
- * any domain class name that you want in a e.g., Node Mapping.
- * 
- * There are three scenarios:
- *  * <metamodel href="path to file" />
- *  * <metamodel href="http://your-url/#" />
- *  * There are no metamodel tag. It is possible to construct a tentative meta-model from the node and edge mappings. 
- *    We could look for quasi-compatible meta-models in the project. 
- * 
- * @author jesus
- *
- */
-public class SiriusInspector extends XMLProjectInspector {
-
-
-	private final XPathExpression FIND_METAMODEL;
-	private final FileSearcher searcher;
+public class HenshinInspector extends XMLProjectInspector {
 	
-	public SiriusInspector(Path repositoryDataFolder, Path projectPath) {
-		super(repositoryDataFolder, projectPath);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+	private final XPathExpression FIND_METAMODEL;
+	
+	public HenshinInspector(Path repositoryDataFolder, Path projectPath) {
+		super(repositoryDataFolder, projectPath);		
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
 			XPath xpath = xpathfactory.newXPath();
-			FIND_METAMODEL= xpath.compile(".//metamodel/@href");
+			FIND_METAMODEL= xpath.compile(".//imports/@href");					
 		} catch (XPathExpressionException e) {
 			throw new RuntimeException(e);
 		}	    
@@ -75,10 +52,10 @@ public class SiriusInspector extends XMLProjectInspector {
 	public RecoveryGraph process(@Nonnull Path odesignFolder, @Nonnull File f, @Nonnull InputStream stream) throws Exception {
 		Preconditions.checkState(! odesignFolder.isAbsolute());
 				
-		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "sirius");
+		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "henshin");
 		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 		
-		SiriusProgram program = new SiriusProgram(new RecoveredPath(getRepositoryPath(f)));
+		HenshinProgram program = new HenshinProgram(new RecoveredPath(getRepositoryPath(f)));
 		graph.addProgram(program);
 		
 		Document doc = loadDocument(stream);
@@ -90,7 +67,7 @@ public class SiriusInspector extends XMLProjectInspector {
 			Node metamodelRef = result.item(i);
 			String ref = metamodelRef.getTextContent();
 			Metamodel metamodel = getMetamodelFromHRef(ref);
-			
+
 			graph.addMetamodel(metamodel);
 			program.addMetamodel(metamodel, MetamodelReference.Kind.TYPED_BY);
 		}
