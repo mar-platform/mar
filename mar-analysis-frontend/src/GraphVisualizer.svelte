@@ -41,6 +41,7 @@
       { type: 'acceleo', checked : true, color: '#36b336' },
       { type: 'atl', checked : true, color: '#2a4e6a' },
       { type: 'sirius', checked : true, color: '#3b5c4e' },
+      { type: 'henshin', checked : true, color: '#3baa9e' },
     ]
   
     const colorMap = types.reduce(function(map, obj) { 

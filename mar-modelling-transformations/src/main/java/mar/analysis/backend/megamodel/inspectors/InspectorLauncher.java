@@ -16,6 +16,7 @@ import mar.artefacts.db.RepositoryDB.RepoFile;
 import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.epsilon.EpsilonLaunchInspector;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.henshin.HenshinInspector;
 import mar.artefacts.ocl.OCLInspector;
 import mar.artefacts.qvto.QvtoInspector;
 import mar.artefacts.sirius.SiriusInspector;
@@ -69,6 +70,10 @@ public class InspectorLauncher {
 		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath));		
 	}
 
+    public Collection<RecoveryGraph> fromHenshin() throws SQLException {
+		return doInspect("henshin", (projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath));		
+	}
+    
 	private Collection<RecoveryGraph> doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
 		List<RecoveryGraph> result = new ArrayList<>();
 		for (RepoFile model : db.getFilesByType(fileType)) {

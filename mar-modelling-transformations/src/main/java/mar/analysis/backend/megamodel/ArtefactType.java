@@ -9,7 +9,8 @@ public enum ArtefactType {
 	EMFATIC("emfatic"),
 	ACCELEO("acceleo"),
 	ATL("atl"),
-	SIRIUS("sirius"); 
+	SIRIUS("sirius"),
+	HENSHIN("henshin");
 	
 	public final String id;
 	
