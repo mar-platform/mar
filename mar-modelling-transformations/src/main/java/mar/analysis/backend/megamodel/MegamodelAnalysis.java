@@ -74,6 +74,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			result.put(ArtefactType.ACCELEO, inspector.fromAcceleoFiles() );
 			result.put(ArtefactType.ATL, inspector.fromATLFiles());
 			result.put(ArtefactType.SIRIUS, inspector.fromSirius());
+			result.put(ArtefactType.HENSHIN, inspector.fromHenshin());
 			
 			return result;
 		} catch (Exception e) {
