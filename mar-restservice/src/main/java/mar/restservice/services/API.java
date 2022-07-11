@@ -38,13 +38,12 @@ import spark.Response;
 import spark.template.freemarker.FreeMarkerEngine;
 
 public class API extends AbstractAPI {
-
 	@NonNull
 	private final HBaseStats stats = new HBaseStats();
 	@NonNull
 	private final HBaseLog hbaseLog = new HBaseLog();
 	@Nonnull
-	private final SearchService searchService;
+	private final SearchService searchService;	
 	
 	public API(@Nonnull IConfigurationProvider configuration) {
 		super(configuration);

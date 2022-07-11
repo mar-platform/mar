@@ -10,6 +10,9 @@ window.MAR = {
     }, 
     toStatusURL: function() {
         return '/status'
+    }, 
+    toChatbotConversationURL: function() {
+        return '/v1/chatbot/conversation'
     }
 };	
 

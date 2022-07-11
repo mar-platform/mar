@@ -10,5 +10,8 @@ window.MAR = {
     },
     toStatusURL: function() {
         return 'http://localhost:8080/status'
+    },
+    toChatbotConversationURL: function() {
+        return 'http://localhost:8080/v1/chatbot/conversation'
     }
 };	

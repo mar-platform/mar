@@ -15,6 +15,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
+import io.github.arturkorb.rasa.RasaClient;
+import io.github.arturkorb.rasa.model.Context;
+import io.github.arturkorb.rasa.model.Entity;
+import io.github.arturkorb.rasa.model.Intent;
+import io.github.arturkorb.utils.ApiException;
 import mar.chatbot.elements.ChatBotResults;
 import mar.chatbot.elements.EcoreElementId;
 import mar.chatbot.elements.ElementId;
@@ -23,18 +28,49 @@ import mar.chatbot.elements.IElement;
 import mar.chatbot.elements.SetType;
 import mar.chatbot.elements.SingleElement;
 import mar.chatbot.executiontrace.Cache;
+import mar.chatbot.executiontrace.Conversation;
 import mar.restservice.HBaseGetInfo;
 import mar.restservice.services.SearchOptions.SyntaxType;
 import spark.Request;
 import spark.Response;
 
 public class APIchatbot extends AbstractAPI {
-	
-	private Cache cache = new Cache();
+
+	private final Cache cache = new Cache();
+	private final RasaClient rasaClient;
+	private final SearchService searchService;
+	public String save ="";
 
 	public APIchatbot(IConfigurationProvider configuration) {
 		super(configuration);	
-        post("/v1/search/path", this::searchPath);
+		this.rasaClient = new RasaClient().withBasePath("http://localhost:5005");
+		this.searchService = new SearchService(configuration.newSearcher());
+		
+		post("/v1/search/path", this::searchPath);
+        post("/v1/chatbot/conversation", this::conversation);
+	}
+	
+	public Object conversation(Request req, Response res) throws IOException, InvalidMarRequest, ApiException {
+		int key = getKey(req);
+		String text = req.body();
+		Conversation conversation = cache.getConversation(key);
+		
+		if (text == null || text.isEmpty())
+			throw new InvalidMarRequest(req, "Body must be a not empty message");
+		
+		String conversationId = "conversation-" + key;
+		Context context = rasaClient.sendMessageWithContextRetrieval(text, conversationId);
+		
+		Intent intent = context.getParseResult().getIntentRanking().get(0);
+		List<Entity> entities = context.getParseResult().getEntities();
+		String keyword = null;
+		for (Entity entity : entities) {
+			if ("keyword".equals(entity.getEntity())) {
+				keyword = entity.getValue();
+				save = keyword.substring(keyword.indexOf(" ")+1);
+			}
+		}
+		return toJson(res, conversation.process(this.searchService, intent, entities,save,key));
 	}
 	
 	public Object searchPath(Request req, Response res) throws IOException, InvalidMarRequest {
@@ -119,6 +155,10 @@ public class APIchatbot extends AbstractAPI {
 			mykey = cache.getKey();
 		} else {
 			mykey = Integer.parseInt(key);
+			// Make sure that they was created by the cache
+			if (! cache.hasKey(mykey)) {
+				mykey = cache.getKey();
+			}
 		}
 		return mykey;
 	}

@@ -8,6 +8,7 @@
 
 	import UploadXMI 			from "../components/UploadXMI.svelte";
 	import EcoreEditor 			from "../components/EcoreEditor.svelte";
+	import Chatbot				from "../components/Chatbot.svelte";
 
 	import SearchFacets 		from '../components/SearchFacets.svelte';
 
@@ -64,7 +65,7 @@
 					<ModelTypeSelection
 						bind:selected={selectedModelType} />
 				{:else if searchMode == 'chatbot'}
-					<div class="alert alert-warning">We are working on this! Check out in a few weeks!</div>
+					<Chatbot bind:results={results} />
 				{/if}
 			</div>
 		</div>
