@@ -11,8 +11,8 @@ public class ActionResultList extends ActionMessage {
 	@JsonProperty
 	private List<ResultItem> items;
 
-	public ActionResultList(String message, List<ResultItem> items) {
-		super(message);
+	public ActionResultList(String message,int key, List<ResultItem> items) {
+		super(message,key);
 		this.items = items;
 	}
 

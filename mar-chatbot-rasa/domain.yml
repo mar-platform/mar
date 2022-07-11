@@ -1,15 +1,17 @@
-version: "2.0"
+version: "3.1"
 
 intents:
   - greet
   - i_want_to_search
+  - search_a_topic
+  - add_param
 
 actions:
   - action_show_global_stats
 
 entities:
   - model_type
-  
+  - keyword
 responses:
    utter_greet:
       - text: "Hi there! I'm here to help :-)"

@@ -27,12 +27,16 @@
             
         const answer = await res.json();
         let message = null;
+        let key = null;
+        console.log(answer)
         switch (answer.type) {
             case "message":
                 message = answer.message;
+                key = answer.key;
                 break;
             case "result_list":
                 message = answer.message;
+                key = answer.key;
                 results = answer.items;
                 break;
             default:
@@ -42,6 +46,16 @@
 
         if (message != null)
             messages = [...messages, new Message(MessageType.BOT, message)];
+
+        if (key!= null){
+            url = url +"&key="+key
+            const res = await fetch(url, {
+                method: "POST",
+                body: input,
+        });	
+        const answer2 = await res.json();
+        console.log(answer2)
+        }
     }
 
     class Message {

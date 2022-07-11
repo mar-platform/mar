@@ -1,7 +1,6 @@
 package mar.chatbot.executiontrace;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -24,36 +23,56 @@ public class Conversation {
 	}
 
 	@Nonnull
-	public ActionResponse process(@Nonnull SearchService searchService, @Nonnull Intent intent, @Nonnull List<? extends Entity> entities) {
+	public ActionResponse process(@Nonnull SearchService searchService, @Nonnull Intent intent, @Nonnull List<? extends Entity> entities, String save, int key) {
 		switch (intent.getName()) {
 		case "greet":
-			return new ActionMessage("Hi there! I'm here to help :-)");
+			return new ActionMessage("Hi there! I'm here to help :-)",key);
 		case "search_a_topic":
-			return searchkeyword(searchService, entities);
+			return searchkeyword(searchService,key, entities);
 		case "i_want_to_search":
-			return new ActionMessage(stats(entities));
+			return new ActionMessage(stats(entities),key);
+		case "add_param":
+			return new ActionMessage(param(searchService, entities,save),key);
 		default:
-			return new ActionMessage("I don't understand. Try something else. I will provide suggestions when I'm smarter");
+			return new ActionMessage("I don't understand. Try something else. I will provide suggestions when I'm smarter",key);
+		}
+	}
+	private String param(@Nonnull SearchService searchServicer, List<? extends Entity> entities, String save) {
+				
+		try {
+			String origins="";
+			List<ResultItem> items = searchServicer.textSearch(save);
+			List<ResultItem> itemsToOrigin;
+			for (ResultItem item : items) {
+				
+			}
+			for (ResultItem item : items) {
+				origins = origins + item.getOrigin() + " ";
+			}
+			return "You can put different origins like "+origins;
+		} catch (SearchException e) {
+			return "You need to do a search before in the chatbot";
 		}
 	}
 
-	private ActionResponse searchkeyword(@Nonnull SearchService searchServicer, List<? extends Entity> entities) {
+	private ActionResponse searchkeyword(@Nonnull SearchService searchServicer, int key, List<? extends Entity> entities) {
 		String keyword = null;
 		for (Entity entity : entities) {
 			if ("keyword".equals(entity.getEntity())) {
 				keyword = entity.getValue();
+				keyword = keyword.substring(keyword.indexOf(" ")+1);
 			}
 		}
 		
 		if (keyword == null) {
-			return new ActionMessage("Please tell me a few keywords");
+			return new ActionMessage("Please tell me a few keywords",key);
 		}
 				
 		try {
 			List<ResultItem> items = searchServicer.textSearch(keyword);
-			return new ActionResultList("Here are some results", items);
+			return new ActionResultList("Here are some results",key, items);
 		} catch (SearchException e) {
-			return new ActionMessage(e.getMessage());
+			return new ActionMessage(e.getMessage(),key);
 		}
 	}
 	

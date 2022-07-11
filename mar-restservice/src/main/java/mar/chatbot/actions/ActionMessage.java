@@ -13,9 +13,11 @@ public class ActionMessage extends ActionResponse {
 
 	@Nonnull
 	private final String message;
+	private final int key;
 
-	public ActionMessage(@Nonnull String message) {
+	public ActionMessage(@Nonnull String message, int key) {
 		this.message = message;
+		this.key = key;
 	}
 	
 	@Override
@@ -27,6 +29,12 @@ public class ActionMessage extends ActionResponse {
 	@Nonnull
 	public String getMessage() {
 		return message;
+	}
+	
+	@JsonProperty
+	@Nonnull
+	public int getKey() {
+		return key;
 	}
 
 }
