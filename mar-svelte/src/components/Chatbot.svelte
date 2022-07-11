@@ -3,6 +3,7 @@
 
     let messageInput;
     let messages = []
+    let key = null;
 
     const MessageType = {
 	    HUMAN: "human",
@@ -15,11 +16,14 @@
         if (input.length == 0)
             return;
             
-
         messages = [...messages, new Message(MessageType.HUMAN, input)];
         messageInput = "";
 
         let url = MAR.toChatbotConversationURL();
+        if (key != null){
+            url = url +"?key="+key
+        }
+
         const res = await fetch(url, {
                 method: "POST",
                 body: input,
@@ -27,16 +31,13 @@
             
         const answer = await res.json();
         let message = null;
-        let key = null;
         console.log(answer)
         switch (answer.type) {
             case "message":
                 message = answer.message;
-                key = answer.key;
                 break;
             case "result_list":
                 message = answer.message;
-                key = answer.key;
                 results = answer.items;
                 break;
             default:
@@ -44,18 +45,15 @@
                 break;
         }
 
+        if (key == null && answer.key) {
+            key = answer.key;
+            console.log("Getting the key for the conversation: ", key);
+        } else {
+            console.log("Reusing the key: ", key);
+        }
+
         if (message != null)
             messages = [...messages, new Message(MessageType.BOT, message)];
-
-        if (key!= null){
-            url = url +"&key="+key
-            const res = await fetch(url, {
-                method: "POST",
-                body: input,
-        });	
-        const answer2 = await res.json();
-        console.log(answer2)
-        }
     }
 
     class Message {

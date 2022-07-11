@@ -51,8 +51,8 @@ public class APIchatbot extends AbstractAPI {
 	}
 	
 	public Object conversation(Request req, Response res) throws IOException, InvalidMarRequest, ApiException {
-		String text = req.body();
 		int key = getKey(req);
+		String text = req.body();
 		Conversation conversation = cache.getConversation(key);
 		
 		if (text == null || text.isEmpty())
@@ -156,7 +156,7 @@ public class APIchatbot extends AbstractAPI {
 		} else {
 			mykey = Integer.parseInt(key);
 			// Make sure that they was created by the cache
-			if (cache.hasKey(mykey)) {
+			if (! cache.hasKey(mykey)) {
 				mykey = cache.getKey();
 			}
 		}
