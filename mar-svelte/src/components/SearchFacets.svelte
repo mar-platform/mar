@@ -2,6 +2,8 @@
   import Slider from './bootstrap/Slider.svelte'
   import { ItemHelper, intCompare } from './../lib/common.js'
 
+  import Chatbot				from "./Chatbot.svelte";
+
   let maxSmell = 100;
   let sortType
 
@@ -184,7 +186,6 @@
           <Slider label="Max elements" minDefault={facets.defaultMinElements} maxDefault={facets.defaultMaxElements} bind:value={facets.maxElements} />
         </div>
       </div>
-
       <div class="row">
         <div class="col">          
           <div class="button-group">

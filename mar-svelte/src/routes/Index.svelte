@@ -13,9 +13,15 @@
 	import SearchFacets 		from '../components/SearchFacets.svelte';
 
 	import ResultItem 			from "../components/ResultItem.svelte";
+import { loop_guard } from "svelte/internal";
 	
 	let results = [];
 	let shown_results = []
+
+	let origins = []
+	let modeltype = []
+	let category = []
+	let topics = []
 
 	let selectedModelType = null;
 	let searchMode = "text";
@@ -65,11 +71,42 @@
 					<ModelTypeSelection
 						bind:selected={selectedModelType} />
 				{:else if searchMode == 'chatbot'}
-					<Chatbot bind:results={results} />
+					<Chatbot bind:results={results} bind:modeltype bind:origins bind:category bind:topics />
+					{#if origins == null}
+          				{origins = []}
+		  			{/if}
+					{#if modeltype == null}
+					  {modeltype = []}
+				   {/if}
+				   {#if category == null}
+				   		{category = []}
+			   		{/if}
+					{#if topics == null}
+					   {topics = []}
+				   {/if}
 				{/if}
 			</div>
 		</div>
-
+		{#each origins as origin}
+		  {#if origins!= null}
+		  {setTimeout(facets.addOrigin(origin),2000)}
+		  {/if}
+        {/each}
+		{#each modeltype as model}
+		  {#if model!= null}
+		    {setTimeout(facets.addModelType(model),2000)}
+		  {/if}
+        {/each}
+		{#each category as cat}
+		  {#if cat!= null}
+		    {setTimeout(facets.addCategory(cat),2000)}
+		  {/if}
+        {/each}
+		{#each topics as topic}
+		  {#if topic!= null}
+          	{setTimeout(facets.addTopic(topic),2000)}
+		  {/if}
+        {/each}
 		<!-- Step 3 (for concrete syntax) -->
 		<div class="row justify-content-start mar-step-group">
 			{#if selectedModelType == 'Ecore' || selectedModelType == 'Xtext'}

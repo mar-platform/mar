@@ -1,0 +1,44 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-keyword",
+      "2": "I-keyword",
+      "3": "L-keyword",
+      "4": "U-keyword",
+      "5": "B-model",
+      "6": "I-model",
+      "7": "L-model",
+      "8": "U-model",
+      "9": "B-model_type",
+      "10": "I-model_type",
+      "11": "L-model_type",
+      "12": "U-model_type",
+      "13": "B-origin",
+      "14": "I-origin",
+      "15": "L-origin",
+      "16": "U-origin",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-keyword": 1,
+      "I-keyword": 2,
+      "L-keyword": 3,
+      "U-keyword": 4,
+      "B-model": 5,
+      "I-model": 6,
+      "L-model": 7,
+      "U-model": 8,
+      "B-model_type": 9,
+      "I-model_type": 10,
+      "L-model_type": 11,
+      "U-model_type": 12,
+      "B-origin": 13,
+      "I-origin": 14,
+      "L-origin": 15,
+      "U-origin": 16,
+      "O": 0
+    },
+    "num_tags": 17
+  }
+]

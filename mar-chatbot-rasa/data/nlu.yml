@@ -8,8 +8,7 @@ nlu:
 
   - intent: i_want_to_search
     examples: |
-      - I want to search [Ecore]{"entity": "model_type"} models
-      - I would like to search [Ecore]{"entity": "model_type"} models
+      - Do you have [Ecore]{"entity": "model_type"} models
       - Do you have [UML]{"entity": "model_type"} models?
       - I'm interested in [petri net]{"entity": "model_type"} models
 
@@ -19,20 +18,50 @@ nlu:
       - I'm interested in models about [youalsodontneedtochoosethisone]{"entity":"keyword"}
       - I'm looking for [youalsodontneedtochoosethisonetoo]{"entity":"keyword"}
 
-  - intent: add_param
+  - intent: ask_param
     examples: |      
       - What kind of parameters can i put ?
       - Can i add some parameters ?
+
+  - intent: sort
+    examples: |      
+      - How can i sort my results ?
+      - results can be sort ?
 #  - lookup: keyword
 #    examples: |  
 #      - text
 #      - futsal
+  - intent: add_model
+    examples: |      
+      - I want to choose as model [uml]{"entity":"model"}
+      - I only want modeltype [ecore]{"entity":"model"}
+      - I want to choose [rds]{"entity":"model"} as model
+      - I want to choose [bpmn2]{"entity":"model"} as type
+      - I only want [xtext]{"entity":"model"} models
+      - I only want [sculptor]{"entity":"model"} type
+      - My modeltype gonna be [archimate]{"entity":"model"}
+  - intent: add_origin
+    examples: |      
+      - I want to put as origin [github]{"entity":"origin"}
+      - I only want origin from [genmymodel]{"entity":"origin"}
+  - intent: add_category
+    examples: |      
+      - I want to put as category [tyushlgeiggh]{"entity":"category"}
+  - intent: add_topic
+    examples: |      
+      - I want to put as topic [hskvsbvsvg]{"entity":"topic"}
   - regex: keyword
     examples: |  
       -about \w{3,10}
       -about \w{3,10}\s\w{3,10}
       -for \w{3,10}
       -for \w{3,10}\s\w{3,10}
+  - regex: category
+    examples: |  
+      -category \w{3,10}
+  - regex: topic
+    examples: |  
+      -topic \w{3,10}
 # With lookup table    
 #      - I want to search [Ecore](model_type)
 #      - I would like to search [Ecore](model_type)

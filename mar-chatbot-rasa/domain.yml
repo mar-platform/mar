@@ -4,7 +4,12 @@ intents:
   - greet
   - i_want_to_search
   - search_a_topic
-  - add_param
+  - ask_param
+  - add_model
+  - add_origin
+  - add_category
+  - add_topic
+  - sort
 
 actions:
   - action_show_global_stats
@@ -12,6 +17,8 @@ actions:
 entities:
   - model_type
   - keyword
+  - origin
+  - model
 responses:
    utter_greet:
       - text: "Hi there! I'm here to help :-)"

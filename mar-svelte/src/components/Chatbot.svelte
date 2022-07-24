@@ -3,6 +3,10 @@
 
     let messageInput;
     let messages = []
+    export let origins = []
+    export let modeltype = []
+    export let category = []
+    export let topics = []
     let key = null;
 
     const MessageType = {
@@ -39,6 +43,10 @@
             case "result_list":
                 message = answer.message;
                 results = answer.items;
+                origins = answer.origins;
+                modeltype = answer.modeltype;
+                category = answer.category;
+                topics = answer.topics;
                 break;
             default:
                 message = "Something weird happened internally. Please try again."

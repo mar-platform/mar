@@ -1,0 +1,26 @@
+[
+  {
+    "name": "category",
+    "pattern": "category \\w{3,10}"
+  },
+  {
+    "name": "keyword",
+    "pattern": "about \\w{3,10}"
+  },
+  {
+    "name": "keyword",
+    "pattern": "about \\w{3,10}\\s\\w{3,10}"
+  },
+  {
+    "name": "keyword",
+    "pattern": "for \\w{3,10}"
+  },
+  {
+    "name": "keyword",
+    "pattern": "for \\w{3,10}\\s\\w{3,10}"
+  },
+  {
+    "name": "topic",
+    "pattern": "topic \\w{3,10}"
+  }
+]
