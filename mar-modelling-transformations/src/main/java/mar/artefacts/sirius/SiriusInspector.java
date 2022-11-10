@@ -30,6 +30,7 @@ import mar.artefacts.atl.ATLProgram;
 import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
+import mar.validation.AnalysisDB;
 
 /**
  * Sirius is a dynamic framework, in the sense that it is only when the .aird file is created
@@ -47,13 +48,10 @@ import mar.artefacts.graph.RecoveryStats;
  */
 public class SiriusInspector extends XMLProjectInspector {
 
-
 	private final XPathExpression FIND_METAMODEL;
-	private final FileSearcher searcher;
 	
-	public SiriusInspector(Path repositoryDataFolder, Path projectPath) {
-		super(repositoryDataFolder, projectPath);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+	public SiriusInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb) {
+		super(repositoryDataFolder, projectPath, analysisDb);
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();

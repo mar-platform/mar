@@ -35,15 +35,15 @@ public class InspectorLauncher {
 	}
 	
 	public Collection<RecoveryGraph> fromBuildFiles() throws SQLException {
-		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath));		
+		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 	
 	public Collection<RecoveryGraph> fromLaunchFiles() throws SQLException {
-		return doInspect("eclipse-launcher", (projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath));		
+		return doInspect("eclipse-launcher", (projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 	
 	public Collection<RecoveryGraph> fromQvtoFiles() throws SQLException {
-		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath));		
+		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath, analysisDb));	
 	}
 	
 	public Collection<RecoveryGraph> fromOclFiles() throws SQLException {
@@ -51,27 +51,27 @@ public class InspectorLauncher {
 	}
 		
 	public Collection<RecoveryGraph> fromXtextFiles() throws SQLException {
-		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath));		
+		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 	
 	public Collection<RecoveryGraph> fromEmfaticFiles() throws SQLException {
-		return doInspect("emfatic", (projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath));		
+		return doInspect("emfatic", (projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath, analysisDb));
 	}
 
 	public Collection<RecoveryGraph> fromAcceleoFiles() throws SQLException {
-		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath));		
+		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath, analysisDb));
 	}
 
     public Collection<RecoveryGraph> fromATLFiles() throws SQLException {
-		return doInspect("atl", (projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath));		
+		return doInspect("atl", (projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath, analysisDb));	
 	}
 
     public Collection<RecoveryGraph> fromSirius() throws SQLException {
-		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath));		
+		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 
     public Collection<RecoveryGraph> fromHenshin() throws SQLException {
-		return doInspect("henshin", (projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath));		
+		return doInspect("henshin", (projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath, analysisDb));
 	}
     
 	private Collection<RecoveryGraph> doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {

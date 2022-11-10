@@ -17,6 +17,11 @@
 
     export let document;
     $: if (document != undefined && container != undefined) {
+        // Make sure that we start again everything from scratch on each rebind of document
+        currentNode = null;
+        if (renderer != null)
+          renderer.kill();
+
         createNetwork(document);
     } 
 

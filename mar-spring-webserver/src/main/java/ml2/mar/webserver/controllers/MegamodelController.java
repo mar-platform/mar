@@ -42,10 +42,22 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getRelationships());    	
     }
 
+	@GetMapping(value = "/duplication-graph", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:3000")
+    public String duplicationGraph() throws JsonProcessingException {
+        return objectMapper.writeValueAsString(analysis.getDuplicationGraph());
+    }
+
 	@GetMapping(value = "/project-graph", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")
 	public RelationshipsGraph getProjectGraph(@RequestParam String projectId) {
 		return analysis.getProjectRelationship(projectId);
+	}
+
+	@GetMapping(value = "/graph-from-sql", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:3000")
+	public RelationshipsGraph getGraphFromSQL(@RequestParam String sql) {
+		return analysis.getRelationshipsFromSQL(sql);
 	}
 	
 	@GetMapping(value = "/search-project", produces="application/json")

@@ -29,12 +29,12 @@ import com.google.common.base.Preconditions;
 
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
-import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.utils.AntUtils;
+import mar.validation.AnalysisDB;
 
 public class BuildFileInspector extends XMLProjectInspector {
 
@@ -44,8 +44,8 @@ public class BuildFileInspector extends XMLProjectInspector {
 	
 	private final FileSearcher searcher;
 	
-	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB db) {
+		super(repoFolder, projectSubPath, db);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 		
 		try {
