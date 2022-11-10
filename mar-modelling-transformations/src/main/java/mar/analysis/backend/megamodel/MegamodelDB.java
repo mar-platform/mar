@@ -182,6 +182,10 @@ public class MegamodelDB implements Closeable {
 	public Map<? extends String, ? extends Artefact> getAllArtefacts() {
 		return allArtefacts;
 	}
+	
+	public Map<? extends String, ? extends String> getAllVirtualNodes() {
+		return allVirtualNodes;
+	}
 
 	@Nonnull
 	public void getProjectArtefacts(String projectId, BiConsumer<String, Artefact> consumer) {
@@ -210,6 +214,28 @@ public class MegamodelDB implements Closeable {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public void getRelationshipsFromSQL(String query, @Nonnull RelationshipConsumer consumer) {
+		try {
+			PreparedStatement stm = connection.prepareStatement(query);
+			//"SELECT source, target, type FROM relationships WHERE type in (" + types + ")");
+			stm.execute();
+			ResultSet rs = stm.getResultSet();
+	        //stm.getMetaData().getColumnName()
+	       	        
+			while (rs.next()) {
+	        	String src = rs.getString(1);
+	        	String target = rs.getString(2);
+	        	Relationship rel = Relationship.getByKind(rs.getString(3));
+	
+	        	consumer.accept(src, target, rel);
+	        }	
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
 
 
 	public List<Project> searchProjects(String value) {

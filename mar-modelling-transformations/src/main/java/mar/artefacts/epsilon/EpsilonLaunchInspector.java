@@ -25,6 +25,7 @@ import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
+import mar.validation.AnalysisDB;
 
 /**
  * <pre>
@@ -48,8 +49,8 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 	private final XPathExpression FIND_PROGRAMS;
     private final FileSearcher searcher;
     
-	public EpsilonLaunchInspector(Path repoFolder, Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public EpsilonLaunchInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
+		super(repoFolder, projectSubPath, analysisDb);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 		
 		try {
@@ -121,7 +122,7 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 		EpsilonProgram epsilonProgram = new EpsilonProgram(programPath);		
 		graph.addProgram(epsilonProgram);
 		for (String uri : uris) {
-			Metamodel mm = Metamodel.fromURI(uri, uri);
+			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			
 			List<MetamodelReference.Kind> kinds = new ArrayList<>();
 			kinds.add(MetamodelReference.Kind.TYPED_BY);

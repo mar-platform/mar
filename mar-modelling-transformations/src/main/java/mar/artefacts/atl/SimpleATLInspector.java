@@ -17,6 +17,7 @@ import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.validation.AnalysisDB;
 
 /**
  * This inspector relies on module annotations to determine the meta-model.
@@ -43,8 +44,8 @@ public class SimpleATLInspector extends ProjectInspector {
 	
 	private final FileSearcher searcher;
 
-	public SimpleATLInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public SimpleATLInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB db) {
+		super(repoFolder, projectSubPath, db);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
 	

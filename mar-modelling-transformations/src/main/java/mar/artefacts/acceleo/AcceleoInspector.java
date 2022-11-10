@@ -16,11 +16,12 @@ import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.validation.AnalysisDB;
 
 public class AcceleoInspector extends ProjectInspector {
 
-	public AcceleoInspector(Path repoFolder, Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public AcceleoInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
+		super(repoFolder, projectSubPath, analysisDb);
 	}
 
 	/**
@@ -48,7 +49,7 @@ public class AcceleoInspector extends ProjectInspector {
 		graph.addProgram(program);
 		
 		for (String uri : uris) {
-			Metamodel mm = Metamodel.fromURI(uri, uri);
+			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			graph.addMetamodel(mm);
 			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
 		}
