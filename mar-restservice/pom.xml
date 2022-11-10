@@ -8,7 +8,7 @@
 	<description>A Rest server to browse a model repository</description>
 
 	<parent>
-		<groupId>ml2.mar</groupId>
+		<groupId>io.github.models-lab.mar</groupId>
 		<artifactId>mar-main</artifactId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
@@ -16,6 +16,7 @@
 	<properties>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
 	<repositories>
@@ -130,26 +131,26 @@
 	<dependencies>
 		<!-- Project dependencies -->
 		<dependency>
-			<groupId>ml2.mar</groupId>
+			<groupId>io.github.models-lab.mar</groupId>
 			<artifactId>mar-common</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
-			<groupId>ml2.mar</groupId>
+			<groupId>io.github.models-lab.mar</groupId>
 			<artifactId>mar-modelling</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
-			<groupId>ml2.mar</groupId>
+			<groupId>io.github.models-lab.mar</groupId>
 			<artifactId>mar-indexer-lucene</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
 
 		<dependency>
-			<groupId>ml2.mar</groupId>
+			<groupId>io.github.models-lab.mar</groupId>
 			<artifactId>mar-indexer-spark</artifactId>
 			<version>1.0-SNAPSHOT</version>
 			<exclusions>
