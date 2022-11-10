@@ -20,6 +20,7 @@ import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.validation.AnalysisDB;
 
 /**
  * This inspector relies on module annotations to determine the meta-model.
@@ -46,8 +47,8 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	
 	private final FileSearcher searcher;
 
-	public AnATLyzerFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public AnATLyzerFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB analysisDb) {
+		super(repoFolder, projectSubPath, analysisDb);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
 	
@@ -71,7 +72,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			if (modelInfo.isURI()) {
 				mm = extractPath(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
 			} else {
-    			mm = Metamodel.fromURI(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
+    			mm = toMetamodel(modelInfo.getURIorPath(), getRepositoryPath(f).getParent());
 			}
 			
 			List<MetamodelReference.Kind> kinds = new ArrayList<>();

@@ -12,10 +12,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import mar.validation.AnalysisDB;
+
 public abstract class XMLProjectInspector extends ProjectInspector {
 
-	public XMLProjectInspector(Path repoFolder, Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public XMLProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB db) {
+		super(repoFolder, projectSubPath, db);
 		
 	}
 

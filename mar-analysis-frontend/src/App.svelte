@@ -14,9 +14,11 @@
   } from "sveltestrap";
 
   import ClusterExploration from "./ClusterExploration.svelte";
+  import DuplicationGraphExploration from "./DuplicationGraphExploration.svelte";
   import GraphExploration from './GraphExploration.svelte';
   import InterProjectExploration from "./InterProjectExploration.svelte";
   import ProjectExploration from "./ProjectExploration.svelte";
+  import SqlExplorer from "./SqlExplorer.svelte";
 
   let selection : string = 'stats';
   let graphSelection : string = 'project';
@@ -28,6 +30,7 @@
     margin-left: 20px;
   }
 </style>
+
 
 <Nav pills>
   <NavItem>
@@ -42,33 +45,15 @@
   <NavItem>
     <NavLink active={selection == 'sql'} on:click={e => selection = 'sql'} href="#" >Database exploration</NavLink>
   </NavItem>
-  <!--
-  <Dropdown nav {isOpen} toggle={() => (isOpen = !isOpen)}>
-    <DropdownToggle nav caret>Dropdown</DropdownToggle>
-    <DropdownMenu>
-      <DropdownItem header>Header</DropdownItem>
-      <DropdownItem disabled>Action</DropdownItem>
-      <DropdownItem>Another Action</DropdownItem>
-      <DropdownItem divider />
-      <DropdownItem>Another Action</DropdownItem>
-    </DropdownMenu>
-  </Dropdown>
-  <NavItem>
-    <NavLink href="#">Link</NavLink>
-  </NavItem>
-  <NavItem>
-    <NavLink href="#">Another Link</NavLink>
-  </NavItem>
-  <NavItem>
-    <NavLink disabled href="#">Disabled Link</NavLink>
-  </NavItem>
-  -->
 </Nav>
 
 {#if selection == 'graph'} 
   <Nav pills>
     <NavItem>
       <NavLink active={graphSelection == 'all_graph'} on:click={e => graphSelection = 'all_graph'} href="#" >All</NavLink>
+    </NavItem>
+    <NavItem>
+      <NavLink active={graphSelection == 'duplication-graph'} on:click={e => graphSelection = 'duplication-graph'} href="#" >Duplication</NavLink>
     </NavItem>
     <NavItem>
       <NavLink active={graphSelection == 'inter_project'} on:click={e => graphSelection = 'inter_project'} href="#" >Inter-project</NavLink>
@@ -80,6 +65,8 @@
   <div class="content">
     {#if graphSelection == 'all_graph'} 
       <GraphExploration />
+    {:else if graphSelection == 'duplication-graph'} 
+      <DuplicationGraphExploration />
     {:else if graphSelection == 'inter_project'}
       <InterProjectExploration />
     {:else if graphSelection == 'project'}
@@ -93,5 +80,9 @@
 {:else if selection == 'clusters'}
 <div class="content">
   <ClusterExploration />
+</div>
+{:else if selection == 'sql'}
+<div class="content">
+  <SqlExplorer />
 </div>
 {/if}

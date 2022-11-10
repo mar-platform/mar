@@ -11,6 +11,7 @@ import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
+import mar.analysis.megamodel.model.RelationshipsGraph.VirtualNode;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.graph.RecoveryGraph;
@@ -92,7 +93,7 @@ public class DuplicateComputation {
 			T representative = duplicationGroup.getRepresentative();
 			
 			String id = conf.toId(representative) + "#duplicate-group"; 
-			Node node = new RelationshipsGraph.VirtualNode(id, "duplication");
+			Node node = new RelationshipsGraph.VirtualNode(id, VirtualNode.DUPLICATION_ID);
 			completeGraph.addNode(node);
 			
 			for (T p1  : duplicationGroup) {

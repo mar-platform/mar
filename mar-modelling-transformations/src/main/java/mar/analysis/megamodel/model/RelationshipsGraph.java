@@ -117,6 +117,8 @@ public class RelationshipsGraph {
 	@JsonTypeName("virtual")
 	public static class VirtualNode extends Node {
 
+		public static final String DUPLICATION_ID = "duplication";
+		
 		@JsonProperty
 		private final String kind;
 

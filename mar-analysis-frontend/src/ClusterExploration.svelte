@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-import { update_await_block_branch } from "svelte/internal";
     import API from "./API";
  
     let clusters = [];

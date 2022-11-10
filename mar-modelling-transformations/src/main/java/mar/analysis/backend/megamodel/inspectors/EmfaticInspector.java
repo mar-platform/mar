@@ -17,6 +17,7 @@ import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.validation.AnalysisDB;
 
 /**
  * In .emf files we can find package URIs in lines like:
@@ -32,8 +33,8 @@ public class EmfaticInspector extends ProjectInspector {
 
 	private final FileSearcher searcher;
 
-	public EmfaticInspector(Path repoFolder, Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public EmfaticInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
+		super(repoFolder, projectSubPath, analysisDb);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
 

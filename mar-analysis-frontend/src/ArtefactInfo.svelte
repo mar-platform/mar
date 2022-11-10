@@ -5,8 +5,9 @@
     export let graph : Graph
 
     interface Dependency {
-        source: any; // artefact
-        target: any; // artefact
+        source: any; // node
+        target: any; // node
+        targetName: String,
         type: String;
     }
 
@@ -24,8 +25,9 @@
                 graph.getEdgeAttribute(neighbor, node.id, 'edgeType');
 
             dependencies.push({
-                source: node.artefact, 
-                target: attributes.impl.artefact, 
+                source: node, 
+                target: attributes.impl,
+                targetName: attributes.label,
                 type: edgeType 
             });
         });
@@ -34,10 +36,16 @@
 
 <h2>Artefact</h2>
 <div>Id: {node.id}</div>
-<div>Type: {node.artefact.type}</div>
-<div>Name: {node.artefact.name}</div>
+{#if node._type == 'artefact'}
+    <div>Type: {node.artefact.type}</div>
+    <div>Name: {node.artefact.name}</div>
+{:else if node._type == 'virtual'}
+    {#each node.artefacts as node_id}
+        <div>{node_id}</div>    
+    {/each}        
+{/if}
 
 <h2>Dependencies</h2>
 {#each dependencies as dep}
-    <div>{dep.target.name}</div>    
+    <div>{dep.targetName}</div>    
 {/each}

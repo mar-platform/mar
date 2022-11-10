@@ -1,7 +1,6 @@
 package mar.artefacts.qvto;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.m2m.internal.qvt.oml.cst.ImportCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.MappingModuleCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
@@ -23,13 +21,14 @@ import mar.artefacts.RecoveredPath;
 import mar.artefacts.Transformation.Qvto;
 import mar.artefacts.Transformation.TransformationParameter;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.validation.AnalysisDB;
 
 public class QvtoInspector extends ProjectInspector {
 
 	//private final EcoreRepository ecoreRepository;
 
-	public QvtoInspector(Path repoFolder, Path projectPath /* , AnalysisDB metamodels */) {
-		super(repoFolder, projectPath);
+	public QvtoInspector(Path repoFolder, Path projectPath, AnalysisDB analysisDb) {
+		super(repoFolder, projectPath, analysisDb);
 		//this.ecoreRepository = new EcoreRepository(metamodels, repoFolder.toFile());
 	}
 
@@ -49,7 +48,7 @@ public class QvtoInspector extends ProjectInspector {
 		
 		for (TransformationParameter p : expectedMetamodels) {
 			// Do I have a way to extract the logical name of the meta-model from QVTo file?
-			Metamodel mm = Metamodel.fromURI(p.getUri(), p.getUri());
+			Metamodel mm = toMetamodel(p.getUri(), getRepositoryPath(qvtoFilePath).getParent());
 			graph.addMetamodel(mm);
 			
 			List<MetamodelReference.Kind> kinds = new ArrayList<>();

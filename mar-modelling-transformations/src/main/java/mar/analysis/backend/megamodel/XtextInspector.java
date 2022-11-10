@@ -11,11 +11,12 @@ import mar.artefacts.RecoveredPath;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.models.xtext.XtextLoader;
 import mar.models.xtext.XtextLoader.XtextAnalysisResult;
+import mar.validation.AnalysisDB;
 
 public class XtextInspector extends ProjectInspector {
 
-	public XtextInspector(Path repoFolder, Path projectSubPath) {
-		super(repoFolder, projectSubPath);
+	public XtextInspector(Path repoFolder, Path projectSubPath, AnalysisDB db) {
+		super(repoFolder, projectSubPath, db);
 	}
 
 	@Override
@@ -29,13 +30,13 @@ public class XtextInspector extends ProjectInspector {
 		graph.addProgram(p);
 		
 		for (String uri : r.getGeneratedURIs()) {
-			Metamodel mm = Metamodel.fromURI(uri, uri);
+			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE, MetamodelReference.Kind.TYPED_BY);
 		}
 				
 		for (String uri : r.getImportedURIs()) {
-			Metamodel mm = Metamodel.fromURI(uri, uri);
+			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.IMPORT, MetamodelReference.Kind.TYPED_BY);
 		}

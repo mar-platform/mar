@@ -24,13 +24,14 @@ import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
+import mar.validation.AnalysisDB;
 
 public class HenshinInspector extends XMLProjectInspector {
 	
 	private final XPathExpression FIND_METAMODEL;
 	
-	public HenshinInspector(Path repositoryDataFolder, Path projectPath) {
-		super(repositoryDataFolder, projectPath);		
+	public HenshinInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb) {
+		super(repositoryDataFolder, projectPath, analysisDb);
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
