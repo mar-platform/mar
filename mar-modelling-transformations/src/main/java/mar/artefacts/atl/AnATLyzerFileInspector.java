@@ -14,10 +14,12 @@ import anatlyzer.atl.model.ATLModel;
 import anatlyzer.atl.tests.api.AtlLoader;
 import anatlyzer.atl.util.ATLUtils;
 import anatlyzer.atl.util.ATLUtils.ModelInfo;
+import anatlyzer.atlext.ATL.LibraryRef;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.validation.AnalysisDB;
@@ -84,6 +86,19 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			
 			graph.addMetamodel(mm);
 			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
+		}
+		
+		// Match libraries by name, looking up files in the project
+		for (LibraryRef library : m.getRoot().getLibraries()) {
+			Path file = getRepositoryPath(f).resolveSibling(library.getName() + ".atl");
+			System.out.println(f);
+			System.out.println(file);
+			RecoveredPath recovered = searcher.findFile(file);
+			if (recovered instanceof MissingPath) {
+				// TODO: Try another strategy, by methods calls
+			} else {
+				program.addImportDependency(recovered.getPath());
+			}
 		}
 		
 		return graph;

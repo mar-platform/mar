@@ -8,6 +8,8 @@ import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.apache.commons.text.similarity.LevenshteinDistance;
+
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.HeuristicPath;
 
@@ -29,7 +31,7 @@ public class FileSearcher {
 								.filter(f -> ! f.startsWith("."))
 								.filter(f -> f.endsWith(filename))
 								.map(p -> repoRoot.relativize(p))
-								.sorted((f1, f2) -> -1 * Integer.compare(similarity(loosyPath, f1), similarity(loosyPath, f2)))
+								.sorted((f1, f2) -> Integer.compare(distance(loosyPath, f1), distance(loosyPath, f2)))
 								.findFirst();
 			// I could return the alternatives as well
 			return match.<RecoveredPath>map(p -> new HeuristicPath(p)).orElse(new RecoveredPath.MissingPath(loosyPath));
@@ -51,14 +53,9 @@ public class FileSearcher {
 	}
 	
 	
-	protected static int similarity(Path loosyPath, Path projectFilePath) {
-		int i, len = loosyPath.getNameCount();
-		for(i = len - 1; i >= 0; i++) {
-			if (projectFilePath.endsWith(loosyPath.subpath(i, len))) {
-				return len - i;
-			}
-		}
-		return 0;
+	protected static int distance(Path loosyPath, Path projectFilePath) {
+		LevenshteinDistance distance = new LevenshteinDistance();
+		return distance.apply(loosyPath.toString(), projectFilePath.toString());
 	}
 	
 }
