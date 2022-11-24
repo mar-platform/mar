@@ -1,13 +1,22 @@
 package mar.artefacts.atl;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import org.eclipse.emf.common.util.TreeIterator;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import anatlyzer.atl.model.ATLModel;
@@ -15,8 +24,12 @@ import anatlyzer.atl.tests.api.AtlLoader;
 import anatlyzer.atl.util.ATLUtils;
 import anatlyzer.atl.util.ATLUtils.ModelInfo;
 import anatlyzer.atlext.ATL.LibraryRef;
+import anatlyzer.atlext.OCL.OclModel;
+import anatlyzer.atlext.OCL.OclModelElement;
+import mar.analysis.ecore.EcoreLoader;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
+import mar.artefacts.MetamodelReference.Kind;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.MissingPath;
@@ -65,10 +78,13 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
+		List<ModelInfo> untyped = new ArrayList<ATLUtils.ModelInfo>();
 		for (ModelInfo modelInfo : ATLUtils.getModelInfo(m)) {
 			// Some ATL transformations are not annotated with meta-model information
-			if (modelInfo.getURIorPath() == null)
+			if (modelInfo.getURIorPath() == null) {
+				untyped.add(modelInfo);
 				continue;
+			}
 			
 			Metamodel mm;
 			if (modelInfo.isURI()) {
@@ -77,22 +93,27 @@ public class AnATLyzerFileInspector extends ProjectInspector {
     			mm = toMetamodel(modelInfo.getURIorPath(), getRepositoryPath(f).getParent());
 			}
 			
-			List<MetamodelReference.Kind> kinds = new ArrayList<>();
-			kinds.add(MetamodelReference.Kind.TYPED_BY);
-			if (modelInfo.isInput()) 
-				kinds.add(MetamodelReference.Kind.INPUT_OF);
-			if (modelInfo.isOutput()) 
-				kinds.add(MetamodelReference.Kind.OUTPUT_OF);
+			List<MetamodelReference.Kind> kinds = toKinds(modelInfo);
 			
 			graph.addMetamodel(mm);
 			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
 		}
 		
+		// There are models which are not annotated, for them we have other meta-models in the project
+		if (untyped.size() > 0) {
+			Map<ModelInfo, RecoveredMetamodelFile> recoveredMetamodels = checkUntyped(m, untyped);
+			recoveredMetamodels.forEach((mi, mmFile) -> {
+				Path repoFile = getRepositoryPath(mmFile.bestMetamodel);				
+				Metamodel mm = Metamodel.fromFile(mi.getMetamodelName(), new RecoveredPath(repoFile));
+				graph.addMetamodel(mm);
+				List<Kind> kinds = toKinds(mi);
+				program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
+			});
+		}
+		
 		// Match libraries by name, looking up files in the project
 		for (LibraryRef library : m.getRoot().getLibraries()) {
 			Path file = getRepositoryPath(f).resolveSibling(library.getName() + ".atl");
-			System.out.println(f);
-			System.out.println(file);
 			RecoveredPath recovered = searcher.findFile(file);
 			if (recovered instanceof MissingPath) {
 				// TODO: Try another strategy, by methods calls
@@ -104,6 +125,94 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		return graph;
 	}
 
+
+	private List<MetamodelReference.Kind> toKinds(ModelInfo modelInfo) {
+		List<MetamodelReference.Kind> kinds = new ArrayList<>();
+		kinds.add(MetamodelReference.Kind.TYPED_BY);
+		if (modelInfo.isInput()) 
+			kinds.add(MetamodelReference.Kind.INPUT_OF);
+		if (modelInfo.isOutput()) 
+			kinds.add(MetamodelReference.Kind.OUTPUT_OF);
+		return kinds;
+	}
+
+	private Map<ModelInfo, RecoveredMetamodelFile> checkUntyped(ATLModel m, List<? extends ModelInfo> untyped) {
+		Map<String, ModelInfo> metamodels = untyped.stream().
+				collect(Collectors.toMap(mi -> mi.getMetamodelName(), mi -> mi));
+		Map<ModelInfo, RecoveredMetamodelFile> classFootprints = untyped.stream().
+				collect(Collectors.toMap(name -> name, name -> new RecoveredMetamodelFile()));
+		
+		List<OclModelElement> elements = m.allObjectsOf(OclModelElement.class);
+		for (OclModelElement me : elements) {
+			OclModel model = me.getModel();
+			if (model != null) {
+				ModelInfo mi = metamodels.get(model.getName());
+				if (mi != null) {
+					classFootprints.get(mi).footprint.add(me.getName());
+				}
+			}
+		}
+		
+		try {
+			List<Path> files = searcher.findFilesByExtension("ecore");
+			for (Path path : files) {
+				Set<String> names = toClassNames(path.toFile());
+				
+				classFootprints.forEach((metamodel, recoveredMetamodel) -> {
+					int coincidences = checkSimilarity(names, recoveredMetamodel.footprint);
+					if (coincidences > recoveredMetamodel.bestCoincidenceCount) {
+						recoveredMetamodel.accuracy = (100.0 * coincidences) / recoveredMetamodel.footprint.size();
+						recoveredMetamodel.bestCoincidenceCount = coincidences;
+						recoveredMetamodel.bestMetamodel = path.toFile();
+					}
+				});
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		
+		
+		Map<ModelInfo, RecoveredMetamodelFile> result = new HashMap<>();
+		classFootprints.forEach((k, v) -> {
+			if (v.bestMetamodel != null && v.accuracy > 95.0)
+				result.put(k ,v);
+		});
+		
+		return result;
+		// TODO: I can use AnATLyzer to test the best ones
+	}
+
+	private static class RecoveredMetamodelFile {
+		public double accuracy;
+		private Set<String> footprint = new HashSet<String>();
+		private int bestCoincidenceCount = -1;
+		private File bestMetamodel;
+	}
+
+	private int checkSimilarity(Set<String> names, Set<String> footprintNames) {
+		int count = 0;
+		for (String str : footprintNames) {
+			if (names.contains(str))
+				count++;
+		}
+		return count;
+	}
+
+
+	private Set<String> toClassNames(File f) throws IOException {
+		Set<String> result = new HashSet<String>();
+		Resource resource = new EcoreLoader().toEMF(f);
+		TreeIterator<EObject> it = resource.getAllContents();
+		while (it.hasNext()) {
+			EObject obj = it.next();
+			if (obj instanceof EClass) {
+				result.add(((EClass) obj).getName());
+			}
+		}
+		return result;
+	}
+	
+	
 	@Nonnull
 	private Metamodel extractPath(String name, String file) {
 		// @path routes are normally rooted in the workspace, so we make it relative
