@@ -167,9 +167,21 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				}
 			}
 		}
-				
+		
 		for (FileProgram fileProgram : withImports) {
 			for (Path path : fileProgram.getImportedPrograms()) {
+				String tgt = toId(path);
+				if ( ! graph.hasNode(tgt) ) {
+					// This happens for instance with:
+					//  - src: adilinam/QVTo-QVTd-OCL/org.eclipse.m2m.tests.qvt.oml/parserTestData/sources/bug468303/bug468303.qvto
+					//  - tgt: adilinam/QVTo-QVTd-OCL/org.eclipse.m2m.tests.qvt.oml/parserTestData/sources/bug468303/incompatible.qvto
+					// Because the QVT inspector creates an imported program "incompatible.qvto" but at the same
+					// time the QVT inspector (for some reason) fails to load "incompatible.qvto" and thus it is
+					// never added to the graph.
+					
+					System.err.println("Target node not found: " + tgt);
+					continue;
+				}
 				graph.addEdge(toId(fileProgram), toId(path), Relationship.IMPORT);
 			}
 		}
