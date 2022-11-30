@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
@@ -235,18 +234,13 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 	
-	
-
-
 	public List<Project> searchProjects(String value) {
 		// TODO: Do this better. The db should have the notion of project
 		return getAllArtefacts().values().stream().
-			filter(a -> a.getId().toLowerCase().contains(value.toLowerCase())).
-			map(a -> a.getId()).
-			filter(p -> p.contains("/")).
-			map(p -> p.split("/")[0] + "/" + p.split("/")[1]).
+			//filter(a -> a.getId().toLowerCase().contains(value.toLowerCase())).
+			map(a -> a.getProject()).
+			filter(p -> p.getId().toLowerCase().contains(value.toLowerCase())).
 			distinct().
-			map(p -> new Project(p)).
 			collect(Collectors.toList());
 	}
 	
