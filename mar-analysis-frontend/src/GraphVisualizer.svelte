@@ -172,8 +172,8 @@
   }
 
   #container {
-    width: 800px;
-    height: 600px;
+    /* width: 800px; */
+    height: 600px; 
     border: 1px solid gray;
 
     resize:both;
