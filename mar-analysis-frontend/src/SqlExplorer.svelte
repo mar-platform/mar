@@ -3,7 +3,7 @@
     import API from "./API";
     import GraphVisualizer from "./GraphVisualizer.svelte";
 
-    let sqlQuery;
+    let sqlQuery = "select source, target, r.type from relationships r join artefacts a on r.source = a.id where r.type = 'typed-by' and a.category = 'transformation'";
     let document;
 
     function submitQuery(sqlQuery) {
@@ -25,13 +25,49 @@
 
 </script>
 
+<style>
+#container {
+    display: flex;
+    gap: 20px;
+}
+
+#graph {
+    height: 600px;
+    width: 400px;
+    flex-grow: 1;
+}
+</style>
+
 <FormGroup>
     <Label for="query">SQL Query</Label>
     <Input type="textarea" name="text" id="query" bind:value={sqlQuery} />
     <Button on:click={e => submitQuery(sqlQuery)}>Submit</Button>
 </FormGroup>
 
-<div id="container" style="margin-left: 620px; width: calc(100wh - 600px)"> 
-    <GraphVisualizer  document={document} /> 
+<div id="container"> 
+    <div>
+        <pre>
+CREATE TABLE projects (
+    id            varchar(255) PRIMARY KEY,
+    url           text NOT NULL);
+CREATE TABLE artefacts (
+    id            varchar(255) PRIMARY KEY,
+    type          varchar(255) NOT NULL,
+    category      varchar(255) NOT NULL,
+    name          varchar(255) NOT NULL,
+    project_id    varchar(255)
+);
+CREATE TABLE virtual_nodes (
+    id            varchar(255) PRIMARY KEY,
+    kind          varchar(255) NOT NULL);
+CREATE TABLE relationships (
+    source    varchar(255) NOT NULL,
+    target    varchar(255) NOT NULL,
+    type  varchar (255) NOT NULL);    
+        </pre>
+    </div>
+    <div id="graph">
+        <GraphVisualizer  document={document} /> 
+    </div>
 </div>
 
