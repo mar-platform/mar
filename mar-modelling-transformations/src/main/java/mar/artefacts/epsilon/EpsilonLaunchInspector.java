@@ -25,6 +25,7 @@ import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
+import mar.artefacts.search.FileSearcher;
 import mar.validation.AnalysisDB;
 
 /**

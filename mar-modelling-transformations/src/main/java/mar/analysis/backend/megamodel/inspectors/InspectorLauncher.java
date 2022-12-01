@@ -86,8 +86,10 @@ public class InspectorLauncher {
 				//QvtoInspector inspector = new QvtoInspector(repositoryDataFolder, projectPath);
 				ProjectInspector inspector = factory.apply(projectPath);
 				RecoveryGraph minigraph = inspector.process(model.getFullPath().toFile());
-				if (minigraph != null)
+				if (minigraph != null) {
+					minigraph.assertValid();
 					result.add(minigraph);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

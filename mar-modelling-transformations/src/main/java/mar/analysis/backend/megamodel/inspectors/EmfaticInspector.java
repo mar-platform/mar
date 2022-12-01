@@ -15,8 +15,8 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
-import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.search.FileSearcher;
 import mar.validation.AnalysisDB;
 
 /**

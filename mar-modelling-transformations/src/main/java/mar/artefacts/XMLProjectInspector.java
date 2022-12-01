@@ -18,7 +18,6 @@ public abstract class XMLProjectInspector extends ProjectInspector {
 
 	public XMLProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB db) {
 		super(repoFolder, projectSubPath, db);
-		
 	}
 
 	protected Document loadDocument(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
