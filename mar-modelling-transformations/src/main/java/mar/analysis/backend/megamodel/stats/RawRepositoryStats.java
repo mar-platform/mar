@@ -1,11 +1,11 @@
-package mar.analysis.backend.megamodel;
+package mar.analysis.backend.megamodel.stats;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MegamodelStats {
+public class RawRepositoryStats {
 
 	@JsonProperty
 	private Map<String, Long> artefactTypeCount = new HashMap<>();

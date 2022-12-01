@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
+import mar.analysis.backend.megamodel.stats.MegamodelStats;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Relationship;
