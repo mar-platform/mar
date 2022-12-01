@@ -1,22 +1,15 @@
 package mar.artefacts.atl;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import org.eclipse.emf.common.util.TreeIterator;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import anatlyzer.atl.model.ATLModel;
@@ -26,15 +19,16 @@ import anatlyzer.atl.util.ATLUtils.ModelInfo;
 import anatlyzer.atlext.ATL.LibraryRef;
 import anatlyzer.atlext.OCL.OclModel;
 import anatlyzer.atlext.OCL.OclModelElement;
-import mar.analysis.ecore.EcoreLoader;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.MissingPath;
-import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.search.FileSearcher;
+import mar.artefacts.search.MetamodelSeacher;
+import mar.artefacts.search.MetamodelSeacher.RecoveredMetamodelFile;
 import mar.validation.AnalysisDB;
 
 /**
@@ -103,7 +97,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		if (untyped.size() > 0) {
 			Map<ModelInfo, RecoveredMetamodelFile> recoveredMetamodels = checkUntyped(m, untyped);
 			recoveredMetamodels.forEach((mi, mmFile) -> {
-				Path repoFile = getRepositoryPath(mmFile.bestMetamodel);				
+				Path repoFile = getRepositoryPath(mmFile.getBestMetamodel());				
 				Metamodel mm = Metamodel.fromFile(mi.getMetamodelName(), new RecoveredPath(repoFile));
 				graph.addMetamodel(mm);
 				List<Kind> kinds = toKinds(mi);
@@ -137,6 +131,14 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	}
 
 	private Map<ModelInfo, RecoveredMetamodelFile> checkUntyped(ATLModel m, List<? extends ModelInfo> untyped) {
+		Map<ModelInfo, RecoveredMetamodelFile> classFootprints = toClassFootprints(m, untyped);		
+		MetamodelSeacher ms = new MetamodelSeacher(searcher);
+		return ms.search(classFootprints);
+		// TODO: I can use AnATLyzer to test the best ones
+	}
+
+
+	private Map<ModelInfo, RecoveredMetamodelFile> toClassFootprints(ATLModel m, List<? extends ModelInfo> untyped) {
 		Map<String, ModelInfo> metamodels = untyped.stream().
 				collect(Collectors.toMap(mi -> mi.getMetamodelName(), mi -> mi));
 		Map<ModelInfo, RecoveredMetamodelFile> classFootprints = untyped.stream().
@@ -148,70 +150,13 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			if (model != null) {
 				ModelInfo mi = metamodels.get(model.getName());
 				if (mi != null) {
-					classFootprints.get(mi).footprint.add(me.getName());
+					classFootprints.get(mi).addToFootprint(me.getName());
 				}
 			}
 		}
 		
-		try {
-			List<Path> files = searcher.findFilesByExtension("ecore");
-			for (Path path : files) {
-				Set<String> names = toClassNames(path.toFile());
-				
-				classFootprints.forEach((metamodel, recoveredMetamodel) -> {
-					int coincidences = checkSimilarity(names, recoveredMetamodel.footprint);
-					if (coincidences > recoveredMetamodel.bestCoincidenceCount) {
-						recoveredMetamodel.accuracy = (100.0 * coincidences) / recoveredMetamodel.footprint.size();
-						recoveredMetamodel.bestCoincidenceCount = coincidences;
-						recoveredMetamodel.bestMetamodel = path.toFile();
-					}
-				});
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		
-		
-		Map<ModelInfo, RecoveredMetamodelFile> result = new HashMap<>();
-		classFootprints.forEach((k, v) -> {
-			if (v.bestMetamodel != null && v.accuracy > 95.0)
-				result.put(k ,v);
-		});
-		
-		return result;
-		// TODO: I can use AnATLyzer to test the best ones
+		return classFootprints;
 	}
-
-	private static class RecoveredMetamodelFile {
-		public double accuracy;
-		private Set<String> footprint = new HashSet<String>();
-		private int bestCoincidenceCount = -1;
-		private File bestMetamodel;
-	}
-
-	private int checkSimilarity(Set<String> names, Set<String> footprintNames) {
-		int count = 0;
-		for (String str : footprintNames) {
-			if (names.contains(str))
-				count++;
-		}
-		return count;
-	}
-
-
-	private Set<String> toClassNames(File f) throws IOException {
-		Set<String> result = new HashSet<String>();
-		Resource resource = new EcoreLoader().toEMF(f);
-		TreeIterator<EObject> it = resource.getAllContents();
-		while (it.hasNext()) {
-			EObject obj = it.next();
-			if (obj instanceof EClass) {
-				result.add(((EClass) obj).getName());
-			}
-		}
-		return result;
-	}
-	
 	
 	@Nonnull
 	private Metamodel extractPath(String name, String file) {

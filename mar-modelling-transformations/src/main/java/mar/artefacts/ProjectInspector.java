@@ -9,8 +9,8 @@ import javax.annotation.CheckForNull;
 
 import mar.analysis.megamodel.model.Project;
 import mar.artefacts.RecoveredPath.HeuristicPath;
-import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
+import mar.artefacts.search.FileSearcher;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 

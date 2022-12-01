@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.xml.xpath.XPath;
@@ -21,15 +21,15 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.base.Preconditions;
 
+import anatlyzer.atl.util.ATLUtils.ModelInfo;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
-import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
-import mar.artefacts.atl.ATLProgram;
-import mar.artefacts.epsilon.FileSearcher;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
+import mar.artefacts.search.MetamodelSeacher;
+import mar.artefacts.search.MetamodelSeacher.RecoveredMetamodelFile;
 import mar.validation.AnalysisDB;
 
 /**
@@ -49,6 +49,7 @@ import mar.validation.AnalysisDB;
 public class SiriusInspector extends XMLProjectInspector {
 
 	private final XPathExpression FIND_METAMODEL;
+	private final XPathExpression FIND_DOMAIN_CLASS;
 	
 	public SiriusInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb) {
 		super(repositoryDataFolder, projectPath, analysisDb);
@@ -57,6 +58,7 @@ public class SiriusInspector extends XMLProjectInspector {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
 			XPath xpath = xpathfactory.newXPath();
 			FIND_METAMODEL= xpath.compile(".//metamodel/@href");
+			FIND_DOMAIN_CLASS = xpath.compile(".//@domainClass");
 		} catch (XPathExpressionException e) {
 			throw new RuntimeException(e);
 		}	    
@@ -96,10 +98,32 @@ public class SiriusInspector extends XMLProjectInspector {
 		// If we can't find any meta-model, the alternative is to extract every domainClass="packageName::ClassName"
 		// and try to match other meta-models
 		if (graph.getMetamodels().isEmpty()) {
-			// 
+			RecoveredMetamodelFile metamodel = recoverImplicitMetamodel(doc);
+			if (metamodel.isValid()) {
+				Path repoFile = getRepositoryPath(metamodel.getBestMetamodel());				
+				Metamodel mm = Metamodel.fromFile(metamodel.getBestMetamodel().getName(), new RecoveredPath(repoFile));
+				
+				// TODO: Possibly mark this metamodel specially
+				graph.addMetamodel(mm);
+				program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
+			}
 		}
 		
 		return graph;
+	}
+
+	private RecoveredMetamodelFile recoverImplicitMetamodel(Document doc) throws XPathExpressionException {
+		NodeList result = (NodeList) FIND_DOMAIN_CLASS.evaluate(doc, XPathConstants.NODESET);
+		Set<String> classFootprints = new HashSet<>();
+		for(int i = 0, len = result.getLength(); i < len; i++) {
+			Node attr = result.item(i);
+			String qname = attr.getTextContent();
+			String[] parts = qname.split("\\.");			
+			classFootprints.add(parts[parts.length - 1]);
+		}
+		
+		MetamodelSeacher ms = new MetamodelSeacher(getFileSearcher());
+		return ms.search(classFootprints);
 	}
 
 }
