@@ -243,6 +243,24 @@ public class MegamodelDB implements Closeable {
 			distinct().
 			collect(Collectors.toList());
 	}
+
+
+	public MegamodelStats getStats() {
+		try {
+			PreparedStatement artefactCount = connection.prepareStatement("select type, count(*) from artefacts group by type");
+			ResultSet rs = artefactCount.executeQuery();
+			MegamodelStats stats = new MegamodelStats();
+			while (rs.next()) {
+				String type = rs.getString(1);
+				long count = rs.getLong(2);
+				stats.addArtefactTypeCount(type, count);
+			}
+			return stats;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	
 	@CheckForNull
 	public void addRelationship(@Nonnull String sourceId, @Nonnull String targetId, @Nonnull Relationship type) {		
