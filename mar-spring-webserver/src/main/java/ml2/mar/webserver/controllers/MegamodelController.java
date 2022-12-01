@@ -18,7 +18,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import mar.analysis.backend.megamodel.MegamodelDB;
+import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
+import mar.analysis.backend.megamodel.stats.CombinedStats;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.RelationshipsGraph;
@@ -32,6 +34,8 @@ public class MegamodelController {
 	@Autowired
 	private MegamodelDB db;
 	@Autowired
+	private RawRepositoryDB raw;
+	@Autowired
 	private TransformationRelationshipsAnalysis analysis;
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -39,7 +43,7 @@ public class MegamodelController {
 	@GetMapping(value = "/stats", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")
     public String stats() throws JsonProcessingException {
-        return objectMapper.writeValueAsString(db.getStats());    	
+        return objectMapper.writeValueAsString(new CombinedStats(raw.getStats(), db.getStats()));
     }
 
 	@GetMapping(value = "/graph", produces="application/json")
