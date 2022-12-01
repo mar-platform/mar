@@ -14,7 +14,10 @@ const API = {
     },
     graphFromSql : function(sql) {
         return `http://localhost:8080/graph-from-sql?sql=${sql}`;        
-    }
+    },
+    stats : function() {
+        return `http://localhost:8080/stats`;
+    },
 }
 
 export default API;

@@ -36,6 +36,12 @@ public class MegamodelController {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	@GetMapping(value = "/stats", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:3000")
+    public String stats() throws JsonProcessingException {
+        return objectMapper.writeValueAsString(db.getStats());    	
+    }
+
 	@GetMapping(value = "/graph", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")
     public String index() throws JsonProcessingException {

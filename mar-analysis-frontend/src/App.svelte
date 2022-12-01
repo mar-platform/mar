@@ -19,6 +19,7 @@
   import InterProjectExploration from "./InterProjectExploration.svelte";
   import ProjectExploration from "./ProjectExploration.svelte";
   import SqlExplorer from "./SqlExplorer.svelte";
+  import Stats from "./Stats.svelte";
 
   let selection : string = 'stats';
   let graphSelection : string = 'project';
@@ -75,7 +76,7 @@
   </div>
 {:else if selection == 'stats'}
 <div class="content">
-  SomeStatsHere
+  <Stats />
 </div>
 {:else if selection == 'clusters'}
 <div class="content">
