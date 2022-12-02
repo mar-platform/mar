@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import com.google.common.base.Preconditions;
+
 import mar.analysis.backend.megamodel.XtextInspector;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.acceleo.AcceleoInspector;
@@ -78,14 +80,17 @@ public class InspectorLauncher {
 		List<RecoveryGraph> result = new ArrayList<>();
 		for (RepoFile model : db.getFilesByType(fileType)) {
 			Path path = model.getRelativePath();
+			Path fullPath = model.getFullPath();
 			Path projectPath = model.getProjectPath();
 						
 			System.out.println("Analysing " + fileType.toUpperCase() + ": " + path);
 			
+			Preconditions.checkState(fullPath.isAbsolute());
+			
 			try {
 				//QvtoInspector inspector = new QvtoInspector(repositoryDataFolder, projectPath);
 				ProjectInspector inspector = factory.apply(projectPath);
-				RecoveryGraph minigraph = inspector.process(model.getFullPath().toFile());
+				RecoveryGraph minigraph = inspector.process(fullPath.toFile());
 				if (minigraph != null) {
 					minigraph.assertValid();
 					result.add(minigraph);
