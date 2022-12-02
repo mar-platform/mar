@@ -3,25 +3,38 @@ package mar.artefacts.search;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 
+import com.google.common.base.Preconditions;
+
 import mar.analysis.ecore.EcoreLoader;
+import mar.validation.AnalysisDB;
 
 public class MetamodelSeacher {
 
 	private final FileSearcher searcher;
+	private final AnalysisDB analysisDb;
+	private final Set<Path> validModels;
 
-	public MetamodelSeacher(FileSearcher searcher) {
+	public MetamodelSeacher(FileSearcher searcher, AnalysisDB analysisDb) {
 		this.searcher = searcher;
+		this.analysisDb = analysisDb;
+		try {
+			this.validModels = analysisDb.getValidModels(p -> p).stream().map(m -> m.getRelativePath()).collect(Collectors.toSet());
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public <T> Map<T, RecoveredMetamodelFile> search(Map<T, RecoveredMetamodelFile> classFootprints) {
@@ -48,6 +61,10 @@ public class MetamodelSeacher {
 		try {
 			List<Path> files = searcher.findFilesByExtension("ecore");
 			for (Path path : files) {
+				Preconditions.checkState(! path.isAbsolute());
+				if (! validModels.contains(path))
+					continue;
+				
 				Set<String> names;
 				try {
 					names = toClassNames(path.toFile());

@@ -68,5 +68,25 @@
             {/each}
         </table> 
     </div>
+    <div>
+        <h2>Recovered artefacts</h2>
+        <table class="artefact-count">
+            <tr>
+                <th class="type">Type</th>
+                <th class="count">Completion</th>
+            </tr>
+            {#each Object.entries(stats.artefactRecoveryCompletion) as [type, count]}
+            <tr>
+                <td class="type">{type}</td>
+                <td class="count">{new Intl.NumberFormat('en-US', { maximumSignificantDigits: 3 }).format(count)}%</td>
+            </tr>
+            {/each}
+        </table> 
+    </div>
+</div>
+<div style="margin-top: 1cm; margin-left: 15px">
+    <div>Total raw artefacts (excluding configuration files): {stats.totalRaw} </div>
+    <div>Total recovered artefacts: {stats.totalMega} </div>
+    <div>Recovery completion: {stats.totalCompletion} </div>
 </div>
 {/if}

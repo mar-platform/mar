@@ -132,7 +132,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 
 	private Map<ModelInfo, RecoveredMetamodelFile> checkUntyped(ATLModel m, List<? extends ModelInfo> untyped) {
 		Map<ModelInfo, RecoveredMetamodelFile> classFootprints = toClassFootprints(m, untyped);		
-		MetamodelSeacher ms = new MetamodelSeacher(searcher);
+		MetamodelSeacher ms = getMetamodelSearcher();
 		return ms.search(classFootprints);
 		// TODO: I can use AnATLyzer to test the best ones
 	}

@@ -11,6 +11,7 @@ import mar.analysis.megamodel.model.Project;
 import mar.artefacts.RecoveredPath.HeuristicPath;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
+import mar.artefacts.search.MetamodelSeacher;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 
@@ -26,6 +27,10 @@ public abstract class ProjectInspector {
 		this.projectSubPath = projectSubPath;
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 		this.analysisDb = analysisDb;
+	}
+	
+	protected MetamodelSeacher getMetamodelSearcher() {
+		return new MetamodelSeacher(searcher, analysisDb);		
 	}
 
 	protected Path getProjectFolder() {
