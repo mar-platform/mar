@@ -58,7 +58,10 @@ public class FileSearcher {
 	
 	public List<Path> findFilesByExtension(String extension) throws IOException {
 		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**/*." + extension);
-		return Files.walk(projectRoot).filter(f -> matcher.matches(f)).collect(Collectors.toList());
+		return Files.walk(projectRoot).
+				filter(f -> matcher.matches(f)).
+				map(p -> repoRoot.relativize(p)).
+				collect(Collectors.toList());
 	}
 	
 	protected static int distance(Path loosyPath, Path projectFilePath) {

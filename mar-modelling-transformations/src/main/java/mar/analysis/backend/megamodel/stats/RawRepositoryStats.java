@@ -14,4 +14,9 @@ public class RawRepositoryStats {
 		artefactTypeCount.put(type, count);
 	}
 
+	public long getCount(String type) {
+		if (! artefactTypeCount.containsKey(type))
+			return 0;
+		return artefactTypeCount.get(type);
+	}
 }

@@ -122,7 +122,7 @@ public class SiriusInspector extends XMLProjectInspector {
 			classFootprints.add(parts[parts.length - 1]);
 		}
 		
-		MetamodelSeacher ms = new MetamodelSeacher(getFileSearcher());
+		MetamodelSeacher ms = getMetamodelSearcher();
 		return ms.search(classFootprints);
 	}
 

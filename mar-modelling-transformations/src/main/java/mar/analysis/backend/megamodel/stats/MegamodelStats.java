@@ -13,5 +13,11 @@ public class MegamodelStats {
 	public void addArtefactTypeCount(String type, long count) {
 		artefactTypeCount.put(type, count);
 	}
+	
+	public long getCount(String type) {
+		if (! artefactTypeCount.containsKey(type))
+			return 0;
+		return artefactTypeCount.get(type);
+	}
 
 }
