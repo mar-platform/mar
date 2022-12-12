@@ -39,10 +39,13 @@
       { type: 'ecore', checked : true,  color: '#5a8bc4' },
       { type: 'xtext', checked : true,  color: '#6e1ae5'},
       { type: 'emfatic', checked : true, color: '#fb04d8' },
+      { type: 'epsilon', checked : true,  color: '#b33636' },
+      /*
       { type: 'evl', checked : true,  color: '#b33636' },
       { type: 'etl', checked : true, color: '#b33636' },
       { type: 'eol', checked : true, color: '#b33636' },
       { type: 'egl', checked : true, color: '#b33636' },
+      */
       { type: 'acceleo', checked : true, color: '#36b336' },
       { type: 'atl', checked : true, color: '#2a4e6a' },
       { type: 'sirius', checked : true, color: '#3b5c4e' },
