@@ -30,7 +30,8 @@
     let currentNode;
     let renderer;
     let numberOfIterations = 20;
-  
+    let showUnconnectedNodes = false;
+
     // TODO: Recover this from the web
     const types = [
       { type: 'duplication', checked : true,   color: '#ffe100' },
@@ -125,7 +126,11 @@
           // res.color = "#ffffff";
           res.hidden = true;
         }
-        
+
+        if (!showUnconnectedNodes && graph.degree(nodeId) == 0) {
+          res.hidden = true;
+        }
+
         return res;
       });
   
@@ -145,6 +150,7 @@
     }
   
     function refresh() {
+      console.log("refresh", renderer);
       if (renderer != null)
         renderer.refresh();
     }
@@ -156,6 +162,7 @@
   
     function getArtefactNodes(nodes) {
       return nodes.filter(n => n._type == 'artefact')
+                  //.filter(n => showUnconnectedNodes ? true : graph.degree(n) > 0)      
                   .filter(n => checkedTypes[n.artefact.type]);
     }
 
@@ -197,6 +204,12 @@
   </div>
   <Container style="margin-top: 10px; padding-left: 0px">
     <Row width="800px">
+      <Col xs="auto">
+        <label>
+          <input type=checkbox bind:checked={showUnconnectedNodes} on:change={(e) => refresh()}>
+          Show unconnected nodes
+        </label>        
+      </Col>  
       <Col xs="auto">
         <Label>Iterations: </Label>
       </Col>
