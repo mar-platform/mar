@@ -27,6 +27,10 @@ public class FileSearcher {
 		this.projectRoot = projectRoot;
 	}
 	
+	public Path getRepoRoot() {
+		return repoRoot;
+	}
+	
 	@CheckForNull
 	public RecoveredPath findFile(Path loosyPath) {
 		Path filename = loosyPath.getName(loosyPath.getNameCount() - 1);

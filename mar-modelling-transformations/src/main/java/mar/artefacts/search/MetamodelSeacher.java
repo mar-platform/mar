@@ -66,8 +66,9 @@ public class MetamodelSeacher {
 					continue;
 				
 				Set<String> names;
+				File f = searcher.getRepoRoot().resolve(path).toFile();
 				try {
-					names = toClassNames(path.toFile());
+					names = toClassNames(f);
 				} catch (Throwable e) {
 					// This may happen for files which doesn't validate (it is probably a bit better check the existence of this file in the db and check that it is valid
 					continue;
@@ -78,7 +79,7 @@ public class MetamodelSeacher {
 					if (coincidences > recoveredMetamodel.bestCoincidenceCount) {
 						recoveredMetamodel.accuracy = (100.0 * coincidences) / recoveredMetamodel.footprint.size();
 						recoveredMetamodel.bestCoincidenceCount = coincidences;
-						recoveredMetamodel.bestMetamodel = path.toFile();
+						recoveredMetamodel.bestMetamodel = f;
 					}
 				});
 			}
