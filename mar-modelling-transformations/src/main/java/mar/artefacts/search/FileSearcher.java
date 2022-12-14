@@ -42,7 +42,7 @@ public class FileSearcher {
 								.sorted((f1, f2) -> Integer.compare(distance(loosyPath, f1), distance(loosyPath, f2)))
 								.findFirst();
 			// I could return the alternatives as well
-			return match.<RecoveredPath>map(p -> new HeuristicPath(p)).orElse(new RecoveredPath.MissingPath(loosyPath));
+			return match.<RecoveredPath>map(p -> new HeuristicPath(p)).orElseGet(() -> new RecoveredPath.MissingPath(loosyPath));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}		

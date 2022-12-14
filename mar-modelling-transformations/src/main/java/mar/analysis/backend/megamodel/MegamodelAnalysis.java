@@ -73,6 +73,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			result.put(ArtefactType.EMFATIC, inspector.fromEmfaticFiles() );
 			result.put(ArtefactType.ACCELEO, inspector.fromAcceleoFiles() );
 			result.put(ArtefactType.ATL, inspector.fromATLFiles());
+			result.put(ArtefactType.EPSILON, inspector.fromEpsilonFiles());
 			result.put(ArtefactType.SIRIUS, inspector.fromSirius());
 			result.put(ArtefactType.HENSHIN, inspector.fromHenshin());
 			
@@ -143,8 +144,15 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						String id = toId(p);
 						String name = toName(p);
 						
-						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, p.getKind(), p.getCategory(), name));
-						graph.addNode(node);
+						// It may happen that the same node is recovered with two different methods (e.g., EpsilonInspector and LaunchInspector)
+						// This perform the merge.
+						Node node;
+						if (graph.hasNode(id)) {
+							node = graph.getNode(id);
+						} else {
+							node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, p.getKind(), p.getCategory(), name));
+							graph.addNode(node);
+						}
 						
 						for (MetamodelReference ref : p.getMetamodels()) {
 							Metamodel metamodel = ref.getMetamodel();
