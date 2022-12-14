@@ -22,6 +22,7 @@ import org.w3c.dom.NodeList;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
@@ -119,7 +120,6 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 		String storeOnDisposal = properties.getProperty("storeOnDisposal");
 		
 		RecoveredPath programPath = searcher.findFile(Paths.get(program));
-		
 		EpsilonProgram epsilonProgram = new EpsilonProgram(programPath);		
 		graph.addProgram(epsilonProgram);
 		for (String uri : uris) {

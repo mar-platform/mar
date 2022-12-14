@@ -16,6 +16,7 @@ import mar.artefacts.atl.AnATLyzerFileInspector;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.db.RepositoryDB.RepoFile;
 import mar.artefacts.epsilon.BuildFileInspector;
+import mar.artefacts.epsilon.EpsilonInspector;
 import mar.artefacts.epsilon.EpsilonLaunchInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.henshin.HenshinInspector;
@@ -68,6 +69,10 @@ public class InspectorLauncher {
 		return doInspect("atl", (projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath, analysisDb));	
 	}
 
+    public Collection<RecoveryGraph> fromEpsilonFiles() throws SQLException {
+		return doInspect("epsilon", (projectPath) -> new EpsilonInspector(repositoryDataFolder, projectPath, analysisDb));	
+	}
+    
     public Collection<RecoveryGraph> fromSirius() throws SQLException {
 		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}

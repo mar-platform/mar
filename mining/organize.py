@@ -89,6 +89,7 @@ if __name__ == "__main__":
         '.eol': 'epsilon',
         '.ewl': 'epsilon',
         '.eml': 'epsilon',
+        '.mig': 'epsilon',
         
         '.atl': 'atl',
 
