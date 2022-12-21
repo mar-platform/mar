@@ -59,10 +59,17 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private File output;
 	@Option(required = false, names = { "--analysis-ecore" }, description = "Force analysis of Ecore")
 	private boolean analysisEcore;
+	@Option(required = false, names = { "--project" }, description = "Project to be analysised")
+	private String project;
 	
 	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
 		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
 			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);
+			if (project != null) {
+				inspector.withFilter(f -> {
+					return f.getProjectPath().toString().contains(project);
+				});
+			}
 			
 			Map<ArtefactType, Collection<RecoveryGraph>> result = new HashMap<>();
 			result.put(ArtefactType.ANT, inspector.fromBuildFiles() );
