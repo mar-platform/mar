@@ -90,9 +90,9 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 	}
 
-	private void computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull RelationshipsGraph graph, @Nonnull Path repositoryDataFolder) {
+	private void computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull MegamodelDB db, @Nonnull Path repositoryDataFolder) {
 		DuplicateConfiguration configuration = new DuplicateConfiguration(repositoryDataFolder, MegamodelAnalysis.this::toId, MegamodelAnalysis.this::toName);		
-		DuplicateComputation computation = configuration.newComputation(miniGraphs, graph);
+		DuplicateComputation computation = configuration.newComputation(miniGraphs, db);
 		computation.setMetamodelConfiguration(new DuplicateFinderConfiguration<Metamodel, Resource>() {
 			@Override
 			public Resource toResource(Metamodel p) throws Exception {
@@ -247,9 +247,6 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		Composite stats = result.getRight();
 		RelationshipsGraph graph = result.getLeft();
 		
-		computeDuplicates(miniGraphs, graph, repositoryDataFolder.toPath());
-		
-		stats.detailedReport();
 		
 		if (output.exists())
 			output.delete();
@@ -257,8 +254,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
 		megamodelDB.dump(graph, stats);
+		computeDuplicates(miniGraphs, megamodelDB, repositoryDataFolder.toPath());
 		megamodelDB.close();
 		
+		stats.detailedReport();
+
 		return 0;
 	}
 

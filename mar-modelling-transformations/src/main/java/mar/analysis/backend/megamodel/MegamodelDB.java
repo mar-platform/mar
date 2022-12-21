@@ -24,13 +24,13 @@ import com.google.common.base.Preconditions;
 
 import mar.analysis.backend.megamodel.stats.MegamodelStats;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
-import mar.analysis.megamodel.model.RelationshipsGraph.VirtualNode;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.graph.RecoveryStats.PerFile;
 
@@ -39,7 +39,6 @@ public class MegamodelDB implements Closeable {
 	@Nonnull
 	private Connection connection;
 	private Map<String, Artefact> allArtefacts;
-	private Map<String, String> allVirtualNodes;
 	
 	@Nonnull	
 	public MegamodelDB(File file) {					
@@ -67,9 +66,10 @@ public class MegamodelDB implements Closeable {
                         + "    project_id    varchar(255)\n"
                         + ");";
 
-                String virtualNodes = "CREATE TABLE IF NOT EXISTS virtual_nodes (\n"
-                        + "    id            varchar(255) PRIMARY KEY,\n"
-                        + "    kind          varchar(255) NOT NULL"
+                String virtualNodes = "CREATE TABLE IF NOT EXISTS duplication (\n"
+                        + "    group_id      varchar(255) NOT NULL,\n"
+                        + "    node_id       varchar(255) NOT NULL,"
+                        + "    PRIMARY KEY (group_id, node_id)"                        
                         + ");";
                 
                 String relationships = "CREATE TABLE IF NOT EXISTS relationships (\n"
@@ -105,8 +105,6 @@ public class MegamodelDB implements Closeable {
             this.connection.setAutoCommit(true);
             
             this.allArtefacts = getArtefacts(); 
-            this.allVirtualNodes = new HashMap<String, String>();
-            getVirtualNodes(allVirtualNodes::put);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -128,21 +126,7 @@ public class MegamodelDB implements Closeable {
 		allArtefactsStm.close();
 		return result;
 	}
-	
-	public void getVirtualNodes(BiConsumer<String, String> consumer) {
-		try (PreparedStatement allVirtualStm = connection.prepareStatement("SELECT id, kind FROM virtual_nodes")) {
-			allVirtualStm.execute();
-			ResultSet rs = allVirtualStm.getResultSet();
-			while (rs.next()) {
-				String id = rs.getString(1);
-				String kind = rs.getString(2);
-				consumer.accept(id, kind);
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
+		
 	public void setAutocommit(boolean autocommit) {
 		try {
 			this.connection.setAutoCommit(autocommit);
@@ -181,10 +165,6 @@ public class MegamodelDB implements Closeable {
 	@Nonnull
 	public Map<? extends String, ? extends Artefact> getAllArtefacts() {
 		return allArtefacts;
-	}
-	
-	public Map<? extends String, ? extends String> getAllVirtualNodes() {
-		return allVirtualNodes;
 	}
 
 	@Nonnull
@@ -266,8 +246,8 @@ public class MegamodelDB implements Closeable {
 	@CheckForNull
 	public void addRelationship(@Nonnull String sourceId, @Nonnull String targetId, @Nonnull Relationship type) {		
 		try {
-			Preconditions.checkState(allArtefacts.containsKey(sourceId) || allVirtualNodes.containsKey(sourceId));
-			Preconditions.checkState(allArtefacts.containsKey(targetId) || allVirtualNodes.containsKey(targetId) );						
+			Preconditions.checkState(allArtefacts.containsKey(sourceId));
+			Preconditions.checkState(allArtefacts.containsKey(targetId));						
 
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO relationships(source, target, type) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, sourceId);
@@ -304,23 +284,35 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 
-	@CheckForNull
-	public void addVirtualNode(@Nonnull String id, @Nonnull String kind) {
-		if (this.allVirtualNodes.containsKey(id))
-			return;
-		
+	public void addDuplicate(String groupId, String nodeId) {
+		Preconditions.checkState(allArtefacts.containsKey(nodeId));
+
 		try {
-			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO virtual_nodes(id, kind) VALUES (?, ?)");
-			preparedStatement.setString(1, id);
-			preparedStatement.setString(2, kind);
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO duplication(group_id, node_id) VALUES (?, ?)");
+			preparedStatement.setString(1, groupId);
+			preparedStatement.setString(2, nodeId);
 			preparedStatement.executeUpdate();
-			preparedStatement.close();			
-			allVirtualNodes.put(id, kind);
+			preparedStatement.close();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);		
 		}
-	}
+	}	
 
+	public DuplicationRelationships getDuplicates() {
+		try {
+			DuplicationRelationships dup = new DuplicationRelationships();
+			PreparedStatement query = connection.prepareStatement("SELECT group_id, node_id FROM duplication");
+			ResultSet rs = query.executeQuery();
+			while (rs.next()) {
+				String groupId = rs.getString(1);
+				String nodeId = rs.getString(2);
+				dup.addToGroup(groupId, nodeId);
+			}
+			return dup;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	@CheckForNull
 	public void addProject(@Nonnull String id, @Nonnull String url) {
@@ -358,9 +350,8 @@ public class MegamodelDB implements Closeable {
 			if (node instanceof ArtefactNode) {
 				Artefact artefact = ((ArtefactNode) node).getArtefact();
 				addArtefact(artefact.getProject(), artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName());
-			} else if (node instanceof VirtualNode) {
-				VirtualNode vn = (VirtualNode) node;
-				addVirtualNode(vn.getId(), vn.getKind());
+			} else {
+				throw new UnsupportedOperationException();
 			}
 		}
 		
@@ -379,6 +370,5 @@ public class MegamodelDB implements Closeable {
 	public static interface RelationshipConsumer {
 		public void accept(String source, String target, Relationship type);
 	}
-
 
 }

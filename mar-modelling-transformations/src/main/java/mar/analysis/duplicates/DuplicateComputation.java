@@ -7,26 +7,23 @@ import java.util.Map;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.analysis.backend.megamodel.ArtefactType;
+import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
-import mar.analysis.megamodel.model.Relationship;
-import mar.analysis.megamodel.model.RelationshipsGraph;
-import mar.analysis.megamodel.model.RelationshipsGraph.Node;
-import mar.analysis.megamodel.model.RelationshipsGraph.VirtualNode;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.graph.RecoveryGraph;
 
 public class DuplicateComputation {
 
-	private Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs;
-	private final RelationshipsGraph completeGraph;
+	private final Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs;
+	private final MegamodelDB db;
 
 	private final Map<ArtefactType, DuplicateFinderConfiguration<FileProgram, ?>> typeToConfiguration = new HashMap<>();
 	private DuplicateFinderConfiguration<Metamodel, Resource> metamodelConfiguration;
 	
-	public DuplicateComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, RelationshipsGraph completeGraph) {
+	public DuplicateComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, MegamodelDB db) {
 		this.miniGraphs = miniGraphs;
-		this.completeGraph = completeGraph;
+		this.db = db;
 	}
 	
 	public void addType(ArtefactType type, DuplicateFinderConfiguration<FileProgram, ?> configuration) {
@@ -93,11 +90,9 @@ public class DuplicateComputation {
 			T representative = duplicationGroup.getRepresentative();
 			
 			String id = conf.toId(representative) + "#duplicate-group"; 
-			Node node = new RelationshipsGraph.VirtualNode(id, VirtualNode.DUPLICATION_ID);
-			completeGraph.addNode(node);
 			
 			for (T p1  : duplicationGroup) {
-				completeGraph.addEdge(id, conf.toId(p1), Relationship.DUPLICATE);
+				db.addDuplicate(id, conf.toId(p1));
 			}
 		}
 	}

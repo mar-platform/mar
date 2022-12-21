@@ -1,6 +1,5 @@
 package mar.analysis.backend.megamodel;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -8,16 +7,13 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.DuplicationGraph;
 import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
+import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
-import mar.analysis.megamodel.model.RelationshipsGraph.VirtualNode;
 
 public class TransformationRelationshipsAnalysis {
 
@@ -54,35 +50,19 @@ public class TransformationRelationshipsAnalysis {
 	public RelationshipsGraph getDuplicationGraph() {
 		DuplicationGraph graph = new DuplicationGraph();
 		
-		Multimap<String, String> groups = ArrayListMultimap.create();		
-		Map<String, String> nodeToGroup = new HashMap<String, String>();
-		db.getRelationshipsByType((src, tgt, type) -> {
-			groups.put(src, tgt);
-			nodeToGroup.put(tgt, src);
-		}, Relationship.DUPLICATE);
-
-		// Add only those artefacts which are not in a duplication group
-//		this.db.getAllArtefacts().forEach((id, artefact) -> {
-//			if (! nodeToGroup.containsKey(id)) {
-//				Node node = new RelationshipsGraph.ArtefactNode(id, artefact);
-//				graph.addNode(node);
-//			}
-//		});
-	
-		this.db.getAllVirtualNodes().forEach((id, kind) -> {
-			if (kind.equals(VirtualNode.DUPLICATION_ID)) {
-				ArtefactGroup node = new DuplicationGraph.ArtefactGroup(id, kind);
-				Collection<String> group = groups.get(id);
-				node.addArtefacts(group);
-				graph.addNode(node);
-			}
+		DuplicationRelationships dup = db.getDuplicates();
+		dup.forEachGroup((groupId, nodeIds) -> {
+			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+			node.addArtefacts(nodeIds);
+			graph.addNode(node);			
 		});
+		
 		
 		db.getRelationshipsByType((src, tgt, type) -> {
 			// The edge needs to be redirected to a duplication group
 			if (type != Relationship.DUPLICATE) {
-				String srcGroup = nodeToGroup.get(src);
-				String tgtGroup = nodeToGroup.get(tgt);
+				String srcGroup = dup.getGroupOf(src);
+				String tgtGroup = dup.getGroupOf(tgt);
 					
 				if (srcGroup != null && tgtGroup != null) {
 					ArtefactGroup group1 = (ArtefactGroup) graph.getNode(srcGroup);
@@ -139,17 +119,19 @@ public class TransformationRelationshipsAnalysis {
 			graph.addNode(node);
 		});
 		
-		this.db.getVirtualNodes((id, kind) -> {
-			Node node = new RelationshipsGraph.VirtualNode(id, kind);
-			graph.addNode(node);
-		});
-		
-		
 		System.out.println("Getting edges...");
 		db.getRelationshipsByType((src, tgt, type) -> {
 			graph.addEdge(src, tgt, type);
-		}, Relationship.TYPED_BY, Relationship.IMPORT, Relationship.DUPLICATE);
+		}, MAIN_RELATIONSHIP_TYPES);
 
+		
+		DuplicationRelationships dup = db.getDuplicates();		
+		dup.forEachGroup((id, nodeIds) -> {
+			Node node = new RelationshipsGraph.VirtualNode(id, "duplication");
+			graph.addNode(node);
+			nodeIds.forEach(nodeId -> graph.addEdge(id, nodeId, Relationship.DUPLICATE));
+		});
+		
 		return graph;
 	}
 	
