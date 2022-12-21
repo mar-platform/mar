@@ -9,6 +9,7 @@ public enum Relationship {
 	TYPED_BY("typed-by"), 
 	IMPORT("import"), 
 	DUPLICATE("duplicate"),
+	PROJECT_RELATED_TO("project-to-project"),
 	INPUT_TYPE("input-type"),   /* From meta-model to transformation */
 	OUTPUT_TYPE("output-type"); /* From transformation to meta-model */
 
