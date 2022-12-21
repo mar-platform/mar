@@ -100,9 +100,8 @@ public class SiriusInspector extends XMLProjectInspector {
 		if (graph.getMetamodels().isEmpty()) {
 			RecoveredMetamodelFile metamodel = recoverImplicitMetamodel(doc);
 			if (metamodel.isValid()) {
-				Path repoFile = getRepositoryPath(metamodel.getBestMetamodel());				
-				Metamodel mm = Metamodel.fromFile(metamodel.getBestMetamodel().getName(), new RecoveredPath(repoFile));
-				
+				Metamodel mm = metamodel.getBestMetamodel();
+
 				// TODO: Possibly mark this metamodel specially
 				graph.addMetamodel(mm);
 				program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);

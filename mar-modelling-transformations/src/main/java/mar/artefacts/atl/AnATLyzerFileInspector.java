@@ -54,11 +54,8 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	private static final int NS_URI_LENGTH = NS_URI.length();
 	private static final int PATH_LENGTH   = PATH.length();
 	
-	private final FileSearcher searcher;
-
 	public AnATLyzerFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB analysisDb) {
 		super(repoFolder, projectSubPath, analysisDb);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
 	
 
@@ -97,8 +94,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		if (untyped.size() > 0) {
 			Map<ModelInfo, RecoveredMetamodelFile> recoveredMetamodels = checkUntyped(m, untyped);
 			recoveredMetamodels.forEach((mi, mmFile) -> {
-				Path repoFile = getRepositoryPath(mmFile.getBestMetamodel());				
-				Metamodel mm = Metamodel.fromFile(mi.getMetamodelName(), new RecoveredPath(repoFile));
+				Metamodel mm = mmFile.getBestMetamodel();
 				graph.addMetamodel(mm);
 				List<Kind> kinds = toKinds(mi);
 				program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
@@ -108,7 +104,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		// Match libraries by name, looking up files in the project
 		for (LibraryRef library : m.getRoot().getLibraries()) {
 			Path file = getRepositoryPath(f).resolveSibling(library.getName() + ".atl");
-			RecoveredPath recovered = searcher.findFile(file);
+			RecoveredPath recovered = getFileSearcher().findFile(file);
 			if (recovered instanceof MissingPath) {
 				// TODO: Try another strategy, by methods calls
 			} else {
@@ -168,7 +164,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		// Remove the project-specific part of the path because many time this is not in-sync with the actual folder
 		loosyPath = loosyPath.subpath(1, loosyPath.getNameCount());
 		
-		RecoveredPath p = searcher.findFile(loosyPath);
+		RecoveredPath p = getFileSearcher().findFile(loosyPath);
 		System.out.println("Recovered: " + p.getPath());
 		return Metamodel.fromFile(name, p);
 	}

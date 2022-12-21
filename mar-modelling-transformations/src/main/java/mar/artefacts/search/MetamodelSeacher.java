@@ -9,16 +9,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.uml2.uml.UMLPackage;
 
 import com.google.common.base.Preconditions;
 
 import mar.analysis.ecore.EcoreLoader;
+import mar.artefacts.Metamodel;
+import mar.artefacts.RecoveredPath;
 import mar.validation.AnalysisDB;
 
 public class MetamodelSeacher {
@@ -27,14 +32,22 @@ public class MetamodelSeacher {
 	private final AnalysisDB analysisDb;
 	private final Set<Path> validModels;
 
-	public MetamodelSeacher(FileSearcher searcher, AnalysisDB analysisDb) {
+	// TODO: Possibly identify the builtinMetamodels in some shared class
+	private Map<Metamodel, Set<String>> builtinMetamodelsFootprints = new HashMap<>();
+	private Function<Path, Path> toProjectPathNormalizer;
+	
+	public MetamodelSeacher(FileSearcher searcher, AnalysisDB analysisDb, Function<Path, Path> toProjectPathNormalizer) {
 		this.searcher = searcher;
 		this.analysisDb = analysisDb;
+		this.toProjectPathNormalizer = toProjectPathNormalizer;
 		try {
 			this.validModels = analysisDb.getValidModels(p -> p).stream().map(m -> m.getRelativePath()).collect(Collectors.toSet());
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+		
+		builtinMetamodelsFootprints.put(Metamodel.fromURI(EcorePackage.eINSTANCE.getName(), EcorePackage.eINSTANCE.getNsURI()), toClassNames(EcorePackage.eINSTANCE.eResource()));
+		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI()), toClassNames(UMLPackage.eINSTANCE.eResource()));
 	}
 
 	public <T> Map<T, RecoveredMetamodelFile> search(Map<T, RecoveredMetamodelFile> classFootprints) {
@@ -74,18 +87,27 @@ public class MetamodelSeacher {
 					continue;
 				}		
 				
-				classFootprints.forEach((metamodel, recoveredMetamodel) -> {
-					int coincidences = checkSimilarity(names, recoveredMetamodel.footprint);
-					if (coincidences > recoveredMetamodel.bestCoincidenceCount) {
-						recoveredMetamodel.accuracy = (100.0 * coincidences) / recoveredMetamodel.footprint.size();
-						recoveredMetamodel.bestCoincidenceCount = coincidences;
-						recoveredMetamodel.bestMetamodel = f;
-					}
-				});
+				compareSimilarities(classFootprints, names, Metamodel.fromFile("recovered", new RecoveredPath(toProjectPathNormalizer.apply(f.toPath()))));
 			}
+			
+			builtinMetamodelsFootprints.forEach((mm, names) -> {
+				compareSimilarities(classFootprints, names, mm);		
+			});
+			
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}		
+	}
+
+	private <T> void compareSimilarities(Map<T, RecoveredMetamodelFile> classFootprints, Set<String> names, Metamodel m) {
+		classFootprints.forEach((metamodel, recoveredMetamodel) -> {
+			int coincidences = checkSimilarity(names, recoveredMetamodel.footprint);
+			if (coincidences > recoveredMetamodel.bestCoincidenceCount) {
+				recoveredMetamodel.accuracy = (100.0 * coincidences) / recoveredMetamodel.footprint.size();
+				recoveredMetamodel.bestCoincidenceCount = coincidences;
+				recoveredMetamodel.bestMetamodel = m;
+			}
+		});
 	}
 	
 
@@ -99,8 +121,12 @@ public class MetamodelSeacher {
 	}
 	
 	private Set<String> toClassNames(File f) throws IOException {
-		Set<String> result = new HashSet<String>();
 		Resource resource = new EcoreLoader().toEMF(f);
+		return toClassNames(resource);
+	}
+
+	private Set<String> toClassNames(Resource resource) {
+		Set<String> result = new HashSet<String>();
 		TreeIterator<EObject> it = resource.getAllContents();
 		while (it.hasNext()) {
 			EObject obj = it.next();
@@ -115,7 +141,7 @@ public class MetamodelSeacher {
 		private double accuracy;
 		private Set<String> footprint = new HashSet<String>();
 		private int bestCoincidenceCount = -1;
-		private File bestMetamodel;
+		private Metamodel bestMetamodel;
 	
 		public RecoveredMetamodelFile(Set<String> classFootprints) {
 			this.footprint.addAll(classFootprints);
@@ -136,7 +162,7 @@ public class MetamodelSeacher {
 			return bestCoincidenceCount;
 		}
 		
-		public File getBestMetamodel() {
+		public Metamodel getBestMetamodel() {
 			return bestMetamodel;
 		}
 		

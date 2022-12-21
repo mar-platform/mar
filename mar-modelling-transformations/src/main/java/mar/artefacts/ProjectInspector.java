@@ -31,7 +31,7 @@ public abstract class ProjectInspector {
 	}
 	
 	protected MetamodelSeacher getMetamodelSearcher() {
-		return new MetamodelSeacher(searcher, analysisDb);		
+		return new MetamodelSeacher(searcher, analysisDb, (p) -> getRepositoryPath(p));		
 	}
 
 	protected Path getProjectFolder() {
