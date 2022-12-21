@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.base.Preconditions;
 
@@ -30,11 +31,17 @@ public class InspectorLauncher {
 	private final RepositoryDB db;
 	private final Path repositoryDataFolder;
 	private AnalysisDB analysisDb;
-
+	private Predicate<RepoFile> filter;
+	
 	public InspectorLauncher(RepositoryDB db, Path repositoryDataFolder, AnalysisDB analysisDb) {
 		this.db = db;
 		this.repositoryDataFolder = repositoryDataFolder;	
 		this.analysisDb = analysisDb;
+	}
+	
+	public InspectorLauncher withFilter(Predicate<RepoFile> filter) {
+		this.filter = filter;
+		return this;
 	}
 	
 	public Collection<RecoveryGraph> fromBuildFiles() throws SQLException {
@@ -88,6 +95,10 @@ public class InspectorLauncher {
 			Path fullPath = model.getFullPath();
 			Path projectPath = model.getProjectPath();
 						
+			if (filter != null && !filter.test(model)) {
+				continue;
+			}
+			
 			System.out.println("Analysing " + fileType.toUpperCase() + ": " + path);
 			
 			Preconditions.checkState(fullPath.isAbsolute());
