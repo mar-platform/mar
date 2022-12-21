@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
@@ -33,9 +35,14 @@ public class DuplicationRelationships {
 		}
 	}
 
+	public void forEachArtefact(String groupId, Consumer<String> consumer) {
+		Collection<String> nodes = groups.get(groupId);
+		Preconditions.checkState(nodes != null && ! nodes.isEmpty());
+		nodes.forEach(consumer);
+	}
+
 	public String getGroupOf(String nodeId) {
 		return nodeToGroup.get(nodeId);
 	}
-	
 	
 }

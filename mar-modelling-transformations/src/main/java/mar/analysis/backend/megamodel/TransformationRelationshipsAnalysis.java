@@ -1,5 +1,6 @@
 package mar.analysis.backend.megamodel;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -7,10 +8,15 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.DuplicationGraph;
 import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
 import mar.analysis.megamodel.model.DuplicationRelationships;
+import mar.analysis.megamodel.model.InterProjectGraph;
+import mar.analysis.megamodel.model.InterProjectGraph.ProjectGroup;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
@@ -82,6 +88,44 @@ public class TransformationRelationshipsAnalysis {
 				}
 			}
 		}, plus(MAIN_RELATIONSHIP_TYPES, Relationship.DUPLICATE));
+		
+		return graph;
+	}
+	
+	@Nonnull
+	public RelationshipsGraph getInterProjectGraph() {
+		InterProjectGraph graph = new InterProjectGraph();
+		
+		Multimap<String, Artefact> projectGroups = ArrayListMultimap.create();
+		DuplicationRelationships dup = db.getDuplicates();
+		
+		db.getAllArtefacts().forEach((name, artefact) -> {
+			String projectId = artefact.getProject().getId();
+			projectGroups.put(projectId, artefact);
+		});
+		
+		for (String projectId : projectGroups.keySet()) {
+			ProjectGroup prj = new InterProjectGraph.ProjectGroup(projectId, "project");
+			graph.addNode(prj);
+			
+			// This node contains all the artefact ids of the project
+			Collection<Artefact> projectArtefacts = projectGroups.get(projectId);
+			
+			for (Artefact artefact : projectArtefacts) {
+				String groupId = dup.getGroupOf(artefact.getId());
+				if (groupId != null) {
+					// This means the artefact is in a duplication group
+					// and thus the project's artifact is linked to the 
+					// every project of the artefact's of the group
+					dup.forEachArtefact(groupId, (nodeId) -> {
+						Artefact tgtArtefact = db.getArtefactById(nodeId);
+						// TODO: Add more information to the edge, like why it exists: because X and Y artefacts are duplicated
+						graph.addEdge(prj.getId(), tgtArtefact.getProject().getId(), Relationship.PROJECT_RELATED_TO);
+					});
+				}
+			}
+			
+		}
 		
 		return graph;
 	}
@@ -187,4 +231,5 @@ public class TransformationRelationshipsAnalysis {
 		
 		return graph;
 	}	
+	
 }

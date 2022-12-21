@@ -166,6 +166,12 @@ public class MegamodelDB implements Closeable {
 	public Map<? extends String, ? extends Artefact> getAllArtefacts() {
 		return allArtefacts;
 	}
+	
+	public Artefact getArtefactById(String nodeId) {
+		Artefact artefact = allArtefacts.get(nodeId);
+		Preconditions.checkState(artefact != null);
+		return artefact;
+	}
 
 	@Nonnull
 	public void getProjectArtefacts(String projectId, BiConsumer<String, Artefact> consumer) {
