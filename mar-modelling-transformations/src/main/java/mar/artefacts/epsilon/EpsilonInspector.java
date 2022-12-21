@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.apache.commons.io.IOUtils;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
+import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.graph.RecoveryGraph;
@@ -38,11 +40,15 @@ public class EpsilonInspector extends ProjectInspector {
 		String toMatch = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
 		Map<String, RecoveredMetamodelFile> classFootprints = toClassFootprints(toMatch);
 		
+		// Treat specific files in a different way
+		if (f.getName().endsWith(".egx")) {
+			processEgx(toMatch, program, classFootprints);
+		}
+		
 		MetamodelSeacher ms = getMetamodelSearcher();
 		Map<String, RecoveredMetamodelFile> recoveredMetamodels = ms.search(classFootprints);
 		recoveredMetamodels.forEach((mi, mmFile) -> {
-			Path repoFile = getRepositoryPath(mmFile.getBestMetamodel());				
-			Metamodel mm = Metamodel.fromFile(mi, new RecoveredPath(repoFile));
+			Metamodel mm = mmFile.getBestMetamodel();
 			graph.addMetamodel(mm);
 			List<Kind> kinds = toKinds(mi);
 			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
@@ -51,8 +57,38 @@ public class EpsilonInspector extends ProjectInspector {
 		return graph;
 	}
 
+	private void processEgx(String strProgram, EpsilonProgram program, Map<String, RecoveredMetamodelFile> classFootprints) {
+		matchUnqualifiedClassNames(strProgram, classFootprints);
+		matchTemplateCalls(strProgram, program);
+	}
+
+	private final String IDENTIFIER_PATTERN = "(?:\\b[_a-zA-Z]|\\B\\$)[_$a-zA-Z0-9]*+";
+	
+	private void matchUnqualifiedClassNames(String program, Map<String, RecoveredMetamodelFile> classFootprints) {
+		Pattern pattern = Pattern.compile("transform\\s+\\S+\\s*:\\s*(" + IDENTIFIER_PATTERN + ")\\s*\\{");
+		final Matcher matcher = pattern.matcher(program);
+		while (matcher.find()) {
+			String className = matcher.group(1);
+			RecoveredMetamodelFile mm = classFootprints.computeIfAbsent("no-name", (k) -> new RecoveredMetamodelFile());
+			mm.addToFootprint(className);
+		}
+	}
+
+	private void matchTemplateCalls(String strProgram, EpsilonProgram program) {
+		// Example: template : "table2html.egl"
+		Pattern pattern = Pattern.compile("template\\s+:\\s*\"(.+)\"");
+		final Matcher matcher = pattern.matcher(strProgram);
+		while (matcher.find()) {
+			String templateName = matcher.group(1);
+			RecoveredPath recovered = getFileSearcher().findFile(Paths.get(templateName));
+			if (! (recovered instanceof MissingPath)) {
+				program.addImportDependency(recovered.getPath());
+			}
+		}
+	}
+	
 	private Map<String, RecoveredMetamodelFile> toClassFootprints(String epsilonProgram) {
-		Pattern pattern = Pattern.compile("(\\S)!(\\S)");
+		Pattern pattern = Pattern.compile("(" + IDENTIFIER_PATTERN + ")!(" + IDENTIFIER_PATTERN + ")");
 
 		Map<String, RecoveredMetamodelFile> classFootprints = new HashMap<>();
 		final Matcher matcher = pattern.matcher(epsilonProgram);
