@@ -107,7 +107,9 @@ public class TransformationRelationshipsAnalysis {
 		for (String projectId : projectGroups.keySet()) {
 			ProjectGroup prj = new InterProjectGraph.ProjectGroup(projectId, "project");
 			graph.addNode(prj);
-			
+		}
+
+		for (String projectId : projectGroups.keySet()) {
 			// This node contains all the artefact ids of the project
 			Collection<Artefact> projectArtefacts = projectGroups.get(projectId);
 			
@@ -120,7 +122,7 @@ public class TransformationRelationshipsAnalysis {
 					dup.forEachArtefact(groupId, (nodeId) -> {
 						Artefact tgtArtefact = db.getArtefactById(nodeId);
 						// TODO: Add more information to the edge, like why it exists: because X and Y artefacts are duplicated
-						graph.addEdge(prj.getId(), tgtArtefact.getProject().getId(), Relationship.PROJECT_RELATED_TO);
+						graph.addEdge(projectId, tgtArtefact.getProject().getId(), Relationship.PROJECT_RELATED_TO);
 					});
 				}
 			}

@@ -1,6 +1,7 @@
 <script>
     import { Button, FormGroup, Input, Label } from "sveltestrap";
     import API from "./API";
+    import { artefactTypes } from "./GraphNodeTypes";
     import GraphVisualizer from "./GraphVisualizer.svelte";
 
     let sqlQuery = "select source, target, r.type from relationships r join artefacts a on r.source = a.id where r.type = 'typed-by' and a.category = 'transformation'";
@@ -67,7 +68,7 @@ CREATE TABLE relationships (
         </pre>
     </div>
     <div id="graph">
-        <GraphVisualizer  document={document} /> 
+        <GraphVisualizer  document={document} types={artefactTypes} /> 
     </div>
 </div>
 

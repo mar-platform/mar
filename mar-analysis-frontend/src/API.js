@@ -6,6 +6,9 @@ const API = {
     duplicationGraph : function() {
         return `http://localhost:8080/duplication-graph`;
     },
+    interProjectGraph : function() {
+        return `http://localhost:8080/interproject-graph`;
+    },
     searchProject : function(value) {
         return `http://localhost:8080/search-project?value=${value}`;        
     },
