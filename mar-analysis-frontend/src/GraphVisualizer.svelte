@@ -14,7 +14,9 @@
     import ArtifactInfo from './ArtefactInfo.svelte'
 
     import { Accordion, AccordionItem, Badge, Button, Col, Container, FormGroup, Input, Label, Row } from 'sveltestrap';
-
+    
+    export let types;
+    
     export let document;
     $: if (document != undefined && container != undefined) {
         // Make sure that we start again everything from scratch on each rebind of document
@@ -31,27 +33,6 @@
     let renderer;
     let numberOfIterations = 20;
     let showUnconnectedNodes = false;
-
-    // TODO: Recover this from the web
-    const types = [
-      { type: 'duplication', checked : true,   color: '#ffe100' },
-      { type: 'qvto', checked : true,   color: '#5ac477' },
-      { type: 'ocl', checked : true,   color: '#8a8477' },
-      { type: 'ecore', checked : true,  color: '#5a8bc4' },
-      { type: 'xtext', checked : true,  color: '#6e1ae5'},
-      { type: 'emfatic', checked : true, color: '#fb04d8' },
-      { type: 'epsilon', checked : true,  color: '#b33636' },
-      /*
-      { type: 'evl', checked : true,  color: '#b33636' },
-      { type: 'etl', checked : true, color: '#b33636' },
-      { type: 'eol', checked : true, color: '#b33636' },
-      { type: 'egl', checked : true, color: '#b33636' },
-      */
-      { type: 'acceleo', checked : true, color: '#36b336' },
-      { type: 'atl', checked : true, color: '#2a4e6a' },
-      { type: 'sirius', checked : true, color: '#3b5c4e' },
-      { type: 'henshin', checked : true, color: '#3baa9e' },
-    ]
   
     const colorMap = types.reduce(function(map, obj) { 
         map[obj.type] = obj.color; 

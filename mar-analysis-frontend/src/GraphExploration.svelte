@@ -4,6 +4,8 @@
   //  import logo from './assets/svelte.png'
   //  import Counter from './lib/Counter.svelte'
   import { onMount } from "svelte";
+  import { artefactTypes } from './GraphNodeTypes';
+
   onMount(async () => {
     call();
   });
@@ -22,5 +24,5 @@
 </script>
 
 {#if document}
-  <GraphVisualizer document={document} />
+  <GraphVisualizer document={document} types={artefactTypes} />
 {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Form, FormGroup, FormText, Input, Label } from 'sveltestrap';
   import API from './API';
+  import { artefactTypes } from './GraphNodeTypes';
   import GraphVisualizer from './GraphVisualizer.svelte';  
 
   let projects = [];
@@ -43,7 +44,7 @@
         </ul>
       </div>
       <div id="container" style="margin-left: 620px; width: calc(100wh - 600px)"> 
-        <GraphVisualizer document={document} /> 
+        <GraphVisualizer document={document} types={artefactTypes} /> 
       </div>
     </div>  
 
