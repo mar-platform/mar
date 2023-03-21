@@ -48,7 +48,7 @@
             {#each Object.entries(stats.raw.artefactTypeCount) as [type, count]}
             <tr>
                 <td class="type">{type}</td>
-                <td class="count">{new Intl.NumberFormat('en-US', { maximumSignificantDigits: 3 }).format(count)}</td>
+                <td class="count">{new Intl.NumberFormat('en-US').format(count)}</td>
             </tr>
             {/each}
         </table> 
@@ -63,7 +63,7 @@
             {#each Object.entries(stats.mega.artefactTypeCount) as [type, count]}
             <tr>
                 <td class="type">{type}</td>
-                <td class="count">{new Intl.NumberFormat('en-US', { maximumSignificantDigits: 3 }).format(count)}</td>
+                <td class="count">{new Intl.NumberFormat('en-US').format(count)}</td>
             </tr>
             {/each}
         </table> 
@@ -78,7 +78,7 @@
             {#each Object.entries(stats.artefactRecoveryCompletion) as [type, count]}
             <tr>
                 <td class="type">{type}</td>
-                <td class="count">{new Intl.NumberFormat('en-US', { maximumSignificantDigits: 3 }).format(count)}%</td>
+                <td class="count">{new Intl.NumberFormat('en-US').format(count)}%</td>
             </tr>
             {/each}
         </table> 
