@@ -115,6 +115,18 @@ public class SingleIndexJob implements Serializable {
 		return graph_factory;
 	}
 	
+	public void setGraphLength(int graph_length) {
+		this.graph_length = graph_length;
+	}
+	
+	public void setGraphFactory(String graph_factory) {
+		this.graph_factory = graph_factory;
+	}
+	
+	public void setGraphFilter(String graph_filter) {
+		this.graph_filter = graph_filter;
+	}
+	
 	@Nonnull
 	public ModelLoader getModelLoader() throws InvalidJobSpecification {
 		if (model_loader == null)
