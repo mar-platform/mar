@@ -15,6 +15,13 @@ import scala.Tuple2;
 
 public class SqliteIndexer extends AbstractIndexer {
 
+	private boolean includeMetadata = false;
+	
+	public SqliteIndexer withIncludeMetada(boolean b) {
+		this.includeMetadata = true;
+		return this;
+	}
+	
 	public void index(SqliteIndexDatabase db, List<ModelOrigin> models) {
 		long totalTokens    = 0;
 		long totalDocuments = 0;
@@ -22,11 +29,15 @@ public class SqliteIndexer extends AbstractIndexer {
 		for (ModelOrigin origin : models) {
 			try {
 				System.out.println("Processing: " + origin.getModelId());
-				LoadedModel m = toResource(origin);
+				LoadedModel m = loadModel(origin);
 				IModelPaths p = toPathMap(m);
 				if (p instanceof IError)
 					continue;
 
+				if (includeMetadata) {
+					db.addModel(origin.getModelId(), origin.getMetadata());
+				}
+				
 				Tuple2<IModelPaths, Integer> count = toModelCount(p);
 				List<Tuple2<CompositeKey, Value>> values = toKeyValue(count);
 				
@@ -60,5 +71,8 @@ public class SqliteIndexer extends AbstractIndexer {
 		}
 	}
 	
+	protected LoadedModel loadModel(ModelOrigin origin) {
+		return toResource(origin);
+	}
 	
 }

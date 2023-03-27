@@ -16,6 +16,7 @@ public class SqliteIndexDatabase implements AutoCloseable {
 
 	private Connection connection;
 	private PreparedStatement stmInsert;
+	private PreparedStatement stmInsertMetadata;
 
 	@Nonnull	
 	public SqliteIndexDatabase(File file) {					
@@ -44,8 +45,12 @@ public class SqliteIndexDatabase implements AutoCloseable {
                         + "    total_tokens    integer NOT NULL,\n"
                         + "    total_documents integer NOT NULL\n"                       
                         + ");";
-                
-                
+
+                String metadata_tbl = "CREATE TABLE IF NOT EXISTS metadata (\n"
+                		+ "    doc_id text NOT NULL PRIMARY KEY,"
+                        + "    metadata text NOT NULL\n"                       
+                        + ");";
+                                
                 //String index = "create index if not exists idx_path on mar_index(path);";
                 String index = "create index if not exists idx_path on mar_index(path, doc_id, n_occurences, n_tokens, n_docs_t);";
                 
@@ -56,12 +61,17 @@ public class SqliteIndexDatabase implements AutoCloseable {
                 stmt.execute(stats_tbl);
                 
                 stmt = conn.createStatement();
+                stmt.execute(metadata_tbl);
+                
+                stmt = conn.createStatement();
                 stmt.execute(index);
                 
                 this.connection = conn;
                 this.connection.setAutoCommit(false);            
 
                 stmInsert = connection.prepareStatement("INSERT INTO mar_index(path, doc_id, n_occurences, n_tokens) VALUES (?, ?, ?, ?)");                
+                stmInsertMetadata = connection.prepareStatement("INSERT INTO metadata(doc_id, metadata) VALUES (?, ?)");                
+
             }
 
         } catch (SQLException e) {
@@ -82,10 +92,17 @@ public class SqliteIndexDatabase implements AutoCloseable {
 		stmInsert.execute();
 	}
 
+	public void addModel(String modelId, String metadata) throws SQLException {
+		stmInsertMetadata.setString(1, modelId);
+		stmInsertMetadata.setString(2, metadata);
+		stmInsertMetadata.execute();
+	}
+
 	@Override
 	public void close() throws Exception {
 		if (this.connection != null) {
 			stmInsert.close();
+			stmInsertMetadata.close();
 			this.connection.commit();
 			PreparedStatement opt = this.connection.prepareStatement("PRAGMA optimize;");
 			opt.execute();
@@ -117,8 +134,20 @@ public class SqliteIndexDatabase implements AutoCloseable {
 		stm.setLong(2, totalDocuments);
 		stm.execute();
 		stm.close();
-	}
+	}	
 
+	public String getModelById(String modelId) throws SQLException {
+		PreparedStatement stm = connection.prepareStatement("SELECT metadata FROM metadata WHERE doc_id = ?");
+		stm.setString(1, modelId);
+		stm.execute();
+		ResultSet rs = stm.getResultSet();
+		if (rs.next()) {
+			return rs.getString(1);
+		}
+		stm.close();
+		return null;		
+	}
+	
 	@CheckForNull
 	public Stats getStats() throws SQLException {
 		PreparedStatement stm = connection.prepareStatement("SELECT total_tokens, total_documents FROM stats LIMIT 1");
