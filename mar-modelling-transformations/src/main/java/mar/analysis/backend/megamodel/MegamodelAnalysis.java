@@ -18,6 +18,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
+import mar.analysis.backend.megamodel.stats.ResultAnalyser;
 import mar.analysis.duplicates.DuplicateComputation;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
 import mar.analysis.duplicates.DuplicateConfiguration;
@@ -256,8 +257,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		megamodelDB.dump(graph, stats);
 		computeDuplicates(miniGraphs, megamodelDB, repositoryDataFolder.toPath());
 		megamodelDB.close();
+		analysisDb.close();
+				
+		//stats.detailedReport();
 		
-		stats.detailedReport();
+		new ResultAnalyser().run(getRepositoryDbFile(), output);
 
 		return 0;
 	}
@@ -297,7 +301,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	private RepositoryDB openRepositoryDB(Path repositoryDataFolder) throws SQLException {
-		return new RepositoryDB(repositoryDataFolder, Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile());
+		return new RepositoryDB(repositoryDataFolder, getRepositoryDbFile());
+	}
+
+	private File getRepositoryDbFile() {
+		return Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile();
 	}
 
 	public static class RepositoryDBProvider implements IFileProvider {

@@ -1,6 +1,7 @@
 package mar.analysis.backend.megamodel.stats;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
@@ -45,16 +46,33 @@ public class ResultAnalyser implements Callable<Integer> {
 
 	@Override
 	public Integer call() throws Exception {
-		Set<String> artefactTypes = new HashSet<>();
+		Set<String> artefactTypes;
 		if (types == null) {
-			for (ArtefactType artefactType : ArtefactType.values()) {
-				if (artefactType.isArtefactFile)
-					artefactTypes.add(artefactType.id);
-			}
+			artefactTypes = toAllTypes();
 		} else {
-			artefactTypes.addAll(types);
+			artefactTypes = new HashSet<>(types);
 		}
 		
+		run(artefactTypes, rawDbFile, megamodelDbFile);
+		
+		return null;
+	}
+
+	private Set<String> toAllTypes() {
+		Set<String> artefactTypes;
+		artefactTypes = new HashSet<>();
+		for (ArtefactType artefactType : ArtefactType.values()) {
+			if (artefactType.isArtefactFile)
+				artefactTypes.add(artefactType.id);
+		}
+		return artefactTypes;
+	}
+
+	public void run(File rawDbFile, File megamodelDbFile) throws SQLException, IOException {
+		run(toAllTypes(), rawDbFile, megamodelDbFile);
+	}
+	
+	public void run(Set<String> artefactTypes, File rawDbFile, File megamodelDbFile) throws SQLException, IOException {
 		try (RawRepositoryDB rawDb = new RawRepositoryDB(rawDbFile);
 			 MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
 			
@@ -70,8 +88,6 @@ public class ResultAnalyser implements Callable<Integer> {
 				}
 			});
 		};
-		
-		return null;
 	}
 	
 	private Multimap<String, RawFile> compare(RawRepositoryDB rawDb, MegamodelDB megamodelDb, Set<String> artefactTypes) throws SQLException {
