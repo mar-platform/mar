@@ -79,9 +79,9 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			
 			Metamodel mm;
 			if (modelInfo.isURI()) {
-				mm = extractPath(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
+				mm = toMetamodel(modelInfo.getURIorPath(), getRepositoryPath(f).getParent());
 			} else {
-    			mm = toMetamodel(modelInfo.getURIorPath(), getRepositoryPath(f).getParent());
+				mm = extractPath(modelInfo.getMetamodelName(), modelInfo.getURIorPath());
 			}
 			
 			List<MetamodelReference.Kind> kinds = toKinds(modelInfo);
