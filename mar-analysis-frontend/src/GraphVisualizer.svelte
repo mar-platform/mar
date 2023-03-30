@@ -129,6 +129,15 @@
         return res;
       });
     }
+
+    // From: https://codesandbox.io/s/github/jacomyal/sigma.js/tree/main/examples/load-gexf-file?file=/index.ts:923-1021
+    function setLabelThreshold(value) {
+      renderer.setSetting("labelRenderedSizeThreshold", +value);
+    }
+
+    function onLabelTreshold(event : Event) {
+      setLabelThreshold((<HTMLInputElement>event.target).value)
+    }
   
     function refresh() {
       console.log("refresh", renderer);
@@ -208,6 +217,12 @@
       </Col>
       <Col xs="auto">
         <Button on:click={redoLayout}>Layout</Button>
+      </Col>
+      <Col xs="auto">
+        <div class="input">
+          <label for="labels-threshold">Labels threshold</label>
+          <input id="labels-threshold" type="range" min="0" max="15" step="0.5" on:input={onLabelTreshold}/>
+        </div>  
       </Col>
     </Row>
   </Container>
