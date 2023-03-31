@@ -87,6 +87,12 @@ public class ResultAnalyser implements Callable<Integer> {
 					});
 				}
 			});
+			
+			System.out.println("\nStats:");
+			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
+			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
+				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
+			});
 		};
 	}
 	
