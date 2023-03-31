@@ -2,10 +2,12 @@ package mar.analysis.backend.megamodel.stats;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -93,6 +95,8 @@ public class ResultAnalyser implements Callable<Integer> {
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
 				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
+			
+			showProjectInformation();
 		};
 	}
 	
@@ -116,6 +120,27 @@ public class ResultAnalyser implements Callable<Integer> {
 		return byType;
 	}
 
+	public void showProjectInformation() throws IOException {
+		Properties props = new Properties();
+	    try (InputStream stream = this.getClass().getResourceAsStream("/git.properties")) {
+	    	if(stream == null)
+	    		throw new IllegalStateException("No git.properties file found");
+	      props.load(stream);
+	    }
+
+	    String commitId = props.getProperty("git.commit.id.abbrev");
+	    String commitMessage = props.getProperty("git.commit.message.full");
+	    String commitTime = props.getProperty("git.build.time");
+	    String branch = props.getProperty("git.branch");
+	    
+	    
+	    System.out.println("ProjectInfo: ");
+	    System.out.println("  - Branch: " + branch);
+	    System.out.println("  - Commit: " + commitId);
+	    System.out.println("  - Message: " + commitMessage);
+	    System.out.println("  - Time: " + commitTime);
+	}
+	
 	public static void main(String[] args) {
 		int exitCode = new CommandLine(new ResultAnalyser()).execute(args);
 		System.exit(exitCode);
