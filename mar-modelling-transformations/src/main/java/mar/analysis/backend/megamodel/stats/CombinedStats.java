@@ -37,7 +37,11 @@ public class CombinedStats {
 		return mega;
 	}
 	
-	public void computeStats() {
+	public Map<? extends String, Double> getArtefactRecoveryCompletion() {
+		return artefactRecoveryCompletion;
+	}
+	
+	private void computeStats() {
 		long totalRaw = 0;
 		long totalMega = 0;
 		
