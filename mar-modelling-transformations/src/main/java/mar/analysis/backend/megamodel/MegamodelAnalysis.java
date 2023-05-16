@@ -60,8 +60,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private File output;
 	@Option(required = false, names = { "--analysis-ecore" }, description = "Force analysis of Ecore")
 	private boolean analysisEcore;
-	@Option(required = false, names = { "--project" }, description = "Project to be analysised")
+	@Option(required = false, names = { "--project" }, description = "Project to be analysis")
 	private String project;
+	@Option(required = false, names = { "--git-version" }, description = "Show information about the version")
+	private boolean showGitInfo;
 	
 	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
 		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
@@ -216,6 +218,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 
 	@Override
 	public Integer call() throws Exception {
+		if (showGitInfo) {
+			new ResultAnalyser().showProjectInformation();
+			return 0;
+		}
+		
 		new SingleEcoreFileAnalyser.Factory().configureEnvironment();
 		new UMLAnalyser.Factory().configureEnvironment();
 		
