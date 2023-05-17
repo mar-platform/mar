@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,8 @@ import mar.analysis.duplicates.DuplicateComputation;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
 import mar.analysis.duplicates.DuplicateConfiguration;
 import mar.analysis.duplicates.DuplicateFinder;
+import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
+import mar.analysis.duplicates.DuplicationAnalysisResult;
 import mar.analysis.duplicates.EcoreDuplicateFinder;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
@@ -93,9 +96,9 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 	}
 
-	private void computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull MegamodelDB db, @Nonnull Path repositoryDataFolder) {
+	private DuplicationAnalysisResult computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull Path repositoryDataFolder) {
 		DuplicateConfiguration configuration = new DuplicateConfiguration(repositoryDataFolder, MegamodelAnalysis.this::toId, MegamodelAnalysis.this::toName);		
-		DuplicateComputation computation = configuration.newComputation(miniGraphs, db);
+		DuplicateComputation computation = configuration.newComputation(miniGraphs);
 		computation.setMetamodelConfiguration(new DuplicateFinderConfiguration<Metamodel, Resource>() {
 			@Override
 			public Resource toResource(Metamodel p) throws Exception {
@@ -121,10 +124,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			}
 		});				
 		
-		computation.updateGraph();
+		return computation.run();
 	}
 
-	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
+	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, DuplicationAnalysisResult duplicates, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();
 		
@@ -139,7 +142,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						String name = toName(metamodel);
 						System.out.println("Adding id: " + id);
 						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name));
-						graph.addNode(node);							
+						graph.addNode(node);
 					}
 					
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
@@ -175,10 +178,13 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						if (! p.getImportedPrograms().isEmpty()) {
 							withImports.add(p);
 						}
+						
+						extendLocalInformation(p, type, duplicates, graph);
 					}
 					
 					if (miniGraph.getStats() != null)
 						stats.addStats(miniGraph.getStats());
+										
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -207,6 +213,24 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return Pair.of(graph, stats);
 	}
 	
+	private void extendLocalInformation(FileProgram fileProgram, ArtefactType type, DuplicationAnalysisResult duplicates, RelationshipsGraph graph) {
+		if (! fileProgram.hasAttribute(RelationshipsGraph.IsInBuildFolderAttribute.INSTANCE))
+			return;
+		
+		DuplicationGroup<FileProgram> dups = duplicates.getDuplicatesOf(type, fileProgram);
+		if (dups == null)
+			return;
+		
+		for (FileProgram other : dups) {
+			if (other != fileProgram && other.getProjectPath().equals(fileProgram.getProjectPath()) && 
+				!other.hasAttribute(RelationshipsGraph.IsInBuildFolderAttribute.INSTANCE)) {
+				// We know that there is a duplicate of this file in the project so we assume that this is the original and this is just a copy
+				graph.addEdge(toId(fileProgram), toId(other), Relationship.DUPLICATE);
+			}
+		}
+
+	}
+
 	private void addEdge(RelationshipsGraph graph, String id, String metamodelId, MetamodelReference ref) {
 		if (ref.is(MetamodelReference.Kind.TYPED_BY))
 			graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
@@ -248,21 +272,30 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		// Detailed information about all the meta-models in the repositories
 		AnalysisDB analysisDb = new AnalysisDB(ecoreAnalysisDbFile);
 		analysisDb.setReadOnly(true);
+
+		// 1. Recover local information about the projects
+		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
 		
-		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);		
-		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
+		// 2. Perform global analysis (for the moment duplicate computation) 
+		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath());
 		
+		// 3. Perform local analysis (maybe using the global information)
+		localAnalysis(miniGraphs);
+		
+		// 4. Merge local information + local information
+		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, duplicates, repositoryDataFolder, analysisDb);
+		
+						
 		Composite stats = result.getRight();
 		RelationshipsGraph graph = result.getLeft();
-		
-		
+				
 		if (output.exists())
 			output.delete();
 		
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
 		megamodelDB.dump(graph, stats);
-		computeDuplicates(miniGraphs, megamodelDB, repositoryDataFolder.toPath());
+		duplicates.updateGraph(megamodelDB);
 		megamodelDB.close();
 		analysisDb.close();
 				
@@ -271,6 +304,28 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		new ResultAnalyser().run(getRepositoryDbFile(), output);
 
 		return 0;
+	}
+
+	// TODO: If there are more analysis, we can have them in a factory or something, for the moment they are hard-coded here
+	private void localAnalysis(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs) {
+		miniGraphs.forEach((type, graphs) -> {
+			for (RecoveryGraph recoveryGraph : graphs) {
+				for (FileProgram fileProgram : recoveryGraph.getPrograms()) {
+					analysisBuildFolderPlacement(fileProgram, type);
+				}
+			}
+		});
+	}
+
+	private void analysisBuildFolderPlacement(FileProgram fileProgram, ArtefactType type) {
+		Predicate<FileProgram> isInBinaryFolder = f -> {
+			String path = fileProgram.getFilePath().getPath().toString();
+			return path.contains("/bin/") || path.contains("/target/classes/");
+		};
+		
+		if (isInBinaryFolder.test(fileProgram)) {
+			fileProgram.addAttribute(RelationshipsGraph.IsInBuildFolderAttribute.INSTANCE);
+		}		
 	}
 
 	private String toName(FileProgram p) {

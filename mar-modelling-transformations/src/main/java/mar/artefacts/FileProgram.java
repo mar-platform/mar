@@ -7,6 +7,10 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.Attribute;
+import mar.analysis.megamodel.model.RelationshipsGraph.IsInBuildFolderAttribute;
+
 public abstract class FileProgram {
 
 	@Nonnull
@@ -24,6 +28,11 @@ public abstract class FileProgram {
 	public RecoveredPath getFilePath() {
 		return path;
 	}
+
+	public Path getProjectPath() {
+		return path.getPath().subpath(0, 2);
+	}
+
 	
 	public void addMetamodel(@Nonnull Metamodel metamodel, MetamodelReference.Kind... kind) {
 		this.metamodels.add(new MetamodelReference(metamodel, kind));
@@ -48,4 +57,20 @@ public abstract class FileProgram {
 	public String getLanguage() {
 		return getKind();
 	}
+
+	// This is a bit weird because it references something of the RelationshipsGraph, but it is convenient and straightforward...
+	private List<RelationshipsGraph.Attribute> attributes = new ArrayList<>();
+	
+	public void addAttribute(RelationshipsGraph.Attribute attr) {
+		this.attributes.add(attr);
+	}
+	
+	public List<RelationshipsGraph.Attribute> getAttributes() {
+		return attributes;
+	}
+
+	public boolean hasAttribute(Attribute attribute) {
+		return this.attributes.contains(attribute);
+	}
+
 }
