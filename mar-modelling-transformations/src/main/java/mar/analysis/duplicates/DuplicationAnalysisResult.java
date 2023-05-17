@@ -2,7 +2,9 @@ package mar.analysis.duplicates;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.CheckForNull;
 
@@ -53,13 +55,19 @@ public class DuplicationAnalysisResult {
 	
 	private <T> void updateGraph(MegamodelDB db, DuplicateFinderConfiguration<T, ?> conf, Collection<DuplicationGroup<T>> duplicates) {
 		System.out.println("Adding " + duplicates.size() + " duplication groups");
+		Set<String> alreadyAdded = new HashSet<>();
 		for (DuplicationGroup<T> duplicationGroup : duplicates) {
 			T representative = duplicationGroup.getRepresentative();
 			
-			String id = conf.toId(representative) + "#duplicate-group"; 
+			String groupId = conf.toId(representative) + "#duplicate-group"; 
 			
 			for (T p1  : duplicationGroup) {
-				db.addDuplicate(id, conf.toId(p1));
+				String id = conf.toId(p1);
+				if (alreadyAdded.add(id)) {
+					db.addDuplicate(groupId, id);
+				} else {
+					System.out.println("Duplication: attempt to add an existing duplicate: " + id);
+				}
 			}
 		}
 	}
