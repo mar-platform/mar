@@ -1,8 +1,11 @@
 package mar.analysis.megamodel.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -87,12 +90,25 @@ public class RelationshipsGraph {
 		@JsonProperty
 		private final String id;
 
-		public Node(@Nonnull String id) {
+		@JsonProperty
+		private final List<Attribute> attributes; 
+		
+		public Node(@Nonnull String id, Attribute... attributes) {
 			this.id = Preconditions.checkNotNull(id);
+			this.attributes = new ArrayList<>();
+			Collections.addAll(this.attributes, attributes);
 		}
 		
 		public String getId() {
 			return id;
+		}
+		
+		public void addAttribute(Attribute attr) {
+			this.attributes.add(attr);
+		}
+		
+		public List<Attribute> getAttributes() {
+			return attributes;
 		}
 	}
 
@@ -165,10 +181,23 @@ public class RelationshipsGraph {
 		}
 
 	}
-
+	
+    @JsonTypeInfo(
+            use = JsonTypeInfo.Id.NAME, 
+            include = As.PROPERTY, 
+            property = "_type")
+        @JsonSubTypes({
+            @JsonSubTypes.Type(value = IsInBuildFolderAttribute.class, name = "is_binary")
+        })
+	public static abstract class Attribute {
+		
+	}
+	
+	public static class IsInBuildFolderAttribute extends Attribute {
+		public static final IsInBuildFolderAttribute INSTANCE = new IsInBuildFolderAttribute();  
+	}
 	
 	public Graph<Node, Edge> getGraph() {
 		return impl;
 	}
-
 }

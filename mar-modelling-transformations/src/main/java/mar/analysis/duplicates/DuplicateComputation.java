@@ -4,10 +4,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.CheckForNull;
+
 import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.analysis.backend.megamodel.ArtefactType;
-import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
@@ -16,14 +17,12 @@ import mar.artefacts.graph.RecoveryGraph;
 public class DuplicateComputation {
 
 	private final Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs;
-	private final MegamodelDB db;
 
 	private final Map<ArtefactType, DuplicateFinderConfiguration<FileProgram, ?>> typeToConfiguration = new HashMap<>();
 	private DuplicateFinderConfiguration<Metamodel, Resource> metamodelConfiguration;
 	
-	public DuplicateComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, MegamodelDB db) {
+	public DuplicateComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs) {
 		this.miniGraphs = miniGraphs;
-		this.db = db;
 	}
 	
 	public void addType(ArtefactType type, DuplicateFinderConfiguration<FileProgram, ?> configuration) {
@@ -34,24 +33,30 @@ public class DuplicateComputation {
 		this.metamodelConfiguration = metamodelConfiguration;		
 	}
 
-	public void updateGraph() {
+	public DuplicationAnalysisResult run() {
+		DuplicationAnalysisResult result = new DuplicationAnalysisResult(typeToConfiguration, metamodelConfiguration);
+		
 		DuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder = metamodelConfiguration.toFinder();		
 		for (ArtefactType type : typeToConfiguration.keySet()) {
-			computeDuplicates(type, metamodelDuplicateFinder);
+			Collection<DuplicationGroup<FileProgram>> groups = computeDuplicates(type, metamodelDuplicateFinder);
+			result.add(type, groups);
 		}
 		
 		Collection<DuplicationGroup<Metamodel>> groups = metamodelDuplicateFinder.getDuplicates(0.7, 0.8);
-		updateGraph(metamodelConfiguration, groups);
+		result.add(groups);
+		
+		return result;
 	}
 	
+	@CheckForNull
 	@SuppressWarnings("unchecked")
-	private <T> void computeDuplicates(ArtefactType type, DuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder) {
+	private <T> Collection<DuplicationGroup<FileProgram>> computeDuplicates(ArtefactType type, DuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder) {
 		System.out.println("Finding duplicates: " + type);
 		
 		Collection<RecoveryGraph> graphs = miniGraphs.get(type);
 		if (graphs == null) {
 			System.out.println("No graphs of type: " + type);
-			return;
+			return null;
 		}
 		
 		DuplicateFinderConfiguration<FileProgram, ?> conf = typeToConfiguration.get(type);
@@ -80,23 +85,9 @@ public class DuplicateComputation {
 		}		
 		
 		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(0.8, 0.7);
-		updateGraph(conf, duplicates);
-
+		return duplicates;
 	}
 
-	private <T> void updateGraph(DuplicateFinderConfiguration<T, ?> conf, Collection<DuplicationGroup<T>> duplicates) {
-		System.out.println("Adding " + duplicates.size() + " duplication groups");
-		for (DuplicationGroup<T> duplicationGroup : duplicates) {
-			T representative = duplicationGroup.getRepresentative();
-			
-			String id = conf.toId(representative) + "#duplicate-group"; 
-			
-			for (T p1  : duplicationGroup) {
-				db.addDuplicate(id, conf.toId(p1));
-			}
-		}
-	}
-	
 	public static interface DuplicateFinderConfiguration<I, T> {
 		public T toResource(I p) throws Exception; 
 		public String toName(I p);

@@ -11,7 +11,6 @@ import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 import anatlyzer.atl.model.ATLModel;
 import anatlyzer.atl.tests.api.AtlLoader;
 import mar.analysis.backend.megamodel.ArtefactType;
-import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
 import mar.artefacts.FileProgram;
 import mar.artefacts.graph.RecoveryGraph;
@@ -29,8 +28,8 @@ public class DuplicateConfiguration {
 		this.toName = toName;
 	}
 	
-	public DuplicateComputation newComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, MegamodelDB db) {
-		DuplicateComputation computation = new DuplicateComputation(miniGraphs, db);
+	public DuplicateComputation newComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs) {
+		DuplicateComputation computation = new DuplicateComputation(miniGraphs);
 
 		computation.addType(ArtefactType.ATL, new DuplicateFinderConfiguration<FileProgram, ATLModel>() {
 			@Override
