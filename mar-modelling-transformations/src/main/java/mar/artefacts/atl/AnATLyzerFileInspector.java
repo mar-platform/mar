@@ -134,7 +134,23 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	}
 
 
-	private Map<ModelInfo, RecoveredMetamodelFile> toClassFootprints(ATLModel m, List<? extends ModelInfo> untyped) {
+	private Map<ModelInfo, RecoveredMetamodelFile> toClassFootprints(ATLModel m, List<? extends ModelInfo> modelDeclarations) {
+		// Filter out the models with the same meta-model, and pick just the first one
+		List<ModelInfo> untyped = new ArrayList<>();
+		for (ModelInfo modelInfo : modelDeclarations) {
+			boolean found = false;
+			for (ModelInfo mi2 : untyped) {
+				if (mi2.getMetamodelName().equals(modelInfo.getMetamodelName())) {
+					found = true;
+					break;
+				}
+			}
+			
+			if (! found) {
+				untyped.add(modelInfo);
+			}
+		}
+		
 		Map<String, ModelInfo> metamodels = untyped.stream().
 				collect(Collectors.toMap(mi -> mi.getMetamodelName(), mi -> mi));
 		Map<ModelInfo, RecoveredMetamodelFile> classFootprints = untyped.stream().
