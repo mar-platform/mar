@@ -61,19 +61,28 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private File rootFolder;
 	@Parameters(index = "1", description = "Output file.")
 	private File output;
+	@Option(required = false, names = { "--configuration" }, description = "Configuration files")
+	private File configurationFile;
 	@Option(required = false, names = { "--analysis-ecore" }, description = "Force analysis of Ecore")
 	private boolean analysisEcore;
 	@Option(required = false, names = { "--project" }, description = "Project to be analysis")
 	private String project;
 	@Option(required = false, names = { "--git-version" }, description = "Show information about the version")
 	private boolean showGitInfo;
+	private AnalyserConfiguration configuration;
 	
 	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
 		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
 			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);
+			
 			if (project != null) {
+				// This is typicall for debugging only
 				inspector.withFilter(f -> {
 					return f.getProjectPath().toString().contains(project);
+				});
+			} else {
+				inspector.withFilter(f -> {
+					return !configuration.isIgnored(f.getRelativePath());
 				});
 			}
 			
@@ -253,6 +262,12 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		File repositoryDataFolder = Paths.get(rootFolder.getAbsolutePath(), "repos").toFile();
 		File ecoreAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
 
+		if (configurationFile == null) {
+			configuration = new AnalyserConfiguration();
+		} else {
+			configuration = AnalyserConfiguration.read(configurationFile);
+		}
+		
 		if (!analysisEcore && !ecoreAnalysisDbFile.exists()) {
 			System.out.println("No analysis file. Run with --analysis-ecore");
 			return -1;
