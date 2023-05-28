@@ -20,6 +20,9 @@ public class AnalyserConfiguration {
 	
 	@JsonProperty(required = false)
 	private List<IgnoredFile> ignore = new ArrayList<>();
+
+	@JsonProperty(required = false)
+	private List<Expectation> expectations = new ArrayList<>();
 	
 	public static AnalyserConfiguration read(File f) throws IOException {
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -34,6 +37,13 @@ public class AnalyserConfiguration {
 		private String pattern;		
 	}
 
+	public static class Expectation {
+		@JsonProperty
+		private String check;
+		@JsonProperty
+		private String file;
+	}
+	
 	public boolean isIgnored(Path filePath) {
 		for (IgnoredFile ignoredFile : ignore) {
 			if (filePath.startsWith(ignoredFile.pattern))
