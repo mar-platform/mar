@@ -1,6 +1,7 @@
 package mar.analysis.backend.megamodel;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
@@ -252,7 +253,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		if (showGitInfo) {
-			new ResultAnalyser().showProjectInformation();
+			new ResultAnalyser(getConfiguration()).showProjectInformation();
 			return 0;
 		}
 		
@@ -261,12 +262,6 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		File repositoryDataFolder = Paths.get(rootFolder.getAbsolutePath(), "repos").toFile();
 		File ecoreAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
-
-		if (configurationFile == null) {
-			configuration = new AnalyserConfiguration();
-		} else {
-			configuration = AnalyserConfiguration.read(configurationFile);
-		}
 		
 		if (!analysisEcore && !ecoreAnalysisDbFile.exists()) {
 			System.out.println("No analysis file. Run with --analysis-ecore");
@@ -313,12 +308,27 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		duplicates.updateGraph(megamodelDB);
 		megamodelDB.close();
 		analysisDb.close();
-				
-		//stats.detailedReport();
 		
-		new ResultAnalyser().run(getRepositoryDbFile(), output);
+		new ResultAnalyser(getConfiguration()).run(getRepositoryDbFile(), output);
 
 		return 0;
+	}
+
+	private AnalyserConfiguration getConfiguration() {
+		if (configuration != null)
+			return configuration;
+		
+		if (configurationFile == null) {
+			configuration = new AnalyserConfiguration();
+		} else {
+			try {
+				configuration = AnalyserConfiguration.read(configurationFile);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		return configuration;
 	}
 
 	// TODO: If there are more analysis, we can have them in a factory or something, for the moment they are hard-coded here

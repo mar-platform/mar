@@ -3,6 +3,7 @@ package mar.analysis.backend.megamodel.stats;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
@@ -10,10 +11,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
+import mar.analysis.backend.megamodel.AnalyserConfiguration;
 import mar.analysis.backend.megamodel.ArtefactType;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
@@ -45,6 +48,17 @@ public class ResultAnalyser implements Callable<Integer> {
 	private File rawDbFile;
 	@Option(required = false, names = { "--types" }, description = "File types to be analysis")
 	private List<String> types;
+	@Option(required = false, names = { "--configuration" }, description = "Configuration files")
+	private File configurationFile;
+	private AnalyserConfiguration configuration;
+
+	public ResultAnalyser() {
+		// For piccocli
+	}
+	
+	public ResultAnalyser(AnalyserConfiguration configuration) {
+		this.configuration = configuration;
+	}
 
 	@Override
 	public Integer call() throws Exception {
@@ -102,7 +116,7 @@ public class ResultAnalyser implements Callable<Integer> {
 	
 	private Multimap<String, RawFile> compare(RawRepositoryDB rawDb, MegamodelDB megamodelDb, Set<String> artefactTypes) throws SQLException {
 		Multimap<String, RawFile> byType = MultimapBuilder.hashKeys().arrayListValues().build();
-		List<RawFile> files = rawDb.getFiles();
+		List<RawFile> files = rawDb.getFiles().stream().filter(p -> ! getConfiguration().isIgnored(Paths.get(p.getFilepath()))).collect(Collectors.toList());
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
 		
 		for (RawFile rawFile : files) {
@@ -140,6 +154,24 @@ public class ResultAnalyser implements Callable<Integer> {
 	    System.out.println("  - Message: " + commitMessage);
 	    System.out.println("  - Time: " + commitTime);
 	}
+	
+	private AnalyserConfiguration getConfiguration() {
+		if (configuration != null)
+			return configuration;
+		
+		if (configurationFile == null) {
+			configuration = new AnalyserConfiguration();
+		} else {
+			try {
+				configuration = AnalyserConfiguration.read(configurationFile);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		return configuration;
+	}
+
 	
 	public static void main(String[] args) {
 		int exitCode = new CommandLine(new ResultAnalyser()).execute(args);
