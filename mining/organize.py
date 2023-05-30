@@ -25,10 +25,11 @@ def process_folder(input_folder, extension_map, file_map, cursor):
             continue
         elif length == 2:
             insert_project(dirpath, cursor)
-            continue
+            project_path = dirpath
+            #continue
         else:
             project_path = os.path.sep.join(parts[0:2])
-            
+
         for filename in filenames:
             try:
                 filepath = os.path.join(dirpath, filename)
