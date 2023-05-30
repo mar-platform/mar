@@ -2,6 +2,7 @@ package mar.analysis.backend.megamodel;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
@@ -18,6 +19,8 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.emf.ecore.resource.Resource;
+
+import com.google.common.io.Files;
 
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.backend.megamodel.stats.ResultAnalyser;
@@ -309,7 +312,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		megamodelDB.close();
 		analysisDb.close();
 		
-		new ResultAnalyser(getConfiguration()).run(getRepositoryDbFile(), output);
+		String extension = Files.getFileExtension(output.getPath());		
+		File resultAnalysisFile = new File(output.getPath().replace("." + extension, "") + "analysis.txt");
+		new ResultAnalyser(getConfiguration()).
+			withOutput(new PrintStream(resultAnalysisFile)).
+			run(getRepositoryDbFile(), output);
 
 		return 0;
 	}
