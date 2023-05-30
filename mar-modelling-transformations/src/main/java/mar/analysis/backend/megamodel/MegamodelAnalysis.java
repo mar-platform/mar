@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -73,6 +74,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private String project;
 	@Option(required = false, names = { "--git-version" }, description = "Show information about the version")
 	private boolean showGitInfo;
+	@CheckForNull
 	private AnalyserConfiguration configuration;
 	
 	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
@@ -86,7 +88,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				});
 			} else {
 				inspector.withFilter(f -> {
-					return !configuration.isIgnored(f.getRelativePath());
+					return !getConfiguration().isIgnored(f.getRelativePath());
 				});
 			}
 			
@@ -313,7 +315,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		analysisDb.close();
 		
 		String extension = Files.getFileExtension(output.getPath());		
-		File resultAnalysisFile = new File(output.getPath().replace("." + extension, "") + "analysis.txt");
+		File resultAnalysisFile = new File(output.getPath().replace("." + extension, "") + ".analysis.txt");
 		new ResultAnalyser(getConfiguration()).
 			withOutput(new PrintStream(resultAnalysisFile)).
 			run(getRepositoryDbFile(), output);
