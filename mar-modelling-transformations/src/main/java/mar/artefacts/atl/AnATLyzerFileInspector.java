@@ -62,10 +62,13 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		ATLProgram program = new ATLProgram(new RecoveredPath(getRepositoryPath(f)));
-		
 		Resource trafo = AtlLoader.load(f.getAbsolutePath());
+		if (trafo.getContents().isEmpty()) {
+			System.out.println("Syntax error");
+			return null;
+		}
+
 		ATLModel m = new ATLModel(trafo, trafo.getURI().toFileString(), true);
-		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		
