@@ -55,15 +55,25 @@ public abstract class ProjectInspector {
 		return searcher;
 	}
 	
+	protected Metamodel toMetamodelFromURI(String name, String uri) {
+		uri = sanitize(uri);
+		Metamodel mm = tryFindURI(uri);
+		if (mm != null)
+			return mm;
+		
+		if (uri.startsWith("platform:/")) {
+			return fromPlatformResource(uri);
+		}
+		
+		return Metamodel.fromURI(uri, uri);
+	}
+	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder) {
 		uriOrFile = sanitize(uriOrFile);
 		
-		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s);
-		for(Model m : models) {
-			if (m.getRelativePath().startsWith(projectSubPath)) {
-				return Metamodel.fromFile(uriOrFile, new RecoveredPath(m.getRelativePath()));
-			}
-		}
+		Metamodel mm = tryFindURI(uriOrFile);
+		if (mm != null)
+			return mm;
 		
 		if (uriOrFile.startsWith("http")) {
 			// This shouldn't happen, but in case, we have this fallback to detect URIs
@@ -86,6 +96,17 @@ public abstract class ProjectInspector {
 		
 		// Which is a proper fallback?
 		return Metamodel.fromFile(uriOrFile, new HeuristicPath(folder.resolve(uriOrFile)));
+	}
+
+	@CheckForNull
+	private Metamodel tryFindURI(String uriOrFile) {
+		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s);
+		for(Model m : models) {
+			if (m.getRelativePath().startsWith(projectSubPath)) {
+				return Metamodel.fromFile(uriOrFile, new RecoveredPath(m.getRelativePath()));
+			}
+		}
+		return null;
 	}
 	
 	private Metamodel fromPlatformResource(String uri) {
