@@ -3,6 +3,7 @@ package mar.analysis.backend.megamodel.stats;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -52,6 +53,8 @@ public class ResultAnalyser implements Callable<Integer> {
 	private File configurationFile;
 	private AnalyserConfiguration configuration;
 
+	private PrintStream out = System.out;
+	
 	public ResultAnalyser() {
 		// For piccocli
 	}
@@ -60,6 +63,11 @@ public class ResultAnalyser implements Callable<Integer> {
 		this.configuration = configuration;
 	}
 
+	public ResultAnalyser withOutput(PrintStream stream) {
+		this.out = stream;
+		return this;
+	}
+	
 	@Override
 	public Integer call() throws Exception {
 		Set<String> artefactTypes;
@@ -94,20 +102,20 @@ public class ResultAnalyser implements Callable<Integer> {
 			
 			Multimap<String, RawFile> byType = compare(rawDb, megamodelDb, artefactTypes);
 
-			System.out.println("Number of mismatches: " + byType.size());
+			out.println("Number of mismatches: " + byType.size());
 			byType.asMap().forEach((type, values) -> {
 				if (! values.isEmpty()) {
-					System.out.println("Missing " + type);
+					out.println("Missing " + type);
 					values.forEach(v -> {
-						System.out.println("  - " + v.getFilepath());
+						out.println("  - " + v.getFilepath());
 					});
 				}
 			});
 			
-			System.out.println("\nStats:");
+			out.println("\nStats:");
 			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
-				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
+				out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
 			
 			showProjectInformation();
@@ -125,7 +133,7 @@ public class ResultAnalyser implements Callable<Integer> {
 				
 			Artefact artefact = artefacts.get(rawFile.getFilepath());
 			if (artefact == null) {
-				//System.out.println("File " + rawFile.getFilepath() + " not found in MegamodelDB");
+				//out.println("File " + rawFile.getFilepath() + " not found in MegamodelDB");
 				byType.put(rawFile.getType(), rawFile);
 				continue;
 			} 			
@@ -148,11 +156,11 @@ public class ResultAnalyser implements Callable<Integer> {
 	    String branch = props.getProperty("git.branch");
 	    
 	    
-	    System.out.println("ProjectInfo: ");
-	    System.out.println("  - Branch: " + branch);
-	    System.out.println("  - Commit: " + commitId);
-	    System.out.println("  - Message: " + commitMessage);
-	    System.out.println("  - Time: " + commitTime);
+	    out.println("ProjectInfo: ");
+	    out.println("  - Branch: " + branch);
+	    out.println("  - Commit: " + commitId);
+	    out.println("  - Message: " + commitMessage);
+	    out.println("  - Time: " + commitTime);
 	}
 	
 	private AnalyserConfiguration getConfiguration() {
