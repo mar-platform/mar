@@ -14,6 +14,8 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.io.Files;
+
 /**
  * The expected database schema:
  *  
@@ -94,6 +96,9 @@ public class RepositoryDB implements AutoCloseable {
 			return filePath.subpath(0, 2);
 		}
 		
+		public String getExtension() {
+			return Files.getFileExtension(filePath.toString());
+		}
 	}
 
 	

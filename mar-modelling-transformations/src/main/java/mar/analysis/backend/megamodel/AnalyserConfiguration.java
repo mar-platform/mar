@@ -17,7 +17,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  *
  */
 public class AnalyserConfiguration {
-	
+
+	@JsonProperty(required = false, value = "content_filters")
+	private List<ContentFilter> contentFilters = new ArrayList<>();
+
 	@JsonProperty(required = false)
 	private List<IgnoredFile> ignore = new ArrayList<>();
 
@@ -27,6 +30,18 @@ public class AnalyserConfiguration {
 	public static AnalyserConfiguration read(File f) throws IOException {
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		return mapper.reader().readValue(f, AnalyserConfiguration.class);
+	}
+	
+	public static class ContentFilter {
+		@JsonProperty
+		private String extension;
+		
+		@JsonProperty
+		private String contains;
+		
+		public String getContains() {
+			return contains;
+		}
 	}
 	
 	public static class IgnoredFile {
@@ -50,6 +65,15 @@ public class AnalyserConfiguration {
 				return true;
 		}
 		return false;
+	}
+	
+	public List<ContentFilter> getFilters(String extension) {
+		List<ContentFilter> filters = new ArrayList<AnalyserConfiguration.ContentFilter>();
+		for (ContentFilter contentFilter : contentFilters) {
+			if (contentFilter.extension.equals(extension))
+				filters.add(contentFilter);
+		}
+		return filters;
 	}
 	
 }
