@@ -1,6 +1,8 @@
 package mar.analysis.backend.megamodel;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -23,6 +25,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 import com.google.common.io.Files;
 
+import mar.analysis.backend.megamodel.AnalyserConfiguration.ContentFilter;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
 import mar.analysis.backend.megamodel.stats.ResultAnalyser;
 import mar.analysis.duplicates.DuplicateComputation;
@@ -88,7 +91,26 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				});
 			} else {
 				inspector.withFilter(f -> {
-					return !getConfiguration().isIgnored(f.getRelativePath());
+					AnalyserConfiguration conf = getConfiguration();
+					String extension = f.getExtension();
+					List<ContentFilter> filters = conf.getFilters(extension);
+					if (filters.size() > 0) {
+						try (FileReader fr = new FileReader(f.getFullPath().toFile())) {
+							BufferedReader reader = new BufferedReader(fr);
+							boolean matched = reader.lines().anyMatch(l -> {
+								for (ContentFilter contentFilter : filters) {
+									if (l.contains(contentFilter.getContains()))
+										return true;
+								}
+								return false;
+							});
+							if (matched)
+								return false;
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+					}
+					return !conf.isIgnored(f.getRelativePath());
 				});
 			}
 			
