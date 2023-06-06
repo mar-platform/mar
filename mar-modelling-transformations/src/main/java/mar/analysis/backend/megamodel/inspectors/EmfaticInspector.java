@@ -1,12 +1,21 @@
 package mar.analysis.backend.megamodel.inspectors;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
+
+import org.apache.commons.io.IOUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -37,29 +46,42 @@ public class EmfaticInspector extends ProjectInspector {
 		super(repoFolder, projectSubPath, analysisDb);
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 	}
-
-	public boolean isPackage(@Nonnull String line) {
-		return line.stripLeading().startsWith("@namespace");
-	}
 	
-	public String extractURI(@Nonnull String line) {
+	protected String extractURI(@Nonnull String text, int startIndex) {
 		final String uriTag = "uri=\"";
-		int idx = line.indexOf(uriTag) + uriTag.length();
+		int idx = text.indexOf(uriTag, startIndex) + uriTag.length();
 		Preconditions.checkState(idx != -1);
 		
-		int last = line.indexOf("\"", idx);
+		int last = text.indexOf("\"", startIndex + idx);
 		Preconditions.checkState(last != -1);
 		
-		return line.substring(idx, last);
+		return text.substring(idx, last);
 	}
+	
+	private List<String> getUris(File f) throws IOException {
+		List<String> uris = new ArrayList<>();
+
+		String contents = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
+		int index = 0;
+		while (true) {
+			final String NAMESPACE = "@namespace";
+			int namespaceStart = contents.indexOf(NAMESPACE, index);
+			if (namespaceStart == -1) 
+				break;
+			
+			int namespaceEnd = namespaceStart + NAMESPACE.length();
+			String uri = extractURI(contents, namespaceEnd);
+			uris.add(uri);
+			index = namespaceEnd + uri.length(); // an estimation
+		}
+		
+		return uris;
+	}
+
 	
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-		
-		List<String> uris = Files.lines(f.toPath()).
-								filter(this::isPackage).
-								map(this::extractURI).
-								collect(Collectors.toList());
+		List<String> uris = getUris(f);
 				
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
