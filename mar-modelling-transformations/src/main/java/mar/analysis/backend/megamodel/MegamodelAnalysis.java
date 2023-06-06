@@ -27,6 +27,7 @@ import com.google.common.io.Files;
 
 import mar.analysis.backend.megamodel.AnalyserConfiguration.ContentFilter;
 import mar.analysis.backend.megamodel.inspectors.InspectorLauncher;
+import mar.analysis.backend.megamodel.inspectors.InspectorLauncher.InspectorResult;
 import mar.analysis.backend.megamodel.stats.ResultAnalyser;
 import mar.analysis.duplicates.DuplicateComputation;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
@@ -80,7 +81,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	@CheckForNull
 	private AnalyserConfiguration configuration;
 	
-	private Map<ArtefactType, Collection<RecoveryGraph>> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
+	private Map<ArtefactType, InspectorResult> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
 		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
 			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);
 			
@@ -114,7 +115,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				});
 			}
 			
-			Map<ArtefactType, Collection<RecoveryGraph>> result = new HashMap<>();
+			Map<ArtefactType, InspectorResult> result = new HashMap<>();
 			result.put(ArtefactType.ANT, inspector.fromBuildFiles() );
 			result.put(ArtefactType.LAUNCH, inspector.fromLaunchFiles() );
 			result.put(ArtefactType.QVTO, inspector.fromQvtoFiles() );
@@ -311,7 +312,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		analysisDb.setReadOnly(true);
 
 		// 1. Recover local information about the projects
-		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
+		Map<ArtefactType, InspectorResult> inspectionResults  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
+		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs = inspectionResults.keySet().stream().collect(Collectors.toMap(k -> k, k -> inspectionResults.get(k).getGraphs()));
 		
 		// 2. Perform global analysis (for the moment duplicate computation) 
 		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath());
@@ -322,7 +324,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		// 4. Merge local information + local information
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, duplicates, repositoryDataFolder, analysisDb);
 		
-						
+		// 5. Organize errors for dumping (this is just for statistics purposes)
+		List<Error> allErrors = inspectionResults.values().stream().flatMap(i -> i.getErrors().stream()).
+				map(e -> new Error(toId(e.getProgram()), "syntax", "-")).
+				collect(Collectors.toList());
+		
 		Composite stats = result.getRight();
 		RelationshipsGraph graph = result.getLeft();
 				
@@ -331,7 +337,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
-		megamodelDB.dump(graph, stats);
+		megamodelDB.dump(graph, stats, allErrors);
 		duplicates.updateGraph(megamodelDB);
 		megamodelDB.close();
 		analysisDb.close();

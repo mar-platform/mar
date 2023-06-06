@@ -19,6 +19,7 @@ import anatlyzer.atl.util.ATLUtils.ModelInfo;
 import anatlyzer.atlext.ATL.LibraryRef;
 import anatlyzer.atlext.OCL.OclModel;
 import anatlyzer.atlext.OCL.OclModelElement;
+import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
@@ -26,7 +27,6 @@ import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.graph.RecoveryGraph;
-import mar.artefacts.search.FileSearcher;
 import mar.artefacts.search.MetamodelSeacher;
 import mar.artefacts.search.MetamodelSeacher.RecoveredMetamodelFile;
 import mar.validation.AnalysisDB;
@@ -64,8 +64,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 		ATLProgram program = new ATLProgram(new RecoveredPath(getRepositoryPath(f)));
 		Resource trafo = AtlLoader.load(f.getAbsolutePath());
 		if (trafo.getContents().isEmpty()) {
-			System.out.println("Syntax error");
-			return null;
+			throw new InspectionErrorException.SyntaxError(program);
 		}
 
 		ATLModel m = new ATLModel(trafo, trafo.getURI().toFileString(), true);

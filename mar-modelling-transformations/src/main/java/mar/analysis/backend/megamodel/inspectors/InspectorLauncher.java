@@ -3,7 +3,6 @@ package mar.analysis.backend.megamodel.inspectors;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -11,6 +10,7 @@ import java.util.function.Predicate;
 import com.google.common.base.Preconditions;
 
 import mar.analysis.backend.megamodel.XtextInspector;
+import mar.artefacts.FileProgram;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.acceleo.AcceleoInspector;
 import mar.artefacts.atl.AnATLyzerFileInspector;
@@ -44,52 +44,52 @@ public class InspectorLauncher {
 		return this;
 	}
 	
-	public Collection<RecoveryGraph> fromBuildFiles() throws SQLException {
+	public InspectorResult fromBuildFiles() throws SQLException {
 		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 	
-	public Collection<RecoveryGraph> fromLaunchFiles() throws SQLException {
+	public InspectorResult fromLaunchFiles() throws SQLException {
 		return doInspect("eclipse-launcher", (projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 	
-	public Collection<RecoveryGraph> fromQvtoFiles() throws SQLException {
+	public InspectorResult fromQvtoFiles() throws SQLException {
 		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath, analysisDb));	
 	}
 	
-	public Collection<RecoveryGraph> fromOclFiles() throws SQLException {
+	public InspectorResult fromOclFiles() throws SQLException {
 		return doInspect("ocl", (projectPath) -> new OCLInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 		
-	public Collection<RecoveryGraph> fromXtextFiles() throws SQLException {
+	public InspectorResult fromXtextFiles() throws SQLException {
 		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 	
-	public Collection<RecoveryGraph> fromEmfaticFiles() throws SQLException {
+	public InspectorResult fromEmfaticFiles() throws SQLException {
 		return doInspect("emfatic", (projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath, analysisDb));
 	}
 
-	public Collection<RecoveryGraph> fromAcceleoFiles() throws SQLException {
+	public InspectorResult fromAcceleoFiles() throws SQLException {
 		return doInspect("acceleo", (projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath, analysisDb));
 	}
 
-    public Collection<RecoveryGraph> fromATLFiles() throws SQLException {
+    public InspectorResult fromATLFiles() throws SQLException {
 		return doInspect("atl", (projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath, analysisDb));	
 	}
 
-    public Collection<RecoveryGraph> fromEpsilonFiles() throws SQLException {
+    public InspectorResult fromEpsilonFiles() throws SQLException {
 		return doInspect("epsilon", (projectPath) -> new EpsilonInspector(repositoryDataFolder, projectPath, analysisDb));	
 	}
     
-    public Collection<RecoveryGraph> fromSirius() throws SQLException {
+    public InspectorResult fromSirius() throws SQLException {
 		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath, analysisDb));		
 	}
 
-    public Collection<RecoveryGraph> fromHenshin() throws SQLException {
+    public InspectorResult fromHenshin() throws SQLException {
 		return doInspect("henshin", (projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath, analysisDb));
 	}
     
-	private Collection<RecoveryGraph> doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
-		List<RecoveryGraph> result = new ArrayList<>();
+	private InspectorResult doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
+		InspectorResult result = new InspectorResult();
 		for (RepoFile model : db.getFilesByType(fileType)) {
 			Path path = model.getRelativePath();
 			Path fullPath = model.getFullPath();
@@ -111,10 +111,33 @@ public class InspectorLauncher {
 					minigraph.assertValid();
 					result.add(minigraph);
 				}
+			} catch (InspectionErrorException e) {
+				result.addError(e);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		return result;
+	}
+	
+	public static class InspectorResult {
+		private List<RecoveryGraph> graphs = new ArrayList<>();
+		private List<InspectionErrorException> errors = new ArrayList<>();
+		
+		public void add(RecoveryGraph minigraph) {
+			graphs.add(minigraph);
+		}
+
+		public void addError(InspectionErrorException e) {
+			errors.add(e);
+		}
+		
+		public List<RecoveryGraph> getGraphs() {
+			return graphs;
+		}
+		
+		public List<InspectionErrorException> getErrors() {
+			return errors;
+		}
 	}
 }

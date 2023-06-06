@@ -78,6 +78,12 @@ public class MegamodelDB implements Closeable {
                         + "    type  varchar (255) NOT NULL"                      
                         + ");";
 
+                String errors = "CREATE TABLE IF NOT EXISTS detected_errors (\n"
+                        + "    id            varchar(255) PRIMARY KEY,\n"
+                        + "    type          varchar(255) NOT NULL,\n"
+                        + "    cause         TEXT"                      
+                        + ");";
+                
                 String stats = "CREATE TABLE IF NOT EXISTS stats (\n"
                         + "    filename   text NOT NULL,\n"  
                         + "    type       varchar(255) NOT NULL,\n"  
@@ -96,7 +102,10 @@ public class MegamodelDB implements Closeable {
                 
                 stmt = conn.createStatement();
                 stmt.execute(relationships);
-                
+
+                stmt = conn.createStatement();
+                stmt.execute(errors);
+
                 stmt = conn.createStatement();
                 stmt.execute(stats);                
             }
@@ -126,7 +135,22 @@ public class MegamodelDB implements Closeable {
 		allArtefactsStm.close();
 		return result;
 	}
-		
+
+	public Map<String, Error> getErrors() throws SQLException {
+		Map<String, Error> result = new HashMap<String, Error>();     
+		PreparedStatement allErrorsStm = connection.prepareStatement("SELECT id, type, cause FROM detected_errors");
+		allErrorsStm.execute();
+		ResultSet rs = allErrorsStm.getResultSet();
+		while (rs.next()) {
+			String id = rs.getString(1);
+			String type = rs.getString(2);
+			String cause = rs.getString(3);
+			result.put(id, new Error(id, type, cause));
+		}
+		allErrorsStm.close();
+		return result;
+	}
+	
 	public void setAutocommit(boolean autocommit) {
 		try {
 			this.connection.setAutoCommit(autocommit);
@@ -347,7 +371,20 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 
-	public void dump(@Nonnull RelationshipsGraph graph, RecoveryStats.Composite composite) {
+	private void addError(Error e) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO detected_errors(id, type, cause) VALUES (?, ?, ?)");
+			preparedStatement.setString(1, e.getId());
+			preparedStatement.setString(2, e.getType());
+			preparedStatement.setString(3, e.getCause());
+			preparedStatement.execute();
+			preparedStatement.close();
+		} catch (SQLException ex) {
+			throw new RuntimeException(ex);		
+		}
+	}
+
+	public void dump(@Nonnull RelationshipsGraph graph, RecoveryStats.Composite composite, List<? extends Error> allErrors) {
 		for (Project p : graph.getProjects()) {
 			addProject(p.getId(), p.getURL());
 		}
@@ -369,6 +406,10 @@ public class MegamodelDB implements Closeable {
 		
 		for (PerFile f : composite.getSingleStats()) {
 			addFileStats(f);
+		}
+		
+		for (Error error : allErrors) {
+			addError(error);
 		}
 	}
 

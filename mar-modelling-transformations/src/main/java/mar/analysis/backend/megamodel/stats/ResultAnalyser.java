@@ -19,6 +19,7 @@ import com.google.common.collect.MultimapBuilder;
 
 import mar.analysis.backend.megamodel.AnalyserConfiguration;
 import mar.analysis.backend.megamodel.ArtefactType;
+import mar.analysis.backend.megamodel.Error;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
@@ -98,7 +99,7 @@ public class ResultAnalyser implements Callable<Integer> {
 	
 	public void run(Set<String> artefactTypes, File rawDbFile, File megamodelDbFile) throws SQLException, IOException {
 		try (RawRepositoryDB rawDb = new RawRepositoryDB(rawDbFile);
-			 MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
+			MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
 			
 			Multimap<String, RawFile> byType = compare(rawDb, megamodelDb, artefactTypes);
 
@@ -113,26 +114,45 @@ public class ResultAnalyser implements Callable<Integer> {
 			});
 			
 			out.println("\nStats:");
+			RawRepositoryStats rawStats = rawDb.getStats();
+			byType.asMap().forEach((type, values) -> {
+				long artefactsInRaw = rawStats.getCount(type);
+				long artefactsInRawMatched = artefactsInRaw - values.size();
+				// This is not totally precise because we are counting as matched syntax errors and elements ignored by configuration
+				// We have to think if this is fully correct
+				double v = 1.0 * artefactsInRawMatched / artefactsInRaw;
+				out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", v));
+			});			
+
+			/*
 			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
 				out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
+			*/
 			
 			showProjectInformation();
 		};
 	}
 	
+	/**
+	 * For each type of artefact, it returns which files in the raw repository have no correspondence with an
+	 * artefact processed in the mega-model.
+	 */
 	private Multimap<String, RawFile> compare(RawRepositoryDB rawDb, MegamodelDB megamodelDb, Set<String> artefactTypes) throws SQLException {
 		Multimap<String, RawFile> byType = MultimapBuilder.hashKeys().arrayListValues().build();
 		List<RawFile> files = rawDb.getFiles().stream().filter(p -> ! getConfiguration().isIgnored(Paths.get(p.getFilepath()))).collect(Collectors.toList());
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
+		Map<String, Error> allErrorsById = megamodelDb.getErrors();
 		
 		for (RawFile rawFile : files) {
 			if (! artefactTypes.contains(rawFile.getType()))
 				continue;
 				
-			Artefact artefact = artefacts.get(rawFile.getFilepath());
-			if (artefact == null) {
+			String artefactId = rawFile.getFilepath();
+			Artefact artefact = artefacts.get(artefactId);
+			// If it is a missing artefact, let's make sure that it is not an erroring artefact
+			if (artefact == null && !allErrorsById.containsKey(artefactId)) {
 				//out.println("File " + rawFile.getFilepath() + " not found in MegamodelDB");
 				byType.put(rawFile.getType(), rawFile);
 				continue;
