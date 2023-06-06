@@ -1,7 +1,6 @@
 package mar.artefacts.db;
 
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -30,16 +29,12 @@ public class RepositoryDB implements AutoCloseable {
 
 	private Connection connection;
 	private Path rootFolder;
-	private PreparedStatement filesByType;
 	
 	@Nonnull
 	public RepositoryDB(@Nonnull Path rootFolder, @Nonnull File file) throws SQLException {
 		String url = getConnectionString(file);
 		this.connection = DriverManager.getConnection(url);
-		this.rootFolder = rootFolder;
-			
-		String query = "SELECT file_path FROM files WHERE type = ?";
-		this.filesByType = connection.prepareStatement(query);
+		this.rootFolder = rootFolder;			
 	}
 
 	@Override
@@ -53,10 +48,12 @@ public class RepositoryDB implements AutoCloseable {
 	private static String getConnectionString(File file) {
 		return "jdbc:sqlite:" + file.getAbsolutePath();
 	}
+	
+	
 
 	public List<RepoFile> getFilesByType(String type) throws SQLException {
-		//String query = "SELECT file_path FROM files WHERE type = ?";
-		//PreparedStatement filesByType = connection.prepareStatement(query);
+		String query = "SELECT file_path FROM files WHERE type = ?";
+		PreparedStatement filesByType = connection.prepareStatement(query);
 		
 		filesByType.setString(1, type);
 		filesByType.execute();

@@ -78,13 +78,14 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private String project;
 	@Option(required = false, names = { "--git-version" }, description = "Show information about the version")
 	private boolean showGitInfo;
+	@Option(required = false, names = { "--parallel" }, description = "Execute in parallel with X threads")
+	private int parallel = -1;
 	@CheckForNull
 	private AnalyserConfiguration configuration;
 	
 	private Map<ArtefactType, InspectorResult> computeMiniGraphs(Path repositoryDataFolder, AnalysisDB analysisDb) {
 		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
-			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);
-			
+			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);			
 			if (project != null) {
 				// This is typicall for debugging only
 				inspector.withFilter(f -> {
@@ -115,19 +116,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				});
 			}
 			
-			Map<ArtefactType, InspectorResult> result = new HashMap<>();
-			result.put(ArtefactType.ANT, inspector.fromBuildFiles() );
-			result.put(ArtefactType.LAUNCH, inspector.fromLaunchFiles() );
-			result.put(ArtefactType.QVTO, inspector.fromQvtoFiles() );
-			result.put(ArtefactType.OCL, inspector.fromOclFiles() );
-			result.put(ArtefactType.XTEXT, inspector.fromXtextFiles() );
-			result.put(ArtefactType.EMFATIC, inspector.fromEmfaticFiles() );
-			result.put(ArtefactType.ACCELEO, inspector.fromAcceleoFiles() );
-			result.put(ArtefactType.ATL, inspector.fromATLFiles());
-			result.put(ArtefactType.EPSILON, inspector.fromEpsilonFiles());
-			result.put(ArtefactType.SIRIUS, inspector.fromSirius());
-			result.put(ArtefactType.HENSHIN, inspector.fromHenshin());
-			
+			Map<ArtefactType, InspectorResult> result = inspector.execute(parallel);
 			return result;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
