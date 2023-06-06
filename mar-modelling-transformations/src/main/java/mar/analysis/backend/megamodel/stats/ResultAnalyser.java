@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -115,15 +116,17 @@ public class ResultAnalyser implements Callable<Integer> {
 			
 			out.println("\nStats:");
 			RawRepositoryStats rawStats = rawDb.getStats();
-			byType.asMap().forEach((type, values) -> {
+			for(String type : artefactTypes) {
+				Collection<RawFile> values = byType.get(type);
+				
 				long artefactsInRaw = rawStats.getCount(type);
 				long artefactsInRawMatched = artefactsInRaw - values.size();
 				// This is not totally precise because we are counting as matched syntax errors and elements ignored by configuration
 				// We have to think if this is fully correct
 				double v = 1.0 * artefactsInRawMatched / artefactsInRaw;
 				out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", v));
-			});			
-
+			}
+			
 			/*
 			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
@@ -140,16 +143,24 @@ public class ResultAnalyser implements Callable<Integer> {
 	 * artefact processed in the mega-model.
 	 */
 	private Multimap<String, RawFile> compare(RawRepositoryDB rawDb, MegamodelDB megamodelDb, Set<String> artefactTypes) throws SQLException {
-		Multimap<String, RawFile> byType = MultimapBuilder.hashKeys().arrayListValues().build();
-		List<RawFile> files = rawDb.getFiles().stream().filter(p -> ! getConfiguration().isIgnored(Paths.get(p.getFilepath()))).collect(Collectors.toList());
+		Set<String> ignoredFiles = megamodelDb.getIgnoredFileIds();
+		List<RawFile> files = rawDb.getFiles().stream().
+				filter(p -> ! getConfiguration().isIgnored(Paths.get(p.getFilepath()))).
+				filter(p -> ! ignoredFiles.contains(p.getFilepath())).
+				collect(Collectors.toList());
+
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
+		
 		Map<String, Error> allErrorsById = megamodelDb.getErrors();
 		
+		Multimap<String, RawFile> byType = MultimapBuilder.hashKeys().arrayListValues().build();
 		for (RawFile rawFile : files) {
 			if (! artefactTypes.contains(rawFile.getType()))
 				continue;
 				
 			String artefactId = rawFile.getFilepath();
+			
+			
 			Artefact artefact = artefacts.get(artefactId);
 			// If it is a missing artefact, let's make sure that it is not an erroring artefact
 			if (artefact == null && !allErrorsById.containsKey(artefactId)) {

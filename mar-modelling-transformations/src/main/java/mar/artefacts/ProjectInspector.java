@@ -43,6 +43,10 @@ public abstract class ProjectInspector {
 	}
 	
 	protected Path getRepositoryPath(Path p) {
+		return getRepositoryPath(repoFolder, p);
+	}
+	
+	public static Path getRepositoryPath(Path repoFolder, Path p) {		
 		return repoFolder.relativize(p);
 	}
 
