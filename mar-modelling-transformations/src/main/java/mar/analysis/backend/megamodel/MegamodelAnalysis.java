@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -87,7 +86,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		try(RepositoryDB db = openRepositoryDB(repositoryDataFolder)) {
 			InspectorLauncher inspector = new InspectorLauncher(db, repositoryDataFolder, analysisDb);			
 			if (project != null) {
-				// This is typicall for debugging only
+				// This is typically for debugging only
 				inspector.withFilter(f -> {
 					return f.getProjectPath().toString().contains(project);
 				});
@@ -318,6 +317,14 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				map(e -> new Error(toId(e.getProgram()), "syntax", "-")).
 				collect(Collectors.toList());
 		
+		List<Ignored> allIgnored = inspectionResults.values().stream().flatMap(i -> i.getIgnored().stream()).
+			map(i -> {
+				String id = toId(i.getPath());
+				i.setId(id); // TODO: I hate this
+				return i;
+			}).collect(Collectors.toList());
+			
+		
 		Composite stats = result.getRight();
 		RelationshipsGraph graph = result.getLeft();
 				
@@ -326,7 +333,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
-		megamodelDB.dump(graph, stats, allErrors);
+		megamodelDB.dump(graph, stats, allErrors, allIgnored);
 		duplicates.updateGraph(megamodelDB);
 		megamodelDB.close();
 		analysisDb.close();

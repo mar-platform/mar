@@ -12,8 +12,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -83,7 +85,12 @@ public class MegamodelDB implements Closeable {
                         + "    type          varchar(255) NOT NULL,\n"
                         + "    cause         TEXT"                      
                         + ");";
-                
+
+                String ignored_files = "CREATE TABLE IF NOT EXISTS ignored_files(\n"
+                        + "    id            varchar(255) PRIMARY KEY,\n"
+                        + "    cause         TEXT"                      
+                        + ");";
+
                 String stats = "CREATE TABLE IF NOT EXISTS stats (\n"
                         + "    filename   text NOT NULL,\n"  
                         + "    type       varchar(255) NOT NULL,\n"  
@@ -105,6 +112,9 @@ public class MegamodelDB implements Closeable {
 
                 stmt = conn.createStatement();
                 stmt.execute(errors);
+
+                stmt = conn.createStatement();
+                stmt.execute(ignored_files);
 
                 stmt = conn.createStatement();
                 stmt.execute(stats);                
@@ -148,6 +158,19 @@ public class MegamodelDB implements Closeable {
 			result.put(id, new Error(id, type, cause));
 		}
 		allErrorsStm.close();
+		return result;
+	}
+	
+	public Set<String> getIgnoredFileIds() throws SQLException {
+		Set<String> result = new HashSet<String>();     
+		PreparedStatement stm = connection.prepareStatement("SELECT id FROM ignored_files");
+		stm.execute();
+		ResultSet rs = stm.getResultSet();
+		while (rs.next()) {
+			String id = rs.getString(1);
+			result.add(id);
+		}
+		stm.close();
 		return result;
 	}
 	
@@ -383,8 +406,20 @@ public class MegamodelDB implements Closeable {
 			throw new RuntimeException(ex);		
 		}
 	}
+	
+	private void addIgnored(Ignored i) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO ignored_files(id, cause) VALUES (?, ?)");
+			preparedStatement.setString(1, i.getId());
+			preparedStatement.setString(2, i.getCause());
+			preparedStatement.execute();
+			preparedStatement.close();
+		} catch (SQLException ex) {
+			throw new RuntimeException(ex);		
+		}
+	}
 
-	public void dump(@Nonnull RelationshipsGraph graph, RecoveryStats.Composite composite, List<? extends Error> allErrors) {
+	public void dump(@Nonnull RelationshipsGraph graph, RecoveryStats.Composite composite, List<? extends Error> allErrors, List<Ignored> allIgnored) {
 		for (Project p : graph.getProjects()) {
 			addProject(p.getId(), p.getURL());
 		}
@@ -410,6 +445,10 @@ public class MegamodelDB implements Closeable {
 		
 		for (Error error : allErrors) {
 			addError(error);
+		}
+		
+		for (Ignored ignored : allIgnored) {
+			addIgnored(ignored);
 		}
 	}
 

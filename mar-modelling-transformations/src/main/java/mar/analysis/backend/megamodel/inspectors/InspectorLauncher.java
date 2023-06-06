@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import com.google.common.base.Preconditions;
 
 import mar.analysis.backend.megamodel.ArtefactType;
+import mar.analysis.backend.megamodel.Ignored;
 import mar.analysis.backend.megamodel.XtextInspector;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.acceleo.AcceleoInspector;
@@ -109,6 +110,7 @@ public class InspectorLauncher {
 			Path projectPath = model.getProjectPath();
 
 			if (filter != null && !filter.test(model)) {
+				result.addIgnored(new Ignored(ProjectInspector.getRepositoryPath(repositoryDataFolder, fullPath), "filtered-by-content"));
 				continue;
 			}
 
@@ -177,10 +179,15 @@ public class InspectorLauncher {
 
 	public static class InspectorResult {
 		private List<RecoveryGraph> graphs = new ArrayList<>();
+		private List<Ignored> ignored = new ArrayList<>();
 		private List<InspectionErrorException> errors = new ArrayList<>();
 
 		public void add(RecoveryGraph minigraph) {
 			graphs.add(minigraph);
+		}
+
+		public void addIgnored(Ignored i) {
+			ignored.add(i);
 		}
 
 		public void addError(InspectionErrorException e) {
@@ -193,6 +200,10 @@ public class InspectorLauncher {
 
 		public List<InspectionErrorException> getErrors() {
 			return errors;
+		}
+		
+		public List<Ignored> getIgnored() {
+			return ignored;
 		}
 	}
 }
