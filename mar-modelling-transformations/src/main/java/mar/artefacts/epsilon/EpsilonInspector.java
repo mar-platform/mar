@@ -9,11 +9,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.epsilon.common.module.ModuleElement;
+import org.eclipse.epsilon.egl.internal.EglModule;
+import org.eclipse.epsilon.eol.AbstractModule;
+import org.eclipse.epsilon.eol.EolModule;
+import org.eclipse.epsilon.etl.EtlModule;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
+
+import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
@@ -27,6 +38,13 @@ import mar.validation.AnalysisDB;
 
 public class EpsilonInspector extends ProjectInspector {
 
+	ImmutableMap<String, Supplier<AbstractModule>> map = new ImmutableMap.Builder<String, Supplier<AbstractModule>>().
+			put("eol", EolModule::new).
+			put("etl", EtlModule::new).
+			put("egl", EglModule::new).
+			build();
+	
+	
 	public EpsilonInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
 		super(repoFolder, projectSubPath, analysisDb);
 	}
@@ -36,6 +54,17 @@ public class EpsilonInspector extends ProjectInspector {
 		EpsilonProgram program = new EpsilonProgram(new RecoveredPath(getRepositoryPath(f)));
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
+		
+		// Try to parse, at least to discard invalid files downloaded by mistake
+		String extension = Files.getFileExtension(f.getName());
+		Supplier<AbstractModule> moduleFactory = map.get(extension);
+		if (moduleFactory != null) {
+			AbstractModule module = moduleFactory.get();
+			if (! module.parse(f)) {
+				throw new InspectionErrorException.SyntaxError(program);
+			}
+			
+		}
 		
 		String toMatch = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
 		Map<String, RecoveredMetamodelFile> classFootprints = toClassFootprints(toMatch);
