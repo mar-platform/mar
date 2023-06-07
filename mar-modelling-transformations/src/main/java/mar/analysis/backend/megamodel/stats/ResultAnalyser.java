@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import org.jgrapht.Graph;
+
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
@@ -23,8 +25,13 @@ import mar.analysis.backend.megamodel.ArtefactType;
 import mar.analysis.backend.megamodel.Error;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
+import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
+import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
+import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -102,40 +109,97 @@ public class ResultAnalyser implements Callable<Integer> {
 		try (RawRepositoryDB rawDb = new RawRepositoryDB(rawDbFile);
 			MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
 			
-			Multimap<String, RawFile> byType = compare(rawDb, megamodelDb, artefactTypes);
-
-			out.println("Number of mismatches: " + byType.size());
-			byType.asMap().forEach((type, values) -> {
-				if (! values.isEmpty()) {
-					out.println("Missing " + type);
-					values.forEach(v -> {
-						out.println("  - " + v.getFilepath());
-					});
-				}
-			});
-			
-			out.println("\nStats:");
-			RawRepositoryStats rawStats = rawDb.getStats();
-			for(String type : artefactTypes) {
-				Collection<RawFile> values = byType.get(type);
-				
-				long artefactsInRaw = rawStats.getCount(type);
-				long artefactsInRawMatched = artefactsInRaw - values.size();
-				// This is not totally precise because we are counting as matched syntax errors and elements ignored by configuration
-				// We have to think if this is fully correct
-				double v = 1.0 * artefactsInRawMatched / artefactsInRaw;
-				out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", v));
-			}
-			
-			/*
-			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
-			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
-				out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
-			});
-			*/
+			computeFileLevelStats(artefactTypes, rawDb, megamodelDb);
+			computeGraphLevelStats(artefactTypes, megamodelDb);
 			
 			showProjectInformation();
 		};
+	}
+
+	private void computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb) {
+		long totalArtefactNodes = 0;
+		long totalIsolatedArtefacts = 0;
+		long totalOutDegree = 0;
+		long totalInDegree = 0;
+		
+
+		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();		
+		
+		
+		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb);
+		RelationshipsGraph graph = analysis.getRelationships();
+		for (Node node : graph.getNodes()) {
+			if (node instanceof ArtefactNode) {
+				Artefact artefact = ((ArtefactNode) node).getArtefact();
+				if (! artefactTypes.contains(artefact.getType()))
+					continue;
+		
+				totalArtefactNodes++;
+				
+				Graph<Node, Edge> impl = graph.getGraph();
+				int outDegree = impl.outDegreeOf(node);
+				int inDegree = impl.inDegreeOf(node);
+
+				totalOutDegree += outDegree;
+				totalInDegree += inDegree;
+				if (inDegree == 0 && outDegree == 0) {
+					totalIsolatedArtefacts++;
+					byType.put(artefact.getType(), artefact);
+				}
+			}
+		}
+		
+		out.println();
+		out.println("Graph-level stats:");
+		out.println("  " + String.format("%-8s", "# Artefacts") + " " + String.format("%d", totalArtefactNodes));
+		out.println("  " + String.format("%-8s", "# Isolated") + " " + String.format("%d", totalIsolatedArtefacts));
+		out.println("  " + String.format("%-8s", "% Isolated") + " " + String.format("%.2f%s", 100.0 * totalIsolatedArtefacts / totalArtefactNodes, "%"));
+		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / totalIsolatedArtefacts));
+		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / totalIsolatedArtefacts));
+	
+		out.println();
+		out.println("Isolated nodes:");
+		byType.asMap().forEach((type, artefacts) -> {
+			out.println("- Type: " + type + "  " + artefacts.size() + " isolated artefacts");
+			artefacts.forEach(a -> {
+				out.println("   " + a.getId());
+			});
+		});
+	}
+
+	private void computeFileLevelStats(Set<String> artefactTypes, RawRepositoryDB rawDb, MegamodelDB megamodelDb)
+			throws SQLException {
+		Multimap<String, RawFile> byType = compare(rawDb, megamodelDb, artefactTypes);
+
+		out.println("Number of mismatches: " + byType.size());
+		byType.asMap().forEach((type, values) -> {
+			if (! values.isEmpty()) {
+				out.println("Missing " + type);
+				values.forEach(v -> {
+					out.println("  - " + v.getFilepath());
+				});
+			}
+		});
+		
+		out.println("\nStats:");
+		RawRepositoryStats rawStats = rawDb.getStats();
+		for(String type : artefactTypes) {
+			Collection<RawFile> values = byType.get(type);
+			
+			long artefactsInRaw = rawStats.getCount(type);
+			long artefactsInRawMatched = artefactsInRaw - values.size();
+			// This is not totally precise because we are counting as matched syntax errors and elements ignored by configuration
+			// We have to think if this is fully correct
+			double v = 1.0 * artefactsInRawMatched / artefactsInRaw;
+			out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", v));
+		}
+		
+		/*
+		CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
+		stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
+			out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
+		});
+		*/
 	}
 	
 	/**
