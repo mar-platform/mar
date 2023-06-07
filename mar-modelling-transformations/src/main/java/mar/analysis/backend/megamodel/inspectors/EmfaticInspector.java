@@ -1,17 +1,12 @@
 package mar.analysis.backend.megamodel.inspectors;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -89,6 +84,7 @@ public class EmfaticInspector extends ProjectInspector {
 		graph.addProgram(p);
 		
 		if (uris.isEmpty()) {
+			// TODO: Is this even possible?
 			String filename = f.getName().replace(".emf", ".ecore");
 			File parent = f.getParentFile();
 
@@ -99,6 +95,11 @@ public class EmfaticInspector extends ProjectInspector {
 		} else {			
 			// Assume that URIs between .ecore files match
 			// Assume that the root package URIs the main URI, and the rest are dependent meta-models
+			String rootURI = uris.get(0);
+			Metamodel metamodel = toMetamodelFromURI(f.getName().replace(".emf", ""), rootURI);
+			p.addMetamodel(metamodel, MetamodelReference.Kind.GENERATE);
+			
+			/*
 			String root = uris.get(0);
 			Metamodel rootPkg = Metamodel.fromURI(root, root);
 			for (int i = 1; i < uris.size(); i++) {
@@ -107,12 +108,6 @@ public class EmfaticInspector extends ProjectInspector {
 				rootPkg.addSubpackage(mm);
 			}
 			graph.addMetamodel(rootPkg);
-			/*
-			for (String uri : uris) {
-				Metamodel mm = Metamodel.fromURI(uri, uri);
-				graph.addMetamodel(mm);
-				p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);
-			}
 			*/
 		}
 		
