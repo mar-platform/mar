@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
@@ -32,16 +33,18 @@ public class AcceleoInspector extends ProjectInspector {
 	 */
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-	    List<String> uris = getURIs(f);
-
-	    if (uris.isEmpty())
-	    	return null;
-	    
 		AcceleoProgram program = new AcceleoProgram(new RecoveredPath(getRepositoryPath(f)));
-		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
-		
+
+		List<String> uris = getURIs(f);
+	    if (uris == null)
+			throw new InspectionErrorException.SyntaxError(program);
+
+	    // This means that it is an MTL but we really couldn't get the URIs 
+	    if (uris.isEmpty())
+	    	return graph;
+	    
 		for (String uri : uris) {
 			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			graph.addMetamodel(mm);
@@ -57,6 +60,7 @@ public class AcceleoInspector extends ProjectInspector {
 	
 	@VisibleForTesting
 	protected static List<String> getURIs(Reader reader) throws IOException {
+		boolean hasModule = false;
 		String transformationName = null;
 		List<String> uris = new ArrayList<>();
 		try(BufferedReader br = new BufferedReader(reader)) {
@@ -73,6 +77,8 @@ public class AcceleoInspector extends ProjectInspector {
 					if (read != 5 || ! "odule".equals(new String(buffer))) {
 						continue MAIN;
 					}
+					
+					hasModule = true;
 					
 					c = skipWhitespace(br);
 
@@ -131,6 +137,10 @@ public class AcceleoInspector extends ProjectInspector {
 			}
 		}
 
+		if (! hasModule) {
+			return null;
+		}
+		
 		return uris;
 	}
 	
