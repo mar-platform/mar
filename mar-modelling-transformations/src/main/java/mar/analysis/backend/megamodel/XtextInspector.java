@@ -11,6 +11,7 @@ import mar.artefacts.RecoveredPath;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.models.xtext.XtextLoader;
 import mar.models.xtext.XtextLoader.XtextAnalysisResult;
+import mar.models.xtext.XtextLoader.XtextInfo;
 import mar.validation.AnalysisDB;
 
 public class XtextInspector extends ProjectInspector {
@@ -22,20 +23,20 @@ public class XtextInspector extends ProjectInspector {
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		XtextLoader loader = new XtextLoader();
-		XtextAnalysisResult r = loader.doAnalysis(f);
+		XtextInfo info = loader.getInfo(f);
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
 		XtextProgram p = new XtextProgram(new RecoveredPath(getRepositoryPath(f.toPath())));
 		graph.addProgram(p);
 		
-		for (String uri : r.getGeneratedURIs()) {
+		for (String uri : info.getGeneratedURIs()) {
 			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE, MetamodelReference.Kind.TYPED_BY);
 		}
 				
-		for (String uri : r.getImportedURIs()) {
+		for (String uri : info.getImportedURIs()) {
 			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.IMPORT, MetamodelReference.Kind.TYPED_BY);
