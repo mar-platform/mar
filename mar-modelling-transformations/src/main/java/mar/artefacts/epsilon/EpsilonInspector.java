@@ -63,15 +63,21 @@ public class EpsilonInspector extends ProjectInspector {
 			if (! module.parse(f)) {
 				throw new InspectionErrorException.SyntaxError(program);
 			}
-			
 		}
 		
-		String toMatch = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
-		Map<String, RecoveredMetamodelFile> classFootprints = toClassFootprints(toMatch);
+		String programText = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
+		List<String> deps = extractDependencies(programText);
+		for (String string : deps) {
+			Path loosyPath = getRepositoryPath(f).resolve(Paths.get(string));			
+			RecoveredPath r = getFileSearcher().findFile(loosyPath);
+			program.addImportDependency(r.getPath()); // FIXME: Check that that this is not using RecoveredPath
+		}
+		
+		Map<String, RecoveredMetamodelFile> classFootprints = toClassFootprints(programText);
 		
 		// Treat specific files in a different way
 		if (f.getName().endsWith(".egx")) {
-			processEgx(toMatch, program, classFootprints);
+			processEgx(programText, program, classFootprints);
 		}
 		
 		MetamodelSeacher ms = getMetamodelSearcher();
@@ -91,6 +97,35 @@ public class EpsilonInspector extends ProjectInspector {
 		matchTemplateCalls(strProgram, program);
 	}
 
+	private static final Pattern TEMPLATE_FACTORY_PATTERN = Pattern.compile("TemplateFactory\\.load\\(['\"]([^'\"]*)['\"]\\)");
+	private static final Pattern IMPORT_PATTERN= Pattern.compile("import\\s+['\"]([^'\"]*)['\"]");
+	
+
+	private List<String> extractDependencies(String text) {
+		Matcher matcher = TEMPLATE_FACTORY_PATTERN.matcher("");
+		Matcher matcher2 = IMPORT_PATTERN.matcher("");
+
+		List<String> result = new ArrayList<String>();
+		text.lines().forEach(line -> {
+			line = line.stripLeading();
+			if (! line.startsWith("//")) {
+				matcher.reset(line);
+				while (matcher.find()) {
+					String content = matcher.group(1);
+					result.add(content);
+				}
+				
+				matcher2.reset(line);
+				while (matcher2.find()) {
+					String content = matcher2.group(1);
+					result.add(content);
+				}	
+			}
+		});
+        
+        return result;
+	}
+		
 	private final String IDENTIFIER_PATTERN = "(?:\\b[_a-zA-Z]|\\B\\$)[_$a-zA-Z0-9]*+";
 	
 	private void matchUnqualifiedClassNames(String program, Map<String, RecoveredMetamodelFile> classFootprints) {
