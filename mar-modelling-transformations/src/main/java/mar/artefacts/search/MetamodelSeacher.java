@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
+
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
@@ -35,6 +37,8 @@ public class MetamodelSeacher {
 	// TODO: Possibly identify the builtinMetamodels in some shared class
 	private Map<Metamodel, Set<String>> builtinMetamodelsFootprints = new HashMap<>();
 	private Function<Path, Path> toProjectPathNormalizer;
+	@CheckForNull
+	private SearchCache cache;
 	
 	public MetamodelSeacher(FileSearcher searcher, AnalysisDB analysisDb, Function<Path, Path> toProjectPathNormalizer) {
 		this.searcher = searcher;
@@ -50,6 +54,10 @@ public class MetamodelSeacher {
 		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI()), toClassNames(UMLPackage.eINSTANCE.eResource()));
 	}
 
+	public void setCache(SearchCache cache) {
+		this.cache = cache;
+	}
+	
 	public <T> Map<T, RecoveredMetamodelFile> search(Map<T, RecoveredMetamodelFile> classFootprints) {
 		scoreFootprints(classFootprints);
 		
@@ -78,10 +86,18 @@ public class MetamodelSeacher {
 				if (! validModels.contains(path))
 					continue;
 				
-				Set<String> names;
+				Set<String> names = null;
 				File f = searcher.getRepoRoot().resolve(path).toFile();
+				if (cache != null) {
+					names = cache.getClassNamesOf(f);
+				}
+				
 				try {
-					names = toClassNames(f);
+					if (names == null) {
+						names = toClassNames(f);
+						if (cache != null)
+							cache.putClassNames(f, names);
+					}
 				} catch (Throwable e) {
 					// This may happen for files which doesn't validate (it is probably a bit better check the existence of this file in the db and check that it is valid
 					continue;

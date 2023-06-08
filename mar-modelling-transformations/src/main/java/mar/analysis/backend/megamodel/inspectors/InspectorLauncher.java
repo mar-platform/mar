@@ -32,6 +32,7 @@ import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.henshin.HenshinInspector;
 import mar.artefacts.ocl.OCLInspector;
 import mar.artefacts.qvto.QvtoInspector;
+import mar.artefacts.search.SearchCache;
 import mar.artefacts.sirius.SiriusInspector;
 import mar.validation.AnalysisDB;
 
@@ -105,6 +106,10 @@ public class InspectorLauncher {
 
 	private InspectorResult doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {
 		InspectorResult result = new InspectorResult();
+		
+		// The cache can only be shared among inspectors here, because it is not thread-safe
+		SearchCache cache = new SearchCache();
+		
 		for (RepoFile model : db.getFilesByType(fileType)) {
 			Path path = model.getRelativePath();
 			Path fullPath = model.getFullPath();
@@ -123,6 +128,7 @@ public class InspectorLauncher {
 				// QvtoInspector inspector = new QvtoInspector(repositoryDataFolder,
 				// projectPath);
 				ProjectInspector inspector = factory.apply(projectPath);
+				inspector.setSharedCache(cache);
 				RecoveryGraph minigraph = inspector.process(fullPath.toFile());
 				if (minigraph != null) {
 					minigraph.assertValid();

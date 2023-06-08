@@ -21,10 +21,16 @@ public class FileSearcher {
 
 	private final Path projectRoot;
 	private final Path repoRoot;
+	@CheckForNull
+	private SearchCache cache;
 
 	public FileSearcher(@Nonnull Path repoRoot, @Nonnull Path projectRoot) {
 		this.repoRoot = repoRoot;
 		this.projectRoot = projectRoot;
+	}
+	
+	public void setCache(SearchCache cache) {
+		this.cache = cache;
 	}
 	
 	public Path getRepoRoot() {
@@ -61,11 +67,22 @@ public class FileSearcher {
 	}
 	
 	public List<Path> findFilesByExtension(String extension) throws IOException {
+		if (cache != null) {
+			List<Path> result = cache.getFilesByExtension(projectRoot, extension);
+			if (result != null)
+				return result;
+		}
+		
 		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**/*." + extension);
-		return Files.walk(projectRoot).
+		List<Path> result = Files.walk(projectRoot).
 				filter(f -> matcher.matches(f)).
 				map(p -> repoRoot.relativize(p)).
 				collect(Collectors.toList());
+		
+		if (cache != null)
+			cache.putFilesByExtension(projectRoot, extension, result);
+		
+		return result;
 	}
 	
 	protected static int distance(Path loosyPath, Path projectFilePath) {
