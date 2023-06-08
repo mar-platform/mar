@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -139,7 +140,8 @@ public class InspectorLauncher {
 	public Map<ArtefactType, InspectorResult> execute(int numThreads) throws Exception {
 		InspectorLauncher inspector = this;
 
-		Map<ArtefactType, Callable<InspectorResult>> tasks = new HashMap<>();
+		Map<ArtefactType, Callable<InspectorResult>> tasks = new LinkedHashMap<>();
+		tasks.put(ArtefactType.EPSILON, inspector::fromEpsilonFiles);
 		tasks.put(ArtefactType.ANT, inspector::fromBuildFiles);
 		tasks.put(ArtefactType.LAUNCH, inspector::fromLaunchFiles);
 		tasks.put(ArtefactType.QVTO, inspector::fromQvtoFiles);
@@ -148,7 +150,6 @@ public class InspectorLauncher {
 		tasks.put(ArtefactType.EMFATIC, inspector::fromEmfaticFiles);
 		tasks.put(ArtefactType.ACCELEO, inspector::fromAcceleoFiles);
 		tasks.put(ArtefactType.ATL, inspector::fromATLFiles);
-		tasks.put(ArtefactType.EPSILON, inspector::fromEpsilonFiles);
 		tasks.put(ArtefactType.SIRIUS, inspector::fromSirius);
 		tasks.put(ArtefactType.HENSHIN, inspector::fromHenshin);
 		
@@ -161,7 +162,7 @@ public class InspectorLauncher {
 			ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
 			
 			// Schedule everything
-			Map<ArtefactType, Future<InspectorResult>> futures = new HashMap<>();
+			Map<ArtefactType, Future<InspectorResult>> futures = new LinkedHashMap<>();
 			for (Entry<ArtefactType, Callable<InspectorResult>> entry : tasks.entrySet()) {
 				Future<InspectorResult> future = executorService.submit(entry.getValue());
 				futures.put(entry.getKey(), future);
