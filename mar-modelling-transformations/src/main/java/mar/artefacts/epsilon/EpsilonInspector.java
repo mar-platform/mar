@@ -60,8 +60,13 @@ public class EpsilonInspector extends ProjectInspector {
 		Supplier<AbstractModule> moduleFactory = map.get(extension);
 		if (moduleFactory != null) {
 			AbstractModule module = moduleFactory.get();
-			if (! module.parse(f)) {
+			try {
+			    if (! module.parse(f)) {
 				throw new InspectionErrorException.SyntaxError(program);
+			    }
+			} catch (java.lang.StackOverflowError e) {
+			    // TODO: Possibly use a more semantic exception type
+			    throw new InspectionErrorException.SyntaxError(program);	    
 			}
 		}
 		
