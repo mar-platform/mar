@@ -13,6 +13,7 @@ import mar.artefacts.RecoveredPath.HeuristicPath;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
 import mar.artefacts.search.MetamodelSeacher;
+import mar.artefacts.search.SearchCache;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 
@@ -20,18 +21,25 @@ public abstract class ProjectInspector {
 
 	protected final Path repoFolder;
 	protected final Path projectSubPath;
-	private FileSearcher searcher;
-	private AnalysisDB analysisDb;
+	private final FileSearcher searcher;
+	private final AnalysisDB analysisDb;
+	private final MetamodelSeacher mmSearcher;
 
 	public ProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
 		this.repoFolder = repoFolder;
 		this.projectSubPath = projectSubPath;
 		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
 		this.analysisDb = analysisDb;
+		this.mmSearcher = new MetamodelSeacher(searcher, analysisDb, (p) -> getRepositoryPath(p));		
+	}
+	
+	public void setSharedCache(SearchCache cache) {
+		this.mmSearcher.setCache(cache);
+		this.searcher.setCache(cache);
 	}
 	
 	protected MetamodelSeacher getMetamodelSearcher() {
-		return new MetamodelSeacher(searcher, analysisDb, (p) -> getRepositoryPath(p));		
+		return mmSearcher;
 	}
 
 	protected Path getProjectFolder() {
