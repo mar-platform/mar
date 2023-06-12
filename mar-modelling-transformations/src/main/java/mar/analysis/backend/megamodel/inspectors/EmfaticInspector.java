@@ -97,6 +97,7 @@ public class EmfaticInspector extends ProjectInspector {
 			// Assume that the root package URIs the main URI, and the rest are dependent meta-models
 			String rootURI = uris.get(0);
 			Metamodel metamodel = toMetamodelFromURI(f.getName().replace(".emf", ""), rootURI);
+			graph.addMetamodel(metamodel);
 			p.addMetamodel(metamodel, MetamodelReference.Kind.GENERATE);
 			
 			/*
