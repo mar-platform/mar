@@ -95,16 +95,21 @@ public abstract class ProjectInspector {
 		}
 						
 		Path p = folder.resolve(uriOrFile);
-		if (Files.exists(p)) {
+		if (! p.isAbsolute()) {
+			p = repoFolder.resolve(p);
+		}
+ 		if (Files.exists(p)) {
+ 			p = getRepositoryPath(p); // Convert back to relative...
 			// Heuristically...
 			return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
 		} 
 		
-		p = getRepositoryPath(Paths.get(uriOrFile));
-		if (Files.exists(p)) {
-			// Heuristically...
-			return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
-		} 
+		// TODO: This is going to fail if uriOrFile is not absolute...
+		//p = getRepositoryPath(Paths.get(uriOrFile));
+		//if (Files.exists(p)) {
+		//	// Heuristically...
+		//	return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
+		//} 
 		
 		// Which is a proper fallback?
 		return Metamodel.fromFile(uriOrFile, new HeuristicPath(folder.resolve(uriOrFile)));
