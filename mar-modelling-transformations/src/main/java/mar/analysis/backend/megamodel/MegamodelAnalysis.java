@@ -77,6 +77,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	private String project;
 	@Option(required = false, names = { "--git-version" }, description = "Show information about the version")
 	private boolean showGitInfo;
+	@Option(required = false, names = { "--apply-preprocessing" }, description = "Apply pre-processing filters.")
+	private boolean applyFilters;
 	@Option(required = false, names = { "--parallel" }, description = "Execute in parallel with X threads")
 	private int parallel = -1;
 	@CheckForNull
@@ -90,7 +92,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				inspector.withFilter(f -> {
 					return f.getProjectPath().toString().contains(project);
 				});
-			} else {
+			} else if (applyFilters){
 				inspector.withFilter(f -> {
 					AnalyserConfiguration conf = getConfiguration();
 					String extension = f.getExtension();
