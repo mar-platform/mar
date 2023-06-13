@@ -1,6 +1,46 @@
 import os
 import sys
 import argparse
+import yaml
+from yaml.loader import SafeLoader
+import mmap
+
+class Configuration:
+    def __init__(self, data):
+        self.data = data
+        if 'content_filters' in data:
+            filters = data['content_filters']
+            self.content_filters = {filter['extension']: filter['contains'] for filter in filters}
+        else:
+            self.content_filters = []
+
+        if 'ignore' in data:
+            self.ignored_filters = [i['pattern'] for i in data['ignore']]
+        else:
+            self.ignored_filters = []
+
+        
+        
+    def is_filtered_out(self, filepath, ext):
+        if ext in self.content_filters:
+            filter = self.content_filters[ext]
+            with open(filepath, 'rb', 0) as file:
+                s = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
+                if s.find(filter) != -1:
+                    return True
+
+        for p in self.ignored_filters:
+            if filepath.startswith(p):
+                return True
+
+        return False
+        
+def load_config(configuration_file):
+    f = open(configuration_file)
+    data = yaml.load(f, Loader=SafeLoader)
+    
+    f.close()
+    return Configuration(data)
 
 def insert_project(dir, cursor):
     project_name = dir.split(os.path.sep)[1]
@@ -11,7 +51,7 @@ def insert_file(project_path, path, fname, ext, filetype, cursor):
     cursor.execute('INSERT INTO files(project_path, file_path, filename, extension, type) VALUES (?, ?, ?, ?, ?)',
                    [project_path, path, fname, ext, filetype])
 
-def process_folder(input_folder, extension_map, file_map, cursor):
+def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
     for (dirpath, dirnames, filenames) in os.walk(input_folder, topdown=True, followlinks=False):
         # See: https://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
         dirnames[:] = [d for d in dirnames if d != '.git']
@@ -34,6 +74,11 @@ def process_folder(input_folder, extension_map, file_map, cursor):
             try:
                 filepath = os.path.join(dirpath, filename)
                 ext = os.path.splitext(filename)[1]
+
+                if conf is not None:
+                    if conf.is_filtered_out(filepath, ext):
+                        continue
+                
                 if ext in extension_map:
                     filetype = extension_map[ext]
                     print(filetype, filepath)
@@ -46,7 +91,7 @@ def process_folder(input_folder, extension_map, file_map, cursor):
                 print("Invalid file name")
 
                     
-def open(output_file):
+def open_db(output_file):
     import sqlite3
     conn   = sqlite3.connect(output_file)
     cursor = conn.cursor()
@@ -65,6 +110,8 @@ def parse_args():
     #                help='List of files to be considered.')
     parser.add_argument('-o', '--output', dest='output', metavar='OUTPUT_FOLDER', type=str, required=True,
                     help='output database file')
+    parser.add_argument('-c', '--configuration', dest='conf', metavar='CONFIGURATION_FOLDER', type=str, required=False,
+                    help='configuration file')
 
     args = parser.parse_args()
 
@@ -76,7 +123,7 @@ if __name__ == "__main__":
     input_folder = args.input
     output_db = args.output
 
-    cursor, connection = open(output_db)
+    cursor, connection = open_db(output_db)
 
     filenames = {
         'build.xml': 'ant',
@@ -118,7 +165,13 @@ if __name__ == "__main__":
     }
 
     # TODO: A list of extensions which we need to inspect inside to know the content (e.g., xml files)
+
+    print(args.conf)
+    if args.conf is not None:
+        conf = load_config(args.conf)
+    else:
+        conf = None
     
-    process_folder(input_folder, extensions, filenames, cursor)
+    process_folder(input_folder, extensions, filenames, cursor, conf)
 
     connection.commit()
