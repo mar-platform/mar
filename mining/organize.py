@@ -10,7 +10,7 @@ class Configuration:
         self.data = data
         if 'content_filters' in data:
             filters = data['content_filters']
-            self.content_filters = {filter['extension']: filter['contains'] for filter in filters}
+            self.content_filters = {"." + filter['extension']: filter['contains'] for filter in filters}
         else:
             self.content_filters = []
 
@@ -21,13 +21,18 @@ class Configuration:
 
         
         
-    def is_filtered_out(self, filepath, ext):
+    def is_filtered_out(self, fullpath, filepath, ext):
         if ext in self.content_filters:
             filter = self.content_filters[ext]
-            with open(filepath, 'rb', 0) as file:
-                s = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
-                if s.find(filter) != -1:
-                    return True
+            filter = bytes(filter, 'utf-8')
+            with open(fullpath, 'rb', 0) as file:
+                try:
+                    s = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
+                    if s.find(filter) != -1:
+                        return True
+                except:
+                    print("Error with mmap ", fullpath)
+                    
 
         for p in self.ignored_filters:
             if filepath.startswith(p):
@@ -76,7 +81,8 @@ def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
                 ext = os.path.splitext(filename)[1]
 
                 if conf is not None:
-                    if conf.is_filtered_out(filepath, ext):
+                    if conf.is_filtered_out(os.path.join(input_folder, filepath), filepath, ext):
+                        print("Filtered out: ", filepath)
                         continue
                 
                 if ext in extension_map:
