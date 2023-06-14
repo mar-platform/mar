@@ -23,19 +23,19 @@ class Configuration:
         
     def is_filtered_out(self, fullpath, filepath, ext):
         if ext in self.content_filters:
-            filter = self.content_filters[ext]
-            filter = bytes(filter, 'utf-8')
-            with open(fullpath, 'rb', 0) as file:
-                try:
-                    s = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
-                    if s.find(filter) != -1:
-                        return True
-                except:
-                    print("Error with mmap ", fullpath)
-                    
-
+            filter_ = self.content_filters[ext]
+            try:
+                with open(fullpath, 'r') as fp:
+                    for l_no, line in enumerate(fp):
+                        if filter_ in line:
+                            print("Filtered by content: ", filepath)
+                            return True
+            except:
+                print("Can't process ", filepath)
+                
         for p in self.ignored_filters:
             if filepath.startswith(p):
+                print("Filtered by pattern: ", filepath)
                 return True
 
         return False
@@ -82,7 +82,6 @@ def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
 
                 if conf is not None:
                     if conf.is_filtered_out(os.path.join(input_folder, filepath), filepath, ext):
-                        print("Filtered out: ", filepath)
                         continue
                 
                 if ext in extension_map:
