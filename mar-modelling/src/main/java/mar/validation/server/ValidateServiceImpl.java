@@ -34,8 +34,7 @@ public class ValidateServiceImpl implements mar.analysis.thrift.ValidateService.
 			map.putAll(options);
 		
 		ISingleFileAnalyser analyser = factory.newAnalyser(map);
-		AnalysisResult r = analyser.analyse(new IFileInfo.FileInfoById(job.modelId, job.relative_path, job.full_path));
-		
+		AnalysisResult r = analyser.analyse(new IFileInfo.FileInfoById(job.modelId, job.relative_path, job.full_path));		
 		return new Result(r.getStatus().name(), r.getStats(), r.getMetadata()).
 				setMetadata_json(r.getJsonMetadata());
 	}

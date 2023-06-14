@@ -115,6 +115,9 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			}
 		}
 		
+		if (m.getResource() != null)
+			m.getResource().unload();
+		
 		return graph;
 	}
 

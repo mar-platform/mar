@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.m2m.internal.qvt.oml.cst.ImportCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.MappingModuleCS;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
@@ -76,6 +77,11 @@ public class QvtoInspector extends ProjectInspector {
 					}
 				}
 			}
+		}
+
+		Resource r = unit.eResource();
+		if (r != null) {
+			r.unload();
 		}
 		
 		return graph;

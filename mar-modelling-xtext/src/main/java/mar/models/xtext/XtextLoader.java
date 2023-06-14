@@ -112,6 +112,11 @@ public class XtextLoader implements ILoader {
 			// TODO: Try to break as soon as possible for efficiency
 		}
 
+		if (parseResult.getRootASTElement() != null  && parseResult.getRootASTElement().eResource() != null) {
+			parseResult.getRootASTElement().eResource().unload();
+		}
+		
+		
 		return info;
 	}
 

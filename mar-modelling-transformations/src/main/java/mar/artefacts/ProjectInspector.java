@@ -131,7 +131,8 @@ public abstract class ProjectInspector {
 		
 		Path loosyPath = Paths.get(file);
 		// Remove the project-specific part of the path because many time this is not in-sync with the actual folder
-		loosyPath = loosyPath.subpath(1, loosyPath.getNameCount());
+		// Not sure that this is a good idea, because then findFile cannot reason with the full path
+		// loosyPath = loosyPath.subpath(1, loosyPath.getNameCount());
 		
 		RecoveredPath p = getFileSearcher().findFile(loosyPath);
 		return Metamodel.fromFile(p.toString(), p);		
