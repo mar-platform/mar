@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,27 +14,22 @@ import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 
-import org.eclipse.emf.common.util.TreeIterator;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EClassifier;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EStructuralFeature.Setting;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.uml2.uml.UMLPackage;
 
 import com.google.common.base.Preconditions;
 
-import mar.analysis.ecore.EcoreLoader;
+import edu.emory.mathcs.backport.java.util.Collections;
+import mar.analysis.ecore.FootprintComputation;
 import mar.artefacts.Metamodel;
 import mar.artefacts.RecoveredPath;
 import mar.validation.AnalysisDB;
+import mar.validation.AnalysisDB.Model;
 
 public class MetamodelSeacher {
 
 	private final FileSearcher searcher;
-	private final AnalysisDB analysisDb;
 	private final Set<Path> validModels;
 
 	// TODO: Possibly identify the builtinMetamodels in some shared class
@@ -43,6 +37,7 @@ public class MetamodelSeacher {
 	private Function<Path, Path> toProjectPathNormalizer;
 	@CheckForNull
 	private SearchCache cache;
+	private AnalysisDB analysisDb;
 	
 	public MetamodelSeacher(FileSearcher searcher, AnalysisDB analysisDb, Function<Path, Path> toProjectPathNormalizer) {
 		this.searcher = searcher;
@@ -98,7 +93,7 @@ public class MetamodelSeacher {
 				
 				try {
 					if (names == null) {
-						names = toClassNames(f);
+						names = toClassNames(path, f);
 						if (cache != null)
 							cache.putClassNames(f, names);
 					}
@@ -140,53 +135,21 @@ public class MetamodelSeacher {
 		return count;
 	}
 	
-	private Set<String> toClassNames(File f) throws IOException {
-		Resource resource = new EcoreLoader().toEMF(f);
-		Set<String> result = new HashSet<String>();
-		Set<Resource> visited = new HashSet<Resource>();
-		return toClassNames(resource, result, visited);
+	private Set<String> toClassNames(Path idPath, File f) throws IOException {
+		Model model = analysisDb.getModelByPath(idPath.toString(), p -> p);
+		if (model == null) {
+			return FootprintComputation.INSTANCE_CROSS_REFS.toClassNames(f);
+		}
+		String footprint = model.getKeyValueMetadata("footprint");
+		Set<String> set = new HashSet<>();
+		Collections.addAll(set, footprint.split(","));
+		return set;
 	}
 
 	private Set<String> toClassNames(Resource resource) {
-		Set<String> result = new HashSet<String>();
-		Set<Resource> visited = new HashSet<Resource>();
-		return toClassNames(resource, result, visited);		
+		return FootprintComputation.INSTANCE_CROSS_REFS.toClassNames(resource);
 	}
 	
-	private Set<String> toClassNames(Resource resource, Set<String> result, Set<Resource> visited) {
-		if (visited.contains(resource))
-			return result;
-		
-		visited.add(resource);
-		
-		Set<Resource> externalResources = new HashSet<Resource>();
-		
-		//TreeIterator<EObject> it = resource.getAllContents();
-		TreeIterator<EObject> it = EcoreUtil.getAllContents(resource, true);
-		while (it.hasNext()) {
-			EObject obj = it.next();
-			if (obj instanceof EClassifier) {
-				result.add(((EClassifier) obj).getName());
-				if (obj instanceof EClass) {
-					Map<EObject, Collection<Setting>> crossRefs = EcoreUtil.ProxyCrossReferencer.find(obj);
-					if (! crossRefs.isEmpty()) {
-						for (EObject proxy : crossRefs.keySet()) {
-							if (proxy.eIsProxy()) {
-								EObject resolved = EcoreUtil.resolve(proxy, resource);
-								externalResources.add(resolved.eResource());
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for (Resource resource2 : externalResources) {
-			result = toClassNames(resource2, result, visited);
-		}
-		
-		return result;
-	}
 	
 	public static class RecoveredMetamodelFile {
 		private double accuracy;

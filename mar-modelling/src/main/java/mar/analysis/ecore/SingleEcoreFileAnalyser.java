@@ -1,9 +1,11 @@
 package mar.analysis.ecore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.CheckForNull;
 
@@ -34,7 +36,9 @@ import mar.validation.SingleEMFFileAnalyser;
 public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 
 	public static final String ID = "ecore";
-
+	
+	public static final String EXTRACT_CLASSIFIER_FOOTPRINT_OPTION = "EXTRACT_CLASSIFIER_FOOTPRINT";
+	
 	public static class Factory implements ResourceAnalyser.Factory {
 
 		@Override
@@ -50,7 +54,11 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		
 		@Override
 		public SingleEcoreFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
-			return new SingleEcoreFileAnalyser();
+			SingleEcoreFileAnalyser analyser = new SingleEcoreFileAnalyser();
+			if (options.containsKey(SingleEcoreFileAnalyser.EXTRACT_CLASSIFIER_FOOTPRINT_OPTION)) {
+				analyser.withExtractClassifierFootprint(true);
+			}
+			return analyser;
 		}
 
 		@Override
@@ -59,12 +67,19 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		}				
 	}
 
+	private boolean extractClassifierFootprint = false;
+
 	@Override
 	protected boolean checkResource(String modelId, Resource r) {		
 		return validate(r) == 0;
 	}
 
 	
+	public void withExtractClassifierFootprint(boolean b) {
+		this.extractClassifierFootprint  = b;
+	}
+
+
 	// Return the number of validation errors
 	private int validate(Resource r) {
 		EValidatorRegistryImpl registry = new org.eclipse.emf.ecore.impl.EValidatorRegistryImpl();
@@ -129,6 +144,13 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		if (! uris.isEmpty()) {
 			metadata = new HashMap<String, List<String>>();
 			metadata.put("nsURI", uris);			
+		}
+		
+		if (extractClassifierFootprint) {
+			if (metadata == null) 
+				metadata = new HashMap<String, List<String>>();
+			Set<String> classNames = FootprintComputation.INSTANCE_CROSS_REFS.toClassNames(r);
+			metadata.put("footprint", Collections.singletonList(String.join(",", classNames)));
 		}
 		
 		// Metadata as a document

@@ -57,6 +57,7 @@ import mar.validation.ISingleFileAnalyser;
 import mar.validation.ISingleFileAnalyser.Remote;
 import mar.validation.ResourceAnalyser;
 import mar.validation.ResourceAnalyser.Factory;
+import mar.validation.ResourceAnalyser.OptionMap;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -288,7 +289,9 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		if (analysisEcore) {
 			Factory factory = AnalyserRegistry.INSTANCE.getFactory(mar.analysis.ecore.SingleEcoreFileAnalyser.ID);
-			try (ISingleFileAnalyser.Remote singleAnalyser = (Remote) factory.newRemoteAnalyser();
+			OptionMap options = new OptionMap();
+			options.put(SingleEcoreFileAnalyser.EXTRACT_CLASSIFIER_FOOTPRINT_OPTION, "true");
+			try (ISingleFileAnalyser.Remote singleAnalyser = (Remote) factory.newRemoteAnalyser(options);
 				 RepositoryDB repoDB = openRepositoryDB(repositoryDataFolder.toPath())) {
 				try (ResourceAnalyser analyser = new ResourceAnalyser(singleAnalyser, new RepositoryDBProvider(repoDB), ecoreAnalysisDbFile)) {
 					analyser.withParallelThreads(4);

@@ -39,6 +39,9 @@ public class FileSearcher {
 	
 	@CheckForNull
 	public RecoveredPath findFile(Path loosyPath) {
+		if (Files.exists(projectRoot.resolve(loosyPath))) {
+			return new RecoveredPath(repoRoot.relativize(projectRoot.resolve(loosyPath)));
+		}
 		Path filename = loosyPath.getName(loosyPath.getNameCount() - 1);
 		try {
 			Optional<Path> match = Files.walk(projectRoot)
