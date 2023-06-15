@@ -67,6 +67,21 @@ public class RepositoryDB implements AutoCloseable {
 		return files;
 	}
 	
+	public List<String> getFiles(String projectName, String pattern) throws SQLException {
+		PreparedStatement files = connection.prepareStatement("select file_path from files where project_path = ? and file_path like ?");
+		files.setString(1, projectName);
+		files.setString(2, pattern);
+
+		List<String> results = new ArrayList<>();
+		ResultSet rs = files.executeQuery();
+		while (rs.next()) {
+			String filePath = rs.getString(1);
+			results.add(filePath);
+		}
+		
+		return results;
+	}
+	
 	public static class RepoFile {
 
 		private Path rootFolder;

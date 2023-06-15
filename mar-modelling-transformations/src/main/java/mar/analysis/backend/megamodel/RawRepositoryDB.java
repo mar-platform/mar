@@ -56,7 +56,7 @@ public class RawRepositoryDB implements AutoCloseable {
 		}
 		
 		return results;
-	}
+	}	
 		
 	public RawRepositoryStats getStats() {
 		try {

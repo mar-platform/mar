@@ -21,6 +21,7 @@ import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.Transformation.Qvto;
 import mar.artefacts.Transformation.TransformationParameter;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.validation.AnalysisDB;
 
@@ -28,8 +29,8 @@ public class QvtoInspector extends ProjectInspector {
 
 	//private final EcoreRepository ecoreRepository;
 
-	public QvtoInspector(Path repoFolder, Path projectPath, AnalysisDB analysisDb) {
-		super(repoFolder, projectPath, analysisDb);
+	public QvtoInspector(Path repoFolder, Path projectPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectPath, analysisDb, repoDb);
 		//this.ecoreRepository = new EcoreRepository(metamodels, repoFolder.toFile());
 	}
 

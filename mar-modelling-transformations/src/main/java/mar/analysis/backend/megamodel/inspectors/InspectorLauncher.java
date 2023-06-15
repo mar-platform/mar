@@ -55,53 +55,53 @@ public class InspectorLauncher {
 	}
 
 	public InspectorResult fromBuildFiles() throws SQLException {
-		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath, analysisDb));
+		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromLaunchFiles() throws SQLException {
 		return doInspect("eclipse-launcher",
-				(projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath, analysisDb));
+				(projectPath) -> new EpsilonLaunchInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromQvtoFiles() throws SQLException {
-		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath, analysisDb));
+		return doInspect("qvto", (projectPath) -> new QvtoInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromOclFiles() throws SQLException {
-		return doInspect("ocl", (projectPath) -> new OCLInspector(repositoryDataFolder, projectPath, analysisDb));
+		return doInspect("ocl", (projectPath) -> new OCLInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromXtextFiles() throws SQLException {
-		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath, analysisDb));
+		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromEmfaticFiles() throws SQLException {
 		return doInspect("emfatic",
-				(projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath, analysisDb));
+				(projectPath) -> new EmfaticInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromAcceleoFiles() throws SQLException {
 		return doInspect("acceleo",
-				(projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath, analysisDb));
+				(projectPath) -> new AcceleoInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromATLFiles() throws SQLException {
 		return doInspect("atl",
-				(projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath, analysisDb));
+				(projectPath) -> new AnATLyzerFileInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromEpsilonFiles() throws SQLException {
 		return doInspect("epsilon",
-				(projectPath) -> new EpsilonInspector(repositoryDataFolder, projectPath, analysisDb));
+				(projectPath) -> new EpsilonInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromSirius() throws SQLException {
-		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath, analysisDb));
+		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	public InspectorResult fromHenshin() throws SQLException {
 		return doInspect("henshin",
-				(projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath, analysisDb));
+				(projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
 	private InspectorResult doInspect(String fileType, Function<Path, ProjectInspector> factory) throws SQLException {

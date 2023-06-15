@@ -13,9 +13,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.epsilon.common.module.ModuleElement;
 import org.eclipse.epsilon.egl.internal.EglModule;
 import org.eclipse.epsilon.eol.AbstractModule;
 import org.eclipse.epsilon.eol.EolModule;
@@ -28,9 +26,10 @@ import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
-import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.MissingPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.MetamodelSeacher;
 import mar.artefacts.search.MetamodelSeacher.RecoveredMetamodelFile;
@@ -45,8 +44,8 @@ public class EpsilonInspector extends ProjectInspector {
 			build();
 	
 	
-	public EpsilonInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
-		super(repoFolder, projectSubPath, analysisDb);
+	public EpsilonInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, analysisDb, repoDb);
 	}
 
 	@Override

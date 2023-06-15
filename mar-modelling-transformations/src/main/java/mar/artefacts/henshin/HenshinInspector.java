@@ -22,6 +22,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.validation.AnalysisDB;
@@ -30,8 +31,8 @@ public class HenshinInspector extends XMLProjectInspector {
 	
 	private final XPathExpression FIND_METAMODEL;
 	
-	public HenshinInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb) {
-		super(repositoryDataFolder, projectPath, analysisDb);
+	public HenshinInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repositoryDataFolder, projectPath, analysisDb, repoDb);
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();

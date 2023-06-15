@@ -5,6 +5,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,17 +18,22 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.HeuristicPath;
+import mar.artefacts.db.RepositoryDB;
 
 public class FileSearcher {
 
 	private final Path projectRoot;
+	private final Path projectSubPath;
 	private final Path repoRoot;
 	@CheckForNull
 	private SearchCache cache;
+	private RepositoryDB rawdb;
 
-	public FileSearcher(@Nonnull Path repoRoot, @Nonnull Path projectRoot) {
+	public FileSearcher(@Nonnull Path repoRoot, @Nonnull Path projectSubPath, RepositoryDB rawdb) {
 		this.repoRoot = repoRoot;
-		this.projectRoot = projectRoot;
+		this.projectSubPath = projectSubPath;
+		this.projectRoot = repoRoot.resolve(projectSubPath);
+		this.rawdb = rawdb;
 	}
 	
 	public void setCache(SearchCache cache) {
@@ -36,9 +43,27 @@ public class FileSearcher {
 	public Path getRepoRoot() {
 		return repoRoot;
 	}
-	
+
 	@CheckForNull
 	public RecoveredPath findFile(Path loosyPath) {
+		final String loosyPathStr = loosyPath.toString();
+		String filename = loosyPath.getName(loosyPath.getNameCount() - 1).toString();
+		String projectName = projectSubPath.toString();
+		try {
+			List<String> files = rawdb.getFiles(projectName, "%" + filename);
+			if (files.isEmpty())
+				return findFileInFilesystem(loosyPath);
+
+			files.sort((f1, f2) -> Integer.compare(distance(loosyPathStr, f1), distance(loosyPathStr, f2)));
+			return new HeuristicPath(Paths.get(files.get(0)));
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return findFileInFilesystem(loosyPath);
+		}
+	}
+	
+	@CheckForNull
+	public RecoveredPath findFileInFilesystem(Path loosyPath) {
 		if (Files.exists(projectRoot.resolve(loosyPath))) {
 			return new RecoveredPath(repoRoot.relativize(projectRoot.resolve(loosyPath)));
 		}
@@ -88,10 +113,14 @@ public class FileSearcher {
 		return result;
 	}
 	
+	private static LevenshteinDistance DISTANCE_ALG = new LevenshteinDistance();
+	
 	protected static int distance(Path loosyPath, Path projectFilePath) {
-		LevenshteinDistance distance = new LevenshteinDistance();
-		return distance.apply(loosyPath.toString(), projectFilePath.toString());
+		return distance(loosyPath.toString(), projectFilePath.toString());
 	}
-
+	
+	protected static int distance(String loosyPath, String projectFilePath) {
+		return DISTANCE_ALG.apply(loosyPath, projectFilePath);
+	}
 	
 }

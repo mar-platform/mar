@@ -15,6 +15,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
 import mar.validation.AnalysisDB;
@@ -42,11 +43,8 @@ public class SimpleATLInspector extends ProjectInspector {
 	private static final int NS_URI_LENGTH = NS_URI.length();
 	private static final int PATH_LENGTH   = PATH.length();
 	
-	private final FileSearcher searcher;
-
-	public SimpleATLInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB db) {
-		super(repoFolder, projectSubPath, db);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+	public SimpleATLInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB db, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, db, repoDb);
 	}
 	
 
@@ -97,7 +95,7 @@ public class SimpleATLInspector extends ProjectInspector {
 		// Remove the project-specific part of the path because many time this is not in-sync with the actual folder
 		loosyPath = loosyPath.subpath(1, loosyPath.getNameCount());
 		
-		RecoveredPath p = searcher.findFile(loosyPath);
+		RecoveredPath p = getFileSearcher().findFile(loosyPath);
 		System.out.println("Recovered: " + p.getPath());
 		return Metamodel.fromFile(parts.getLeft(), p);
 	}

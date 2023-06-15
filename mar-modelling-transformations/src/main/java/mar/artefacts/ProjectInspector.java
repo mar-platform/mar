@@ -10,6 +10,7 @@ import javax.annotation.CheckForNull;
 
 import mar.analysis.megamodel.model.Project;
 import mar.artefacts.RecoveredPath.HeuristicPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
 import mar.artefacts.search.MetamodelSeacher;
@@ -25,10 +26,10 @@ public abstract class ProjectInspector {
 	private final AnalysisDB analysisDb;
 	private final MetamodelSeacher mmSearcher;
 
-	public ProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
+	public ProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB rawRepoDb) {
 		this.repoFolder = repoFolder;
 		this.projectSubPath = projectSubPath;
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+		this.searcher = new FileSearcher(repoFolder, projectSubPath, rawRepoDb);
 		this.analysisDb = analysisDb;
 		this.mmSearcher = new MetamodelSeacher(searcher, analysisDb, (p) -> getRepositoryPath(p));		
 	}

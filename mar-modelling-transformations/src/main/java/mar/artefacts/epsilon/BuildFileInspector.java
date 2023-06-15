@@ -31,9 +31,9 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
-import mar.artefacts.search.FileSearcher;
 import mar.artefacts.utils.AntUtils;
 import mar.validation.AnalysisDB;
 
@@ -43,11 +43,8 @@ public class BuildFileInspector extends XMLProjectInspector {
 	private final XPathExpression FIND_PROGRAMS;
 	private final XPathExpression MODEL_REFS;
 	
-	private final FileSearcher searcher;
-	
-	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB db) {
-		super(repoFolder, projectSubPath, db);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+	public BuildFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB db, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, db, repoDb);
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
@@ -218,7 +215,7 @@ public class BuildFileInspector extends XMLProjectInspector {
 	    		if (! Files.exists(path.getCompletePath(this.repoFolder))) {
 	    			// TODO: Somehow loosely match the given file. We need to strip the builddir, etc. from metamodelfileNode.getTextContent()
 	    			String loosyPath = AntUtils.stripUnknownElements(metamodelfileNode.getTextContent());
-	    			path = searcher.findFile(Paths.get(loosyPath));
+	    			path = getFileSearcher().findFile(Paths.get(loosyPath));
 	    		}
 	    		metamodel = Metamodel.fromFile(name, path);
 	    	} else {
