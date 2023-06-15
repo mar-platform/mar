@@ -23,6 +23,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.MissingPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.XMLProjectInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
@@ -49,11 +50,9 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 
 	private final XPathExpression FIND_LOAD_MODEL;
 	private final XPathExpression FIND_PROGRAMS;
-    private final FileSearcher searcher;
     
-	public EpsilonLaunchInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
-		super(repoFolder, projectSubPath, analysisDb);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+	public EpsilonLaunchInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, analysisDb, repoDb);
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();
@@ -119,7 +118,7 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 		String readOnLoad = properties.getProperty("readOnLoad");
 		String storeOnDisposal = properties.getProperty("storeOnDisposal");
 		
-		RecoveredPath programPath = searcher.findFile(Paths.get(program));
+		RecoveredPath programPath = getFileSearcher().findFile(Paths.get(program));
 		EpsilonProgram epsilonProgram = new EpsilonProgram(programPath);		
 		graph.addProgram(epsilonProgram);
 		for (String uri : uris) {

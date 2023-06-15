@@ -12,12 +12,13 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import mar.artefacts.db.RepositoryDB;
 import mar.validation.AnalysisDB;
 
 public abstract class XMLProjectInspector extends ProjectInspector {
 
-	public XMLProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB db) {
-		super(repoFolder, projectSubPath, db);
+	public XMLProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB db, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, db, repoDb);
 	}
 
 	protected Document loadDocument(InputStream stream) throws ParserConfigurationException, SAXException, IOException {

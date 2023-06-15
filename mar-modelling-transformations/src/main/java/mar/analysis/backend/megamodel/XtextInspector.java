@@ -8,6 +8,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.models.xtext.XtextLoader;
 import mar.models.xtext.XtextLoader.XtextAnalysisResult;
@@ -16,8 +17,8 @@ import mar.validation.AnalysisDB;
 
 public class XtextInspector extends ProjectInspector {
 
-	public XtextInspector(Path repoFolder, Path projectSubPath, AnalysisDB db) {
-		super(repoFolder, projectSubPath, db);
+	public XtextInspector(Path repoFolder, Path projectSubPath, AnalysisDB db, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, db, repoDb);
 	}
 
 	@Override

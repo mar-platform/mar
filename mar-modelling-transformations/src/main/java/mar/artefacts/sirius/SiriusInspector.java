@@ -26,6 +26,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.XMLProjectInspector;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
 import mar.artefacts.search.MetamodelSeacher;
@@ -51,8 +52,8 @@ public class SiriusInspector extends XMLProjectInspector {
 	private final XPathExpression FIND_METAMODEL;
 	private final XPathExpression FIND_DOMAIN_CLASS;
 	
-	public SiriusInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb) {
-		super(repositoryDataFolder, projectPath, analysisDb);
+	public SiriusInspector(Path repositoryDataFolder, Path projectPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repositoryDataFolder, projectPath, analysisDb, repoDb);
 		
 		try {
 			XPathFactory xpathfactory = XPathFactory.newInstance();

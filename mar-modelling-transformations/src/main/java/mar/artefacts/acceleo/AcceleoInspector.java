@@ -17,13 +17,14 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.validation.AnalysisDB;
 
 public class AcceleoInspector extends ProjectInspector {
 
-	public AcceleoInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
-		super(repoFolder, projectSubPath, analysisDb);
+	public AcceleoInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, analysisDb, repoDb);
 	}
 
 	/**

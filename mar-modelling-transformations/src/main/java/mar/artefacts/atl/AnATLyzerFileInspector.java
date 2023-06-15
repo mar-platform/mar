@@ -26,6 +26,7 @@ import mar.artefacts.MetamodelReference.Kind;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.MissingPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.MetamodelSeacher;
 import mar.artefacts.search.MetamodelSeacher.RecoveredMetamodelFile;
@@ -54,8 +55,8 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	private static final int NS_URI_LENGTH = NS_URI.length();
 	private static final int PATH_LENGTH   = PATH.length();
 	
-	public AnATLyzerFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB analysisDb) {
-		super(repoFolder, projectSubPath, analysisDb);
+	public AnATLyzerFileInspector(@Nonnull Path repoFolder, @Nonnull Path projectSubPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, analysisDb, repoDb);
 	}
 	
 

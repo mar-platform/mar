@@ -19,6 +19,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
 import mar.validation.AnalysisDB;
@@ -35,11 +36,8 @@ import mar.validation.AnalysisDB;
  */
 public class EmfaticInspector extends ProjectInspector {
 
-	private final FileSearcher searcher;
-
-	public EmfaticInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb) {
-		super(repoFolder, projectSubPath, analysisDb);
-		this.searcher = new FileSearcher(repoFolder, getProjectFolder());
+	public EmfaticInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, analysisDb, repoDb);
 	}
 	
 	protected String extractURI(@Nonnull String text, int startIndex) {
@@ -88,7 +86,7 @@ public class EmfaticInspector extends ProjectInspector {
 			String filename = f.getName().replace(".emf", ".ecore");
 			File parent = f.getParentFile();
 
-			RecoveredPath rp = searcher.findInFolder(parent.toPath(), filename);
+			RecoveredPath rp = getFileSearcher().findInFolder(parent.toPath(), filename);
 			Metamodel mm = Metamodel.fromFile(filename, rp);
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		
