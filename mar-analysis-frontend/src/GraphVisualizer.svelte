@@ -32,6 +32,7 @@
     let currentNode;
     let renderer;
     let numberOfIterations = 20;
+    let nodeNameFilter = '';
     let showUnconnectedNodes = false;
   
     const colorMap = types.reduce(function(map, obj) { 
@@ -164,6 +165,10 @@
       });
       refresh();
     }
+
+    function applyNodeFilter() {
+      console.log(nodeNameFilter)
+    }
   </script>
   
 <style>
@@ -176,32 +181,40 @@
     height: 600px; 
     border: 1px solid gray;
 
+    margin-top: 15px;
     resize:both;
     overflow:auto; /* something other than visible */
-  }
+  } 
 </style>
 
-
 <main id="view">
-  <div>
-    Artefact types
-    {#each types as {type, checked}, idx }
-    <label style="color: {colorMap[type]}">
-      <input type=checkbox bind:checked={checkedTypes[type]} on:change={(e) => refresh()}>
-      {type}
-    </label>
-    {/each}
-  </div>
-  <Container style="margin-top: 10px; padding-left: 0px">
-    <Row width="800px">
+  <Container style="margin-top: 10px; padding-left: 0px; margin-left: 10px">
+    <Row>
+      <Col sm="2">
+        <strong>Artefact Types</strong>
+      </Col>
+      {#each types as {type, checked}, idx }
+      <Col xs="auto">
+        <label style="color: {colorMap[type]}">
+          <input type=checkbox bind:checked={checkedTypes[type]} on:change={(e) => refresh()}>
+          {type}
+        </label>
+      </Col>
+      {/each}
+    </Row>
+    <Row style="margin-top:10px">
+      <Col sm="2">
+        <strong>Show Unconnected Nodes</strong>
+      </Col>
       <Col xs="auto">
         <label>
           <input type=checkbox bind:checked={showUnconnectedNodes} on:change={(e) => refresh()}>
-          Show unconnected nodes
         </label>        
       </Col>  
-      <Col xs="auto">
-        <Label>Iterations: </Label>
+    </Row>
+    <Row style="margin-top:10px">
+      <Col sm="2">
+        <strong>Iterations:</strong>
       </Col>
       <Col xs="auto">
         <FormGroup>
@@ -218,11 +231,34 @@
       <Col xs="auto">
         <Button on:click={redoLayout}>Layout</Button>
       </Col>
+    </Row>
+    <Row style="margin-top:10px">
+      <Col sm="2">
+        <strong>Label Node Size Toogle:</strong>
+      </Col>
       <Col xs="auto">
         <div class="input">
-          <label for="labels-threshold">Labels threshold</label>
+          <label for="labels-threshold">Threshold</label>
           <input id="labels-threshold" type="range" min="0" max="15" step="0.5" on:input={onLabelTreshold}/>
         </div>  
+      </Col>
+    </Row>
+    <Row style="margin-top:10px">
+      <Col sm="2">
+        <strong>Label Node Filter:</strong>
+      </Col>
+      <Col xs="auto">
+        <FormGroup>
+          <Input 
+            style="width: 200px"
+            type="text"
+            name="layout-node-filter"
+            id="layout-node-filter"
+            placeholder="Node name filter"
+            value={nodeNameFilter}
+            on:input={applyNodeFilter}
+          />
+        </FormGroup>
       </Col>
     </Row>
   </Container>
