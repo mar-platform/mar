@@ -345,8 +345,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		String extension = Files.getFileExtension(output.getPath());		
 		File resultAnalysisFile = new File(output.getPath().replace("." + extension, "") + ".analysis.txt");
+		File resultStatsFile = new File(output.getPath().replace("." + extension, "") + ".stats.json");
+		
 		new ResultAnalyser(getConfiguration()).
-			withOutput(new PrintStream(resultAnalysisFile)).
+			withOutput(new PrintStream(resultAnalysisFile), resultStatsFile).
 			run(getRepositoryDbFile(), output);
 
 		return 0;
