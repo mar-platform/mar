@@ -1,9 +1,10 @@
+import fnmatch
 import os
 import sys
 import argparse
 import yaml
 from yaml.loader import SafeLoader
-import mmap
+import glob
 
 class Configuration:
     def __init__(self, data):
@@ -19,8 +20,6 @@ class Configuration:
         else:
             self.ignored_filters = []
 
-        
-        
     def is_filtered_out(self, fullpath, filepath, ext):
         if ext in self.content_filters:
             filter_ = self.content_filters[ext]
@@ -32,9 +31,14 @@ class Configuration:
                             return True
             except:
                 print("Can't process ", filepath)
-                
+
         for p in self.ignored_filters:
-            if filepath.startswith(p):
+            # To force match everything after the pattern when this is not a glob pattern
+            if '*' not in p:
+                p = p + '*'
+
+            if fnmatch.fnmatch(filepath, p):
+            #if filepath.startswith(p):
                 print("Filtered by pattern: ", filepath)
                 return True
 
