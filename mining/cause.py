@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import traceback
 
 
 def parse_args():
@@ -73,7 +74,12 @@ if __name__ == "__main__":
         type = artifact_type["type"]
         by_cause = {}
         for file in artifact_type["files"]:
-            cause = check_file(file, type, root)
+            try:
+                cause = check_file(file, type, root)
+            except:
+                traceback.print_exc()
+                continue
+
             if cause not in by_cause:
                 by_cause[cause] = []
             by_cause[cause].append(file)
