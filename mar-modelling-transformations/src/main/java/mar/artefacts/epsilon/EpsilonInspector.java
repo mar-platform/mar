@@ -70,7 +70,7 @@ public class EpsilonInspector extends ProjectInspector {
 		}
 		
 		String programText = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
-		List<String> deps = extractDependencies(programText);
+		List<String> deps = extractDependencies(programText, extension);
 		for (String string : deps) {
 			Path loosyPath = getRepositoryPath(f).resolve(Paths.get(string));			
 			RecoveredPath r = getFileSearcher().findFile(loosyPath);
@@ -103,11 +103,12 @@ public class EpsilonInspector extends ProjectInspector {
 
 	private static final Pattern TEMPLATE_FACTORY_PATTERN = Pattern.compile("TemplateFactory\\.load\\(.*['\"]([^'\"]*(.egl|.egx|.eol|.etl))['\"]\\)");
 	private static final Pattern IMPORT_PATTERN= Pattern.compile("import\\s+['\"]([^'\"]*)['\"]");
-	
-
-	private List<String> extractDependencies(String text) {
+	private static final Pattern EGX_TEMPLATE_CALL = Pattern.compile("template:.*['\"]([^'\"]*(.egl|.egx|.eol|.etl))['\"]");
+		
+	private List<String> extractDependencies(String text, String type) {
 		Matcher matcher = TEMPLATE_FACTORY_PATTERN.matcher("");
 		Matcher matcher2 = IMPORT_PATTERN.matcher("");
+		Matcher matcher3 = EGX_TEMPLATE_CALL.matcher("");
 
 		List<String> result = new ArrayList<String>();
 		text.lines().forEach(line -> {
@@ -124,6 +125,14 @@ public class EpsilonInspector extends ProjectInspector {
 					String content = matcher2.group(1);
 					result.add(content);
 				}	
+				
+				if (type.equals("egx")) {
+					while (matcher3.find()) {
+						String content = matcher3.group(1);
+						result.add(content);
+					}					
+				}
+				
 			}
 		});
         
