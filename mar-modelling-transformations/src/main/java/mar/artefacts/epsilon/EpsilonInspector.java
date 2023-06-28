@@ -101,7 +101,7 @@ public class EpsilonInspector extends ProjectInspector {
 		matchTemplateCalls(strProgram, program);
 	}
 
-	private static final Pattern TEMPLATE_FACTORY_PATTERN = Pattern.compile("TemplateFactory\\.load\\(['\"]([^'\"]*)['\"]\\)");
+	private static final Pattern TEMPLATE_FACTORY_PATTERN = Pattern.compile("TemplateFactory\\.load\\(.*['\"]([^'\"]*(.egl|.egx|.eol|.etl))['\"]\\)");
 	private static final Pattern IMPORT_PATTERN= Pattern.compile("import\\s+['\"]([^'\"]*)['\"]");
 	
 
