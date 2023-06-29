@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import traceback
+import subprocess
 
 
 def parse_args():
@@ -21,32 +22,42 @@ RELEVANT_EXTENSIONS = {
 }
 
 
-def check_file(file: str, type: str, root: str):
-    print("Processing ", file)
-
+def get_using_files(file: str, type: str, root: str):
     parts = file.split("/")
-    if len(parts) < 3:
-        return "InvalidPath"
-
     name = os.path.basename(file)
     project = "/".join(parts[0:2])
     full_project = os.path.join(root, project)
 
-    import subprocess
     result = subprocess.run(['git', 'grep', name], stdout=subprocess.PIPE, cwd=full_project)
     output = result.stdout.decode('utf-8')
     output = output.strip()
 
-    if len(output) == 0:
-        return "TrueIsolated"
-
-    is_defined_in_java = False
+    result = []
     for line in output.split("\n"):
         parts = line.split(":")
         if len(parts) < 2:
             continue
 
         full_file = parts[0]
+        if full_file != file:
+            result.append(full_file)
+
+    return list(set(result))
+
+
+def check_file(file: str, type: str, root: str):
+    print("Processing ", file)
+    parts = file.split("/")
+    if len(parts) < 3:
+        return "InvalidPath"
+
+    filenames = get_using_files(file, type, root)
+
+    if len(filenames) == 0:
+        return "TrueIsolated"
+
+    is_defined_in_java = False
+    for full_file in filenames:
         filename = os.path.basename(full_file)
         if filename.endswith(".java"):
             is_defined_in_java = True
@@ -87,4 +98,3 @@ if __name__ == "__main__":
 
     with open(args.output, "w") as f:
         json.dump(data, f, indent=4)
-

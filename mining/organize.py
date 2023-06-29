@@ -5,6 +5,7 @@ import argparse
 import yaml
 from yaml.loader import SafeLoader
 import glob
+import cause
 
 class Configuration:
     def __init__(self, data):
@@ -60,6 +61,13 @@ def insert_file(project_path, path, fname, ext, filetype, cursor):
     cursor.execute('INSERT INTO files(project_path, file_path, filename, extension, type) VALUES (?, ?, ?, ?, ?)',
                    [project_path, path, fname, ext, filetype])
 
+
+def insert_dependency(filepath, depending_file, cursor):
+    extension = os.path.splitext(depending_file)[1]
+    cursor.execute('INSERT INTO dependencies(file_path, using_file, using_extension) VALUES (?, ?, ?)',
+                   [filepath, depending_file, extension])
+
+
 def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
     for (dirpath, dirnames, filenames) in os.walk(input_folder, topdown=True, followlinks=False):
         # See: https://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
@@ -87,15 +95,24 @@ def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
                 if conf is not None:
                     if conf.is_filtered_out(os.path.join(input_folder, filepath), filepath, ext):
                         continue
-                
+
+                inserted = False
                 if ext in extension_map:
                     filetype = extension_map[ext]
                     print(filetype, filepath)
                     insert_file(project_path, filepath, filename, ext, filetype, cursor)
+                    inserted = True
                 elif filename in file_map:
                     filetype = file_map[filename]
                     print(filetype, filepath)
                     insert_file(project_path, filepath, filename, ext, filetype, cursor)
+                    inserted = True
+
+                if inserted and is_artefact_file_type(filetype):
+                    deps = cause.get_using_files(filepath, filetype, input_folder)
+                    for d in deps:
+                        insert_dependency(filepath, d, cursor)
+
             except UnicodeEncodeError:
                 print("Invalid file name")
 
@@ -107,6 +124,8 @@ def open_db(output_file):
 
     cursor.execute('CREATE TABLE IF NOT EXISTS projects (project_path VARCHAR(255), name VARCHAR(255), PRIMARY KEY (project_path))')
     cursor.execute('CREATE TABLE IF NOT EXISTS files (project_path VARCHAR(255), file_path TEXT, filename VARCHAR(255), extension VARCHAR(32), type VARCHAR(32), PRIMARY KEY (file_path))')
+    # A file_path is used in used_file if its name appears in used_file
+    cursor.execute('CREATE TABLE IF NOT EXISTS dependencies (file_path TEXT, using_file TEXT, using_extension VARCHAR(32), PRIMARY KEY (file_path, using_file))')
 
     return cursor, conn
 
@@ -126,6 +145,8 @@ def parse_args():
 
     return args
 
+def is_artefact_file_type(file_type):
+    return file_type not in ['ant', 'maven', 'eclipse-launcher']
 
 if __name__ == "__main__":
     args = parse_args()
