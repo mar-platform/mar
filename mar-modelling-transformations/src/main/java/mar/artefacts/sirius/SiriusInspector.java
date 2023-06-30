@@ -118,7 +118,7 @@ public class SiriusInspector extends XMLProjectInspector {
 		for(int i = 0, len = result.getLength(); i < len; i++) {
 			Node attr = result.item(i);
 			String qname = attr.getTextContent();
-			String[] parts = qname.split("\\.");			
+			String[] parts = qname.split("\\.|(::)");			
 			classFootprints.add(parts[parts.length - 1]);
 		}
 		

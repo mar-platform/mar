@@ -30,7 +30,6 @@ import mar.validation.AnalysisDB.Model;
 public class MetamodelSeacher {
 
 	private final FileSearcher searcher;
-	private final Set<Path> validModels;
 
 	// TODO: Possibly identify the builtinMetamodels in some shared class
 	private Map<Metamodel, Set<String>> builtinMetamodelsFootprints = new HashMap<>();
@@ -43,11 +42,6 @@ public class MetamodelSeacher {
 		this.searcher = searcher;
 		this.analysisDb = analysisDb;
 		this.toProjectPathNormalizer = toProjectPathNormalizer;
-		try {
-			this.validModels = analysisDb.getValidModels(p -> p).stream().map(m -> m.getRelativePath()).collect(Collectors.toSet());
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
 		
 		builtinMetamodelsFootprints.put(Metamodel.fromURI(EcorePackage.eINSTANCE.getName(), EcorePackage.eINSTANCE.getNsURI()), toClassNames(EcorePackage.eINSTANCE.eResource()));
 		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI()), toClassNames(UMLPackage.eINSTANCE.eResource()));
@@ -55,6 +49,16 @@ public class MetamodelSeacher {
 
 	public void setCache(SearchCache cache) {
 		this.cache = cache;
+	}
+
+	private Set<Path> getValidModels() {
+		return cache.getValidFilesOrCompute(() -> {
+			try {
+				return analysisDb.getValidModels(p -> p).stream().map(m -> m.getRelativePath()).collect(Collectors.toSet());
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 	
 	public <T> Map<T, RecoveredMetamodelFile> search(Map<T, RecoveredMetamodelFile> classFootprints) {
@@ -82,7 +86,7 @@ public class MetamodelSeacher {
 			List<Path> files = searcher.findFilesByExtension("ecore");
 			for (Path path : files) {
 				Preconditions.checkState(! path.isAbsolute());
-				if (! validModels.contains(path))
+				if (! getValidModels().contains(path))
 					continue;
 				
 				Set<String> names = null;

@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +17,12 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
+
 import org.jgrapht.Graph;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
@@ -63,6 +69,8 @@ public class ResultAnalyser implements Callable<Integer> {
 	private AnalyserConfiguration configuration;
 
 	private PrintStream out = System.out;
+	@CheckForNull
+	private File statsFile;
 	
 	public ResultAnalyser() {
 		// For piccocli
@@ -72,8 +80,9 @@ public class ResultAnalyser implements Callable<Integer> {
 		this.configuration = configuration;
 	}
 
-	public ResultAnalyser withOutput(PrintStream stream) {
+	public ResultAnalyser withOutput(PrintStream stream, File resultStatsFile) {
 		this.out = stream;
+		this.statsFile = resultStatsFile;
 		return this;
 	}
 	
@@ -110,21 +119,24 @@ public class ResultAnalyser implements Callable<Integer> {
 			MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
 			
 			computeFileLevelStats(artefactTypes, rawDb, megamodelDb);
-			computeGraphLevelStats(artefactTypes, megamodelDb);
+			GraphLevelStats graphStats = computeGraphLevelStats(artefactTypes, megamodelDb);
+			
+			if (statsFile != null) {
+				ObjectMapper mapper = new ObjectMapper();
+				mapper.writer().writeValue(statsFile, graphStats);
+			}
 			
 			showProjectInformation();
 		};
 	}
 
-	private void computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb) {
+	private GraphLevelStats computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb) {
 		long totalArtefactNodes = 0;
 		long totalIsolatedArtefacts = 0;
 		long totalOutDegree = 0;
 		long totalInDegree = 0;
 		
-
 		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();		
-		
 		
 		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb);
 		RelationshipsGraph graph = analysis.getRelationships();
@@ -149,6 +161,8 @@ public class ResultAnalyser implements Callable<Integer> {
 			}
 		}
 		
+		GraphLevelStats graphStats = new GraphLevelStats();
+		
 		out.println();
 		out.println("Graph-level stats:");
 		out.println("  " + String.format("%-8s", "# Artefacts") + " " + String.format("%d", totalArtefactNodes));
@@ -161,10 +175,46 @@ public class ResultAnalyser implements Callable<Integer> {
 		out.println("Isolated nodes:");
 		byType.asMap().forEach((type, artefacts) -> {
 			out.println("- Type: " + type + "  " + artefacts.size() + " isolated artefacts");
-			artefacts.forEach(a -> {
+			List<Artefact> sorted = new ArrayList<>(artefacts);
+			Collections.sort(sorted, (a1, a2) -> a1.getId().compareTo(a2.getId()));
+			sorted.forEach(a -> {
+				graphStats.addIsolated(a);
 				out.println("   " + a.getId());
 			});
 		});
+		
+		return graphStats;
+	}
+	
+	public static class GraphLevelStats {
+		@JsonProperty(value = "isolated")
+		private List<Isolated> isolatedNodes = new ArrayList<ResultAnalyser.Isolated>();
+
+		public void addIsolated(Artefact a) {
+			for (Isolated isolated : isolatedNodes) {
+				if (isolated.type.equals(a.getType())) {
+					isolated.files.add(a.getId());
+					return;
+				}
+			}
+			
+			Isolated i = new Isolated(a.getType());
+			i.files.add(a.getId());
+			isolatedNodes.add(i);
+		}
+	}
+	
+	public static class Isolated {
+
+		@JsonProperty
+		private String type;
+		
+		@JsonProperty
+		private List<String> files = new ArrayList<String>();
+
+		public Isolated(String type) {
+			this.type = type;
+		}
 	}
 
 	private void computeFileLevelStats(Set<String> artefactTypes, RawRepositoryDB rawDb, MegamodelDB megamodelDb)
