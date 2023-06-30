@@ -27,7 +27,7 @@ public class TooLongNamesSmellDetector extends EcoreSmellDetector{
 		List<Smell> results = new ArrayList<Smell>();
 		List<? extends ENamedElement> namelements = m.allObjectsOf(EcorePackage.Literals.ENAMED_ELEMENT, ENamedElement.class);
 		for (ENamedElement eNamedElement : namelements) {
-			if (eNamedElement.getName().length() >= thresh)
+			if (eNamedElement.getName() != null && eNamedElement.getName().length() >= thresh)
 				results.add(new TooLongNamesSmell(this, eNamedElement));
 		}
 		return results;

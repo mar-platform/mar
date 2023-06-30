@@ -25,7 +25,7 @@ public class SingleEMFFileAnalyser implements ISingleFileAnalyser {
 			}
 			
 			Resource r = loadModel(f);
-
+			
 			Status status;
 			if (! checkResource(modelId, r)) {
 				status = Status.NO_VALIDATE;				
@@ -39,6 +39,7 @@ public class SingleEMFFileAnalyser implements ISingleFileAnalyser {
 					withMetadata(d.metadata).
 					withMetadataJSON(d.document);
 		} catch (Exception e) {
+			e.printStackTrace();
 			// LOG.error("Crashed " + relativeName, e);
 			// db.updateStatus(relativeName, Status.CRASHED);
 			return new AnalysisResult(modelId, Status.CRASHED);

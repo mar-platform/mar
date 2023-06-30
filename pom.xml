@@ -72,7 +72,11 @@
     <module>mar-modelling-xtext</module>    
     <module>mar-modelling-eclipse</module>
 
+    <module>mar-modelling-transformations</module>
+
     <module>mar-indexer-lucene</module>
-    <module>mar-indexer-spark</module>    
+    <module>mar-indexer-spark</module>
+
+    <module>mar-spring-webserver</module>
   </modules>
 </project>

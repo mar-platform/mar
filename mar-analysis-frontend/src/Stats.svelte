@@ -1,0 +1,92 @@
+<script lang="js">
+    import API from './API';
+    import { onMount } from "svelte";
+
+    let stats;
+
+    onMount(async () => {
+        fetch(API.stats())
+            .then(res => res.json())
+            .then(doc => {
+                stats = doc;
+            });
+    });
+</script>  
+
+<style>
+.artefact-count {
+}
+
+.count {
+    text-align: right;
+}
+
+.type {
+    text-align: left;
+}
+
+#stats-container {
+    display: flex;
+    gap: 40px;
+    margin-left: 20px;
+}
+
+#stats-container h2 {
+    font-size: 14pt;
+}
+</style>
+
+{#if stats}
+<div id="stats-container">
+    <div>
+        <h2>Crawled artefacts</h2>
+        <table class="artefact-count">
+            <tr>
+                <th class="type">Type</th>
+                <th class="count">Count</th>
+            </tr>
+            {#each Object.entries(stats.raw.artefactTypeCount) as [type, count]}
+            <tr>
+                <td class="type">{type}</td>
+                <td class="count">{new Intl.NumberFormat('en-US').format(count)}</td>
+            </tr>
+            {/each}
+        </table> 
+    </div>
+    <div>
+        <h2>Megamodel artefacts</h2>
+        <table class="artefact-count">
+            <tr>
+                <th class="type">Type</th>
+                <th class="count">Count</th>
+            </tr>
+            {#each Object.entries(stats.mega.artefactTypeCount) as [type, count]}
+            <tr>
+                <td class="type">{type}</td>
+                <td class="count">{new Intl.NumberFormat('en-US').format(count)}</td>
+            </tr>
+            {/each}
+        </table> 
+    </div>
+    <div>
+        <h2>Recovered artefacts</h2>
+        <table class="artefact-count">
+            <tr>
+                <th class="type">Type</th>
+                <th class="count">Completion</th>
+            </tr>
+            {#each Object.entries(stats.artefactRecoveryCompletion) as [type, count]}
+            <tr>
+                <td class="type">{type}</td>
+                <td class="count">{new Intl.NumberFormat('en-US').format(count)}%</td>
+            </tr>
+            {/each}
+        </table> 
+    </div>
+</div>
+<div style="margin-top: 1cm; margin-left: 15px">
+    <div>Total raw artefacts (excluding configuration files): {stats.totalRaw} </div>
+    <div>Total recovered artefacts: {stats.totalMega} </div>
+    <div>Recovery completion: {stats.totalCompletion} </div>
+</div>
+{/if}

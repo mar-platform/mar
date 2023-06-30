@@ -1,4 +1,4 @@
-package mar.restservice;
+package mar.restservice.scoring;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,6 +8,7 @@ import java.util.Map;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+import mar.restservice.IPartition;
 import mar.restservice.partitions.PartitionTargetSource;
 
 public class BM25ScoreCalculator {

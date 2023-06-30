@@ -39,6 +39,7 @@ public abstract class ListofPaths {
 					toadd = node.getValue();						
 						
 				str += separator + toadd;
+				separator = ",";
 			}
 			str += ")";
 			

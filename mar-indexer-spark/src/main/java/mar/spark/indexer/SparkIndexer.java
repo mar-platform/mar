@@ -31,12 +31,8 @@ import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.storage.StorageLevel;
-import org.eclipse.emf.ecore.resource.Resource;
 
-import mar.indexer.common.configuration.InvalidJobSpecification;
-import mar.indexer.common.configuration.ModelLoader;
-import mar.indexer.common.configuration.SingleIndexJob;
-import mar.model2graph.PathComputation;
+import mar.indexer.AbstractIndexer;
 //import mar.neural.search.core.Embeddings;
 //import mar.neural.search.core.EmbeddingsSerializer;
 //import mar.neural.search.core.GetEmbeddings;
@@ -45,7 +41,7 @@ import mar.paths.PartitionedPathMap;
 import mar.paths.PathMapSerializer;
 import scala.Tuple2;
 
-public class SparkIndexer implements Closeable {
+public class SparkIndexer extends AbstractIndexer implements Closeable {
 
 	private static Logger log = org.apache.log4j.LogManager.getLogger(SparkIndexer.class);
 
@@ -191,38 +187,6 @@ public class SparkIndexer implements Closeable {
 		conf.set("hbase.zookeeper.quorum", "zoo");
 		Connection connection = ConnectionFactory.createConnection(conf);
 		return connection;
-	}
-
-	@Nonnull
-	private static IModelPaths toPathMap(@Nonnull LoadedModel m) throws InvalidJobSpecification {
-		if (!m.isSuccess())
-			return new ErrorModelPaths((IError) m);
-
-		SingleIndexJob repoConf = m.getOrigin().getRepoConf();
-		PathComputation pathComputation = repoConf.toPathComputation();
-		log.info("Creating pathmap for " + m.resource.getURI());
-		try {
-			PartitionedPathMap paths = pathComputation.getListOfPaths(m.resource).toMapParticionedPaths();		
-			return new ModelPaths(paths, m.getOrigin());
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			return new ErrorModelPaths(new ErrorModel(e, m.getOrigin()));
-		} finally {
-			m.resource.unload();
-		}
-	}
-
-	@Nonnull
-	private static LoadedModel toResource(@Nonnull ModelOrigin model) {
-		try {
-			SingleIndexJob repoConf = model.getRepoConf();
-			ModelLoader loader = repoConf.getModelLoader();
-			Resource r = loader.load(model.getModelFile());
-			return new LoadedModel(r, model);
-		} catch (Exception e) {
-			log.error("Could not load: " + model.getModelFile(), e);
-			return new ErrorModel(e, model);
-		}
 	}
 	
 	public static int min_df = 1;
@@ -389,37 +353,6 @@ public class SparkIndexer implements Closeable {
 //		}
 //	}
 //	
-	/**
-	 * Returns a pair associating the model as paths (IModelPaths) and its token count. 
-	 */
-	private static Tuple2<IModelPaths, Integer> toModelCount(@Nonnull IModelPaths paths) {		
-		PartitionedPathMap mapTokens = ((ModelPaths) paths).pathMap;
-		ModelOrigin origin = ((ModelPaths) paths).origin;
-
-		int totalTokens = 0;
-		Iterator<Entry<String, Map<String, Integer>>> it = mapTokens.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<String, Map<String, Integer>> pair = it.next();
-			Map<String, Integer> second_part = pair.getValue();
-			Iterator<Entry<String, Integer>> it2 = second_part.entrySet().iterator();
-			String commom = pair.getKey();
-//		        boolean oneContainsName = commom.contains(",name,");
-			while (it2.hasNext()) {
-				Entry<String, Integer> pair2 = it2.next();
-				int ntokens = pair2.getValue();
-				// ignore stop words
-				if (true) { //!stopwords.contains(full)) {
-					// relative frequences
-//		        		if(oneContainsName && (pair2.getKey().equals(")") || pair2.getKey().contains(",name,")))
-//		        			totalTokens = totalTokens + ntokens * 100; //*100
-//		        		else
-					totalTokens = totalTokens + ntokens;
-				}
-			}
-		}
-
-		return Tuple2.apply(paths, totalTokens);		
-	}
 	
 	
 	private static Tuple2<IModelPaths, Integer> toModelCountStopPaths(@Nonnull IModelPaths paths) {		
@@ -464,50 +397,6 @@ public class SparkIndexer implements Closeable {
 		return Tuple2.apply(paths_new, totalTokens);		
 	}
 	
-	private static List<Tuple2<CompositeKey, Value>> toKeyValue(@Nonnull Tuple2<IModelPaths, Integer> pathCount) {		
-		IModelPaths p = pathCount._1;
-		
-		PartitionedPathMap mapTokens = ((ModelPaths) p).pathMap;
-		ModelOrigin origin = ((ModelPaths) p).origin;
-		String docId = origin.getModelId();
-		
-		List<Tuple2<CompositeKey, Value>> result = new ArrayList<>(mapTokens.size());
-		
-		// count tokens
-		int totalTokens = pathCount._2;
-
-		// write context
-		Iterator<Entry<String, Map<String, Integer>>> it = mapTokens.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<String, Map<String, Integer>> pair = it.next();
-			Map<String, Integer> second_part = pair.getValue();
-			String commom = pair.getKey();
-			Iterator<Entry<String, Integer>> it2 = second_part.entrySet().iterator();
-
-			while (it2.hasNext()) {
-				Entry<String, Integer> pair2 = it2.next();
-				String full = commom + pair2.getKey();
-
-				// ignore stop words
-				if (false) //stopwords.contains(full))
-					continue;
-
-				int nTokens = totalTokens;
-				int nOcurrences = pair2.getValue();
-				
-				Value v = new Value(docId, nTokens, nOcurrences);
-
-				CompositeKey key = new CompositeKey();
-				key.setPart1(commom);
-				key.setPart2(pair2.getKey());
-
-				// context.write(key, v);
-				result.add(Tuple2.apply(key, v));
-			}
-		}
-					
-		return result;
-	}
 
 	@Override
 	public void close() throws IOException {
