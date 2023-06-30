@@ -166,8 +166,12 @@
       refresh();
     }
 
-    function applyNodeFilter() {
-      console.log(nodeNameFilter)
+    function applyNodeFilter(event : Event) {
+      // renderer.setSetting("drawLabels", true);
+      // renderer.graph.nodes().forEach(n => {
+      //   console.log(n);
+      // });
+      console.log(renderer);
     }
   </script>
   
@@ -238,7 +242,7 @@
       </Col>
       <Col xs="auto">
         <div class="input">
-          <label for="labels-threshold">Threshold</label>
+          <!-- <label for="labels-threshold">Threshold</label> -->
           <input id="labels-threshold" type="range" min="0" max="15" step="0.5" on:input={onLabelTreshold}/>
         </div>  
       </Col>
@@ -255,10 +259,12 @@
             name="layout-node-filter"
             id="layout-node-filter"
             placeholder="Node name filter"
-            value={nodeNameFilter}
-            on:input={applyNodeFilter}
+            bind:value={nodeNameFilter}
           />
         </FormGroup>
+      </Col>
+      <Col xs="auto">
+        <Button on:click={applyNodeFilter}>Filter</Button>
       </Col>
     </Row>
   </Container>
