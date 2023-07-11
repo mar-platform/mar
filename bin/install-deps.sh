@@ -8,3 +8,7 @@ mvn install:install-file -Dfile=thirdparty/lilypond/org.elysium_0.6.0.2018053014
 #    jaxen-1.1.3.jar  jdom-2.0.5.jar
 
 # cp thirdparty/simulink/simulink.ecore mar-modelling-eclipse/src/main/java/mar/models/simulink
+
+# This is a hack because this dependencies seems to be needed in two places
+cp -r ./mar-modelling/lib/ mar-restservice/lib
+
