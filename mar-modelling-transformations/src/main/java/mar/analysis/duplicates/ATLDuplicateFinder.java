@@ -23,7 +23,7 @@ import mar.artefacts.FileProgram;
  * @author jesus
  *
  */
-public class ATLDuplicateFinder extends DuplicateFinder<FileProgram, ATLModel> {
+public class ATLDuplicateFinder<T> extends DuplicateFinder<T, ATLModel> {
 
 	public ATLDuplicateFinder() {
 		super(new ATLTokenExtractor());

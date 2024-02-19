@@ -117,7 +117,7 @@ public class ResultAnalyser implements Callable<Integer> {
 	public void run(Set<String> artefactTypes, File rawDbFile, File megamodelDbFile) throws SQLException, IOException {
 		try (RawRepositoryDB rawDb = new RawRepositoryDB(rawDbFile);
 			MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
-			
+
 			computeFileLevelStats(artefactTypes, rawDb, megamodelDb);
 			GraphLevelStats graphStats = computeGraphLevelStats(artefactTypes, megamodelDb);
 			
@@ -125,6 +125,37 @@ public class ResultAnalyser implements Callable<Integer> {
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.writer().writeValue(statsFile, graphStats);
 			}
+
+			
+			Multimap<String, RawFile> byType = compare(rawDb, megamodelDb, artefactTypes);
+			Multimap<String, Artefact> byTypeRawNotFound = foundInMegamodelNotInRawDb(rawDb, megamodelDb, artefactTypes);
+
+			System.out.println("In RawDB but not found in Megamodel: " + byType.size());
+			byType.asMap().forEach((type, values) -> {
+				if (! values.isEmpty()) {
+					System.out.println("Missing " + type);
+					values.forEach(v -> {
+						System.out.println("  - " + v.getFilepath());
+					});
+				}
+			});
+			
+			System.out.println("In Megamodel but not in RawDB: " + byType.size());
+			byTypeRawNotFound.asMap().forEach((type, values) -> {
+				if (! values.isEmpty()) {
+					System.out.println("Missing " + type);
+					values.forEach(v -> {
+						System.out.println("  - " + v.getId());
+					});
+				}
+			});
+			
+			
+			System.out.println("\nStats:");
+			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
+			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
+				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
+			});
 			
 			showProjectInformation();
 		};
@@ -284,6 +315,21 @@ public class ResultAnalyser implements Callable<Integer> {
 			} 			
 		}
 
+		return byType;
+	}
+	
+	private Multimap<String, Artefact> foundInMegamodelNotInRawDb(RawRepositoryDB rawDb, MegamodelDB megamodelDb, Set<String> artefactTypes) throws SQLException {
+		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
+		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();
+		Map<String, RawFile> files = rawDb.getFiles().stream().collect(Collectors.toMap(f -> f.getFilepath(), f -> f));
+		
+		for (Artefact artefact : artefacts.values()) {
+			boolean found = files.containsKey(artefact.getId());
+			if (! found) {
+				byType.put(artefact.getType(), artefact);
+			}
+		}
+		
 		return byType;
 	}
 

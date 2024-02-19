@@ -48,11 +48,12 @@ public class DuplicateFinder<I, T> {
 	 * @return
 	 */
 	public Collection<DuplicationGroup<I>> getDuplicates(double t0, double t1) {
+		System.out.println("Fingerprints: " + fingerprints.size());
 		Map<I, DuplicationGroup<I>> groups = new HashMap<>();
 		fingerprints.forEach((k1, v1) -> {
 			if (! groups.containsKey(k1)) {
 				
-				DuplicationGroup<I> k1Group = new DuplicationGroup<I>();
+				DuplicationGroup<I> k1Group = new DuplicationGroup<I>(k1);
 				fingerprints.forEach((k2, v2) -> {
 					if (k1 != k2 && ! groups.containsKey(k2)) {
 						if (areDuplicates(k1, k2, t0, t1)) {							
@@ -61,15 +62,15 @@ public class DuplicateFinder<I, T> {
 					}
 				});
 				
-				if (! k1Group.isEmpty()) {
-					k1Group.addDuplicate(k1);
-					for (I resource : k1Group) {
-						groups.put(resource, k1Group);
-					}
-				}
+				// Everything in the group is associated with the group for fast lookup in the next iteration
+				for (I resource : k1Group) {
+					groups.put(resource, k1Group);
+				}			
 			}
 		});
 		
+		// We need to compute the HashSet because the same DuplicationGroup appears several times
+		// i.e., several resources points to the same groups (because they belong to it).
 		return new HashSet<>(groups.values());
 	}
 	
@@ -119,6 +120,12 @@ public class DuplicateFinder<I, T> {
 	
 	public static class DuplicationGroup<T> extends HashSet<T> {
 		private static final long serialVersionUID = 1L;
+		private T representative;
+
+		public DuplicationGroup(T representative) {
+			this.representative = representative;
+			this.add(representative);
+		}
 
 		public void addDuplicate(T artefact) {
 			this.add(artefact);
@@ -126,7 +133,7 @@ public class DuplicateFinder<I, T> {
 
 		@Nonnull
 		public T getRepresentative() {
-			return this.iterator().next();
+			return this.representative;
 		}
 		
 	}
