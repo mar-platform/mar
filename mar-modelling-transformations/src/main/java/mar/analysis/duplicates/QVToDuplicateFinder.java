@@ -10,9 +10,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 
-import mar.artefacts.FileProgram;
-
-public class QVToDuplicateFinder extends DuplicateFinder<FileProgram, UnitCS> {
+public class QVToDuplicateFinder<T> extends DuplicateFinder<T, UnitCS> {
 
 	public QVToDuplicateFinder() {
 		super(new QVToTokenExtractor());

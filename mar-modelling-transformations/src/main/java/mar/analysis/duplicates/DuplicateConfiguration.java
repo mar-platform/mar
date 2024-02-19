@@ -41,7 +41,7 @@ public class DuplicateConfiguration {
 
 			@Override
 			public DuplicateFinder<FileProgram, ATLModel> toFinder() {
-				return new ATLDuplicateFinder();
+				return new ATLDuplicateFinder<FileProgram>();
 			}
 
 			@Override
@@ -63,7 +63,7 @@ public class DuplicateConfiguration {
 
 			@Override
 			public DuplicateFinder<FileProgram, UnitCS> toFinder() {
-				return new QVToDuplicateFinder();
+				return new QVToDuplicateFinder<FileProgram>();
 			}
 
 			@Override

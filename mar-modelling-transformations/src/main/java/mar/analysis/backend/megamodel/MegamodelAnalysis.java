@@ -305,16 +305,21 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		analysisDb.setReadOnly(true);
 
 		// 1. Recover local information about the projects
+		System.out.println("1. Recover local information. Mini-graphs.");
 		Map<ArtefactType, InspectorResult> inspectionResults  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
 		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs = inspectionResults.keySet().stream().collect(Collectors.toMap(k -> k, k -> inspectionResults.get(k).getGraphs()));
+		//Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
 		
-		// 2. Perform global analysis (for the moment duplicate computation) 
+		// 2. Perform global analysis (for the moment duplicate computation)
+		System.out.println("2. Global analysis. Duplicate computation.");
 		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath());
 		
 		// 3. Perform local analysis (maybe using the global information)
+		System.out.println("3. Local analysis.");
 		localAnalysis(miniGraphs);
 		
 		// 4. Merge local information + local information
+		System.out.println("4. Merge.");
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, duplicates, repositoryDataFolder, analysisDb);
 		
 		// 5. Organize errors for dumping (this is just for statistics purposes)

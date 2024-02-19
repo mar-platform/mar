@@ -8,9 +8,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 
-import mar.artefacts.Metamodel;
-
-public class EcoreDuplicateFinder extends DuplicateFinder<Metamodel, Resource> {
+public class EcoreDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
 
 	public EcoreDuplicateFinder() {
 		super(new EcoreTokenExtractor());

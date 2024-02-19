@@ -36,6 +36,8 @@ import mar.validation.SingleEMFFileAnalyser;
 
 public class UMLAnalyser extends SingleEMFFileAnalyser {
 
+	private boolean computeFineGrainedStats = false;
+	
 	public static final String ID = "uml";
 
 	public static class Factory implements ResourceAnalyser.Factory {
@@ -106,7 +108,8 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 	protected AnalysisData getAdditionalAnalysis(Resource r) {
 		Map<String, Integer> types = new HashMap<>();
 		
-		int numElements = 0;
+		int numElements = 0;		
+		
 		TreeIterator<EObject> it = r.getAllContents();
 		while (it.hasNext()) {
 			EObject obj = it.next();
@@ -132,6 +135,43 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 				String key = "diagram_" + type;
 				types.putIfAbsent(key, 0);
 				types.compute(key, (k, v) -> v + 1);
+			}
+			
+			if (computeFineGrainedStats) {
+                if (obj instanceof org.eclipse.uml2.uml.State) {
+                        numStates++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Transition) {
+                        numTransitions++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Interaction) {
+                        numInteractions++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Activity) {
+                        numActivities++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Component) {
+                        numComponents++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Package) {
+                        numPackages++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Class) {
+                        numClasses++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Enumeration) {
+                        numEnums++;
+                } else if (obj instanceof org.eclipse.uml2.uml.DataType) {
+                        numDatatypes++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Property) {
+                        numProperties++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Relationship) {
+                        numRelationships++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Operation) {
+                        numOperations++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Generalization) {
+                        numGeneralizations++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Actor) {
+                        numActors++;
+                } else if (obj instanceof org.eclipse.uml2.uml.UseCase) {
+                        numUseCases++;
+                } else if (obj instanceof org.eclipse.uml2.uml.Association) {
+                        numAssociations++;
+                }
+                
 			}
 		}
 			

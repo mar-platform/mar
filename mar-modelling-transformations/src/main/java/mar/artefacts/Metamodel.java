@@ -83,6 +83,10 @@ public class Metamodel {
 		return result;
 	}
 
+	public String getName() {
+		return name;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
