@@ -74,6 +74,27 @@ public class RawRepositoryDB implements AutoCloseable {
 		}
 	}
 	
+	public List<String> getFilesUsing(String filename) {
+		try {
+			PreparedStatement deps = connection.prepareStatement("select using_file from dependencies where file_path = ?");
+			deps.setString(1, filename);
+			deps.execute();
+			ResultSet rs = deps.getResultSet();
+			List<String> files = new ArrayList<>();
+			while (rs.next()) {
+				String fname = rs.getString(1);
+				files.add(fname);
+			}
+			deps.close();
+			return files;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		
+		// CREATE TABLE dependencies (file_path TEXT, using_file TEXT, using_extension VARCHAR(32), PRIMARY KEY (file_path, using_file));
+
+	}
+
 	
 	@Nonnull
 	public static String getConnectionString(File file) {

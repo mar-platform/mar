@@ -9,22 +9,32 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 
+import org.apache.commons.io.IOUtils;
+import org.eclipse.epsilon.egl.internal.EglModule;
+import org.eclipse.epsilon.eol.AbstractModule;
+import org.eclipse.epsilon.eol.EolModule;
+import org.eclipse.epsilon.etl.EtlModule;
 import org.jgrapht.Graph;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 
 import mar.analysis.backend.megamodel.AnalyserConfiguration;
 import mar.analysis.backend.megamodel.ArtefactType;
@@ -119,7 +129,7 @@ public class ResultAnalyser implements Callable<Integer> {
 			MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
 
 			computeFileLevelStats(artefactTypes, rawDb, megamodelDb);
-			GraphLevelStats graphStats = computeGraphLevelStats(artefactTypes, megamodelDb);
+			GraphLevelStats graphStats = computeGraphLevelStats(artefactTypes, megamodelDb, rawDb);
 			
 			if (statsFile != null) {
 				ObjectMapper mapper = new ObjectMapper();
@@ -161,7 +171,7 @@ public class ResultAnalyser implements Callable<Integer> {
 		};
 	}
 
-	private GraphLevelStats computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb) {
+	private GraphLevelStats computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb, RawRepositoryDB rawDb) {
 		long totalArtefactNodes = 0;
 		long totalIsolatedArtefacts = 0;
 		long totalOutDegree = 0;
@@ -193,15 +203,7 @@ public class ResultAnalyser implements Callable<Integer> {
 		}
 		
 		GraphLevelStats graphStats = new GraphLevelStats();
-		
-		out.println();
-		out.println("Graph-level stats:");
-		out.println("  " + String.format("%-8s", "# Artefacts") + " " + String.format("%d", totalArtefactNodes));
-		out.println("  " + String.format("%-8s", "# Isolated") + " " + String.format("%d", totalIsolatedArtefacts));
-		out.println("  " + String.format("%-8s", "% Isolated") + " " + String.format("%.2f%s", 100.0 * totalIsolatedArtefacts / totalArtefactNodes, "%"));
-		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / totalIsolatedArtefacts));
-		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / totalIsolatedArtefacts));
-	
+			
 		out.println();
 		out.println("Isolated nodes:");
 		byType.asMap().forEach((type, artefacts) -> {
@@ -214,9 +216,104 @@ public class ResultAnalyser implements Callable<Integer> {
 			});
 		});
 		
+		checkIsolationCause(graphStats, rawDb);
+
+		Map<String, Integer> isolatedCauses = new HashMap<String, Integer>();
+		for (Isolated isolated : graphStats.isolatedNodes) {
+			for(IsolatedFile f : isolated.files) {
+				Integer current = isolatedCauses.getOrDefault(f.cause, 0);
+				isolatedCauses.put(f.cause, current + 1);
+			}
+		}
+		
+		Integer falseIsolated = isolatedCauses.get("FalseIsolated");
+		long badHandledIsolatedNodes = totalIsolatedArtefacts - falseIsolated;
+		
+		out.println();
+		out.println("Graph-level stats:");
+		out.println("  " + String.format("%-8s", "# Artefacts") + " " + String.format("%d", totalArtefactNodes));
+		out.println("  " + String.format("%-8s", "# Isolated") + " " + String.format("%d", badHandledIsolatedNodes));
+		out.println("  " + String.format("%-8s", "% Isolated") + " " + String.format("%.2f%s", 100.0 * badHandledIsolatedNodes / totalArtefactNodes, "%"));
+		isolatedCauses.forEach((k, v) -> {
+			out.println("      " + String.format("%-8s", "# Isolated " + k) + " " + String.format("%d", v));			
+		});
+		
+		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / totalArtefactNodes));
+		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / totalArtefactNodes));
+
+		
 		return graphStats;
 	}
 	
+	ImmutableMap<String, Set<String>> map = new ImmutableMap.Builder<String, Set<String>>().
+			put("epsilon", Sets.newHashSet("pom", "launch", "etl", "evl", "egl", "egx", "eol", "ewl", "eml", "mig")).
+			build();
+	
+	
+	private void checkIsolationCause(GraphLevelStats graphStats, RawRepositoryDB rawDb) {
+		for (Isolated isolated : graphStats.isolatedNodes) {
+			FILE:
+			for (IsolatedFile f : isolated.files) {
+				List<String> using = rawDb.getFilesUsing(f.filename);
+				if (using.isEmpty()) {
+					f.cause = "TrueIsolated";
+					continue;
+				}
+				
+				boolean isJavaDefined = false;
+				for (String other : using) {
+					if (other.endsWith(".java") || other.endsWith(".xtend")) {
+						isJavaDefined = true;
+						continue;
+					}
+					
+					String extension = Files.getFileExtension(other);
+					Set<String> relevantExtensions = map.get(isolated.type);
+					if (relevantExtensions != null && relevantExtensions.contains(extension)) {
+						f.cause = "FalseIsolated";
+						continue FILE;
+					}
+				}
+				
+				if (isJavaDefined) {
+					f.cause = "JavaDefined";
+				} else {
+					f.cause = "Unknown";
+				}
+			}
+		}
+		
+		/*
+		 *     print("Processing ", file)
+    parts = file.split("/")
+    if len(parts) < 3:
+        return "InvalidPath"
+
+    filenames = get_using_files(file, type, root)
+
+    if len(filenames) == 0:
+        return "TrueIsolated"
+
+    is_defined_in_java = False
+    for full_file in filenames:
+        filename = os.path.basename(full_file)
+        if filename.endswith(".java"):
+            is_defined_in_java = True
+            continue
+
+        relevant_extensions = RELEVANT_EXTENSIONS.get(type, {})
+        extension = os.path.splitext(filename)[1]
+        if extension in relevant_extensions:
+            return "FalseIsolated"
+
+    if is_defined_in_java:
+        return "JavaDefined"
+
+    return "Unknown"
+
+		 */
+	}
+
 	public static class GraphLevelStats {
 		@JsonProperty(value = "isolated")
 		private List<Isolated> isolatedNodes = new ArrayList<ResultAnalyser.Isolated>();
@@ -224,13 +321,13 @@ public class ResultAnalyser implements Callable<Integer> {
 		public void addIsolated(Artefact a) {
 			for (Isolated isolated : isolatedNodes) {
 				if (isolated.type.equals(a.getType())) {
-					isolated.files.add(a.getId());
+					isolated.addFile(a.getId());
 					return;
 				}
 			}
 			
 			Isolated i = new Isolated(a.getType());
-			i.files.add(a.getId());
+			i.addFile(a.getId());
 			isolatedNodes.add(i);
 		}
 	}
@@ -241,10 +338,26 @@ public class ResultAnalyser implements Callable<Integer> {
 		private String type;
 		
 		@JsonProperty
-		private List<String> files = new ArrayList<String>();
+		private List<IsolatedFile> files = new ArrayList<>();
 
 		public Isolated(String type) {
 			this.type = type;
+		}
+
+		public void addFile(String id) {
+			files.add(new IsolatedFile(id));
+		}
+	}
+	
+	public static class IsolatedFile {
+		@JsonProperty
+		private String filename;
+		
+		@JsonProperty
+		private String cause = "not-checked";
+		
+		public IsolatedFile(String filename) {
+			this.filename = filename;
 		}
 	}
 
