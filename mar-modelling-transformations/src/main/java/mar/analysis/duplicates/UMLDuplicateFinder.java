@@ -5,16 +5,17 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.uml2.uml.NamedElement;
 
-public class EcoreDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
+// For the moment it uses the TokenExtractor from Ecore which essentially looks for Name
+public class UMLDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
 
-	public EcoreDuplicateFinder() {
-		super(new EcoreTokenExtractor());
+	public UMLDuplicateFinder() {
+		super(new UMLTokenExtractor());
 	}
-
-	public static class EcoreTokenExtractor implements ITokenExtractor<Resource> {
+	
+	public static class UMLTokenExtractor implements ITokenExtractor<Resource> {
 
 		@Override
 		public List<String> extract(Resource resource) {
@@ -22,11 +23,10 @@ public class EcoreDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
 			TreeIterator<EObject> it = resource.getAllContents();
 			while (it.hasNext()) {
 				EObject obj = it.next();		
-				//String value = (String) obj.eGet(EcorePackage.Literals.ENAMED_ELEMENT__NAME);
-				EStructuralFeature f = obj.eClass().getEStructuralFeature("name");
-				if (f != null) {
-					String value = (String) obj.eGet(f);
-					addToken(tokens, value);				
+				if (obj instanceof NamedElement) {
+					NamedElement ne = (NamedElement) obj;
+					String name = ne.getName();
+					addToken(tokens, name);
 				}
 			}
 			
