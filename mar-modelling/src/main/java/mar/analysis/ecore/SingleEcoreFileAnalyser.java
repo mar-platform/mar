@@ -55,7 +55,7 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		@Override
 		public SingleEcoreFileAnalyser newAnalyser(@CheckForNull OptionMap options) {
 			SingleEcoreFileAnalyser analyser = new SingleEcoreFileAnalyser();
-			if (options.containsKey(SingleEcoreFileAnalyser.EXTRACT_CLASSIFIER_FOOTPRINT_OPTION)) {
+			if (options != null && options.containsKey(SingleEcoreFileAnalyser.EXTRACT_CLASSIFIER_FOOTPRINT_OPTION)) {
 				analyser.withExtractClassifierFootprint(true);
 			}
 			return analyser;
