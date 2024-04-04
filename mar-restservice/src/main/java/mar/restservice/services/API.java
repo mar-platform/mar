@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 
 import org.eclipse.emf.ecore.resource.Resource;
+import org.nd4j.common.base.Preconditions;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
@@ -27,11 +28,12 @@ import mar.renderers.PlantUmlCollection.PlantUmlImage;
 import mar.renderers.ecore.EcorePlantUMLRenderer;
 import mar.renderers.uml.UmlPlantUMLRenderer;
 import mar.rest.api.TransformationAPI;
-import mar.restservice.HBaseGetInfo;
 import mar.restservice.HBaseLog;
 import mar.restservice.HBaseStats;
+import mar.restservice.ModelDataAccessor;
 import mar.restservice.services.SearchOptions.ModelType;
 import mar.restservice.services.SearchService.SearchException;
+import mar.utils.Utils;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
@@ -70,7 +72,7 @@ public class API extends AbstractAPI {
         
         get("/status", this::doStatus);
         
-        this.searchService = new SearchService(getTextSearcher());
+        this.searchService = new SearchService(getTextSearcher(), configuration);
 	}
 	
 	// Build swagger json description
@@ -86,12 +88,15 @@ public class API extends AbstractAPI {
 	}
 	
     public Object searchList(Request req, Response res) throws IOException, InvalidMarRequest {
-    	Map<String, Double> scores = doSearch(req, res);
+    	SearchOptions options = SearchOptions.get(req);
+    	Map<String, Double> scores = doSearch(options, res);
 		List<ResultItem> items = new ArrayList<ResultItem>(scores.size());
 		scores.forEach((k, v) -> items.add(new ResultItem(k, v)));
 
+		String modelType = options.getModelType().name().toLowerCase();
+		
 		// Update the information of each model in batch
-		try(HBaseGetInfo info = new HBaseGetInfo()) {
+		try(ModelDataAccessor info = getModelAccessor(modelType)) {
 			info.updateInformation(items);
 		}
 		
@@ -108,13 +113,13 @@ public class API extends AbstractAPI {
     }
 	
     public Object search(Request req, Response res) throws IOException, InvalidMarRequest {
-    	Map<String, Double> scores = doSearch(req, res);
+    	SearchOptions options = SearchOptions.get(req);
+    	Map<String, Double> scores = doSearch(options, res);
     	//Map<String,List<Double>> new_scores = obtainSmells(scores);
 	    return toJson(res, scores);
     }
     
-    public Map<String, Double> doSearch(Request req, Response res) throws IOException, InvalidMarRequest {
-		SearchOptions options = SearchOptions.get(req);
+    public Map<String, Double> doSearch(SearchOptions options, Response res) throws IOException, InvalidMarRequest {
 		Map<String, Double> scores = searchAndScore(options.getModel(), options.getModelType(), options.getSyntaxType());
 		return firtsElements(scores, options.getMaxResults());		
 	}
@@ -163,7 +168,8 @@ public class API extends AbstractAPI {
 			throw new InvalidMarRequest(req, "Expected id argument");
 		}
 						
-		try(HBaseGetInfo info = new HBaseGetInfo()) {
+		String modelType = Utils.getModelTypeFromId(id);
+		try(ModelDataAccessor info = getModelAccessor(modelType)) {
 			String metadata = info.getMetadata(id);
 			if (metadata == null) {
 				res.status(404);				

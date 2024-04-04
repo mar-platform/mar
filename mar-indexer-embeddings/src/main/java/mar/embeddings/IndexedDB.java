@@ -177,6 +177,43 @@ public class IndexedDB implements Closeable {
 		}
 	}
 	
+	public String getModelId(int seqId) {
+		try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT model_id from models WHERE seq_id = ?")) {
+			// We can insert
+			preparedStatement.setInt(1, seqId);
+			ResultSet rs = preparedStatement.executeQuery();
+			if (! rs.next())
+				return null;
+			
+			String modelId = rs.getString(1);
+			return modelId;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);		
+		}
+	}
+	
+	public IndexedModel getByModelId(String id) {
+		try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT seq_id, model_id, metadata_document from models WHERE model_id = ?")) {
+			// We can insert
+			preparedStatement.setString(1, id);
+			ResultSet rs = preparedStatement.executeQuery();
+			if (! rs.next())
+				return null;
+			
+			int seqId = rs.getInt(1);
+			String modelId = rs.getString(2);
+			String metadata = rs.getString(3);
+			Path relativePath = null;
+			File file = null;
+			
+			Model m = new Model(modelId, relativePath, file, metadata);
+			
+			return new IndexedModel(seqId, m);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);		
+		}
+	}
+	
 	public static class IndexedModel {
 		private Model analysedModel;
 		private int seqId;
@@ -196,6 +233,10 @@ public class IndexedDB implements Closeable {
 
 		public String getModelId() {
 			return analysedModel.getId();
+		}
+		
+		public String getMetadata() {
+			return analysedModel.getMetadata();
 		}
 	}
 

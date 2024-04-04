@@ -2,7 +2,9 @@ package mar.embeddings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import mar.embeddings.JVectorDatabase.QueryResult;
 import mar.indexer.embeddings.EmbeddingStrategy;
 import mar.modelling.loader.ILoader;
 import mar.validation.AnalyserRegistry;
@@ -27,8 +29,11 @@ public class TestEmbeddings {
 		
 		EMFQuery emfQuery = new EMFQuery.Generic(loader.toEMF(new File(modelFileName)), new EmbeddingStrategy.GloveWordE(f));
 		
-		db.search(emfQuery);
-	
+		List<QueryResult> results = db.search(emfQuery, 50);
+		for (QueryResult m : results) {
+			System.out.println(m.modelId);
+		}
+		
 		// Semantic search emf compare
 		// https://ceur-ws.org/Vol-1706/paper6.pdf
 		// -> for experiments https://dl.acm.org/doi/abs/10.1145/3417990.3422009

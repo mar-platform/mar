@@ -2,7 +2,10 @@ package mar.restservice.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
@@ -13,9 +16,8 @@ import org.apache.lucene.search.TopDocs;
 
 import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.LuceneUtils;
-import mar.indexer.lucene.core.Searcher;
 import mar.paths.PathFactory.DefaultPathFactory;
-import mar.restservice.HBaseGetInfo;
+import mar.restservice.ModelDataAccessor;
 
 /**
  * Implementation of the backbone of the search service, so that they are
@@ -28,9 +30,11 @@ public class SearchService {
 
 	@Nonnull
 	private final ITextSearcher textSearcher;
+	private final IConfigurationProvider configuration;
 
-	public SearchService(@Nonnull ITextSearcher textSearcher) {
+	public SearchService(@Nonnull ITextSearcher textSearcher, IConfigurationProvider configuration) {
 		this.textSearcher = textSearcher;
+		this.configuration = configuration;
 	}
 
 	/**
@@ -44,16 +48,25 @@ public class SearchService {
 		try {
 			TopDocs docs = textSearcher.topDocs(query, DefaultPathFactory.INSTANCE);
 			List<ResultItem> items = new ArrayList<ResultItem>();
+			Map<String, List<ResultItem>> byType = new HashMap<>();
 			for (ScoreDoc doc : docs.scoreDocs) {
 				Document document = textSearcher.getDoc(doc.doc);
 				String id = document.getField(LuceneUtils.ID).stringValue();
 				String type = document.getField(LuceneUtils.TYPE).stringValue();
-				items.add(new ResultItem(id, doc.score, type));				
+				ResultItem item = new ResultItem(id, doc.score, type);
+				items.add(item);				
+				
+				if (! byType.containsKey(type)) {
+					byType.put(type, new ArrayList<ResultItem>());
+				}
+				byType.get(type).add(item);
 			}
 	
-			// Update the information of each model in batch
-			try(HBaseGetInfo info = new HBaseGetInfo()) {
-				info.updateInformation(items);
+			for (Entry<String, List<ResultItem>> entry : byType.entrySet()) {		
+				String modelType = entry.getKey();
+				try(ModelDataAccessor info = configuration.getModelAccessor(modelType)) {
+					info.updateInformation(entry.getValue());
+				}
 			}
 			
 			return items;

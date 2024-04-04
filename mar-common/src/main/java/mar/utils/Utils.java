@@ -26,5 +26,13 @@ public class Utils {
         }
 		return path;
 	}
+
+	public static String getModelTypeFromId(String id) {
+		// TODO: This probably belongs to IngestedModel or somewhere where ids are normalized
+		String[] parts = id.split(":");
+		assert(parts != null && parts.length > 2);
+		String modelType = parts[1];
+		return modelType;
+	}
 	
 }

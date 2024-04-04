@@ -32,6 +32,7 @@ import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.ModelLoader;
 import mar.indexer.lucene.core.ITextSearcher;
 import mar.models.bpmn.BPMNLoader;
+import mar.restservice.ModelDataAccessor;
 import mar.restservice.services.SearchOptions.ModelType;
 import mar.restservice.services.SearchOptions.SyntaxType;
 import spark.Response;
@@ -55,6 +56,10 @@ public abstract class AbstractAPI {
 		if (textSearcher == null)
 			textSearcher = configuration.newSearcher();
 		return textSearcher;
+	}
+	
+	protected ModelDataAccessor getModelAccessor(String modelType) {
+		return configuration.getModelAccessor(modelType);
 	}
 	
 	protected String getModelFile(String id) {

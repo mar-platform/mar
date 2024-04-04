@@ -22,10 +22,11 @@ import mar.validation.AnalysisMetadataDocument;
 /**
  * Obtains information about a set of models (given its ids)
  */
-public class HBaseGetInfo extends HBaseModelAccessor {
+public class HBaseGetInfo extends HBaseModelAccessor implements ModelDataAccessor {
 	private final static byte[] DOC = "information".getBytes();
 	private final static byte[] METADATA = "metadataDocument".getBytes();
 
+	@Override
 	public void updateInformation(@Nonnull List<? extends IModelResult> models) throws IOException {
 		Table docs = getDocsInfo();
 		
