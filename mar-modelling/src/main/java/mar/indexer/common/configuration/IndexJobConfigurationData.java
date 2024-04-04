@@ -1,5 +1,6 @@
 package mar.indexer.common.configuration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +14,8 @@ import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import mar.utils.Utils;
 
 /**
  * Represent the data which is needed to configure an index job.
@@ -43,6 +46,8 @@ public class IndexJobConfigurationData {
 	private Map<String, SingleIndexJob> repositories = new HashMap<String, SingleIndexJob>();
 	@JsonProperty
 	private Map<String, TypeSpecification> types = new HashMap<String, TypeSpecification>();
+	@JsonProperty
+	private Map<String, String> embeddings = new HashMap<String, String>();
 	
 	public static IndexJobConfigurationData fromJSON(String jsonString) {
 		GsonBuilder builder = new GsonBuilder();
@@ -69,6 +74,14 @@ public class IndexJobConfigurationData {
 		if (typeSpec == null)
 			typeSpec = TypeSpecification.DEFAULT_SPEC;
 		return typeSpec.getMrank();
+	}
+	
+	public File getEmbedding(String name) {
+		if (! embeddings.containsKey(name))
+			throw new IllegalArgumentException("No embedding " + name);
+		
+		String path = embeddings.get(name);
+		return new File(Utils.replaceEnv(path, System.getenv()));
 	}
 
 	@Nonnull
