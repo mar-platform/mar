@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>io.github.models-lab.mar</groupId>
@@ -42,6 +40,25 @@
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-core</artifactId>
 			<version>${dl4j.version}</version>
+			<exclusions>
+				<!-- To reduce the size of the fat jar -->
+				<exclusion>
+					<groupId>org.datavec</groupId>
+					<artifactId>datavec-data-image</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deeplearning4j</groupId>
+					<artifactId>deeplearning4j-datasets</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deeplearning4j</groupId>
+					<artifactId>deeplearning4j-datavec-iterators</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.deeplearning4j</groupId>
+					<artifactId>deeplearning4j-modelimport</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -90,7 +107,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>mar.indexer.lucene.main.CreateIndex</mainClass>
+							<mainClass>mar.indexer.embeddings.CreateIndex</mainClass>
 						</manifest>
 						<manifestEntries>
 							<Class-Path>.</Class-Path>
