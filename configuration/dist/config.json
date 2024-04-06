@@ -1,6 +1,6 @@
 {
     embeddings: {
-	glove: "$(W2V_MDE)/vectors/glove_modelling/vectors.txt"
+	glove: "$(W2V_MDE)/glove_modelling/vectors.txt"
     },
     types: {
 	"ecore": {
