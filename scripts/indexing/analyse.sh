@@ -20,4 +20,4 @@ echo "     for model type: $KIND"
 echo
 echo "Executing with  $CONFIG $KIND"
 
-java -jar ./mar-modelling/target/mar-modelling-1.0-SNAPSHOT-jar-with-dependencies.jar -parallel=4 -t=$KIND $CONFIG 
+java -Xmx2048m -jar $REPO_MAR/mar-modelling/target/mar-modelling-1.0-SNAPSHOT-jar-with-dependencies.jar -parallel=4 -t=$KIND $CONFIG 

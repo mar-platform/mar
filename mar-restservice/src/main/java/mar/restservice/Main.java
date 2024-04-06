@@ -54,9 +54,11 @@ import mar.model2graph.AbstractPathComputation;
 import mar.model2graph.Model2GraphAllpaths;
 import mar.paths.PathFactory;
 import mar.restservice.scoring.JVectorScorer;
+import mar.restservice.scoring.SqliteScorer;
 import mar.restservice.services.API;
 import mar.restservice.services.IConfigurationProvider;
 import mar.restservice.services.InvalidMarRequest;
+import mar.sqlite.SqliteIndexDatabase;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 import spark.Request;
@@ -277,6 +279,11 @@ public class Main implements IConfigurationProvider {
 		if (storageKind == StorageKind.HBASE) {
 			HBaseScorerFinal hsf = new HBaseScorerFinal(pathComputation, modelType);			
 			return hsf;
+		} else if (storageKind == StorageKind.SQLITE) {
+			Path sqliteIndex    = getSqliteIndexDB(modelType);
+			// TODO: How to close this??
+			SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
+			return new SqliteScorer(pathComputation, db);
 		} else {
 			Path sqliteIndex    = getJVectorIndexDB(modelType);
 			Path jvectorVectors = getJVectorVectorDB(modelType);
@@ -295,6 +302,11 @@ public class Main implements IConfigurationProvider {
 	public ModelDataAccessor getModelAccessor(String modelType) {
 		if (storageKind == StorageKind.HBASE) {
 			return new HBaseGetInfo();
+		} else if (storageKind == StorageKind.SQLITE) {
+			// We use here the jvector database because they are compatible
+			// TODO: Generate a similar file but in the SQLite folder
+			Path dbFile = getJVectorIndexDB(modelType);			
+			return new SQLiteGetInfo(dbFile);
 		} else {
 			Path dbFile = getJVectorIndexDB(modelType);			
 			return new SQLiteGetInfo(dbFile);
@@ -334,9 +346,16 @@ public class Main implements IConfigurationProvider {
 		return dbFile;
 	}
 
+	private Path getSqliteIndexDB(String modelType) {
+		File dbFolder = new File(EnvironmentVariables.getVariable(MAR.INDEX_TARGET));
+		Path dbFile = Paths.get(dbFolder.getAbsolutePath(), "sqlite", modelType + ".db");
+		Preconditions.checkState(Files.exists(dbFile));
+		return dbFile;
+	}
+	
 	private static enum StorageKind {
 		HBASE,
-		// SQLITE, // Not integrated yet
+		SQLITE, 
 		JVECTOR
 	}
 	

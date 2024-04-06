@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import io.github.jbellis.jvector.vector.VectorEncoding;
 import io.github.jbellis.jvector.vector.VectorSimilarityFunction;
 import mar.embeddings.IndexedDB.IndexedModel;
 import mar.modelling.loader.ILoader;
-import mar.validation.AnalysisDB.Model;
 
 public class EmbeddingIndexer {
 
@@ -77,11 +75,18 @@ public class EmbeddingIndexer {
 	private static class ModelEmbeddingListAccess implements RandomAccessVectorValues<float[]> {
 
 		private final List<IndexedModel> models;
-		private final EmbeddingComputation embedding;
+		private Map<Integer, float[]> results = new HashMap<>();
 		
-		public ModelEmbeddingListAccess(List<IndexedModel> models, EmbeddingComputation embedding) {
+		public ModelEmbeddingListAccess(List<IndexedModel> models, EmbeddingComputation embedding) throws IOException {
 			this.models = models;
-			this.embedding = embedding;
+
+			for (int i = 0; i < models.size(); i++) {
+				IndexedModel m = models.get(i);
+				float[] e = embedding.compute(m);
+				if (e == null)
+					throw new IllegalStateException();
+				results.put(m.getSeqId() - 1, e);
+			}
 		}
 
 		@Override
@@ -94,25 +99,16 @@ public class EmbeddingIndexer {
 			return WORDE_DIMENSIONS;
 		}
 
-		private Map<Integer, float[]> outOfVocabularyModels = new HashMap<>();
 
 		@Override
 		public float[] vectorValue(int targetOrd) {
 			IndexedModel m = models.get(targetOrd);
 			Preconditions.checkState(m.getSeqId() - 1 == targetOrd);
 			
-			if (outOfVocabularyModels.containsKey(m.getSeqId()))
-				return outOfVocabularyModels.get(m.getSeqId());
-			
-			try {
-				float[] e = embedding.compute(m);
-				if (e == null)
-					throw new IllegalStateException();
-				outOfVocabularyModels.put(m.getSeqId(), e);
-				return e;
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			float[] r = results.get(targetOrd);
+			Preconditions.checkNotNull(r);
+
+			return r;
 		}
 
 		@Override

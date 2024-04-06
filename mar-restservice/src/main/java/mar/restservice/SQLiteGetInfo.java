@@ -32,6 +32,7 @@ public class SQLiteGetInfo implements ModelDataAccessor {
 			if (storedModel == null || Utils.isNullOrEmpty(storedModel.getMetadata())) {
 				analysisDoc = new AnalysisMetadataDocument();
 			} else {
+				// System.out.println("Metadata: " + storedModel.getMetadata());
 				analysisDoc = AnalysisMetadataDocument.loadFromJSON(storedModel.getMetadata());
 			}
 			m.setMetadata(analysisDoc);
