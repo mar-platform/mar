@@ -82,6 +82,10 @@ public class CreateIndex implements Callable<Integer> {
 			}
 		}
 		
+		if (this.pathIndexDB.exists()) {
+			this.pathIndexDB.delete();
+		}
+		
 		//models = models.subList(0, 1000);
 		
 		long start = System.currentTimeMillis();

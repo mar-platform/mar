@@ -8,6 +8,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 
+import mar.paths.stemming.CamelCaseTokenizer;
+
 public interface WordExtractor {
 	static final WordExtractor NAME_EXTRACTOR = new NameExtractor();
 	
@@ -32,5 +34,12 @@ public interface WordExtractor {
 			return words;
 		}
 		
+		@Override
+		public String[] split(String original) {
+			return CamelCaseTokenizer.INSTANCE.tokenize(original);
+		}
+		
 	}
+
+	String[] split(String original);
 }

@@ -2,8 +2,12 @@ package mar.embeddings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.emf.ecore.resource.Resource;
+
+import mar.analysis.emfatic.EmfaticReader;
 import mar.embeddings.JVectorDatabase.QueryResult;
 import mar.indexer.embeddings.EmbeddingStrategy;
 import mar.modelling.loader.ILoader;
@@ -18,20 +22,41 @@ public class TestEmbeddings {
 				new File("/home/jesus/projects/mde-ml/mar/.output/jvector/ecore.jvector"),
 				new File("/home/jesus/projects/mde-ml/mar/.output/jvector/ecore.info"));
 		
-		String modelFileName = "/home/jesus/usr/mde-ml/workspace/zzzzTest/My.ecore";
+		//String modelFileName = "/home/jesus/usr/mde-ml/workspace/zzzzTest/My.ecore";
 		
 		Factory factory = AnalyserRegistry.INSTANCE.getFactory("ecore");
 		factory.configureEnvironment();
 		
+		/*
+		String text = "package statemachine;\n"
+				+ "\n"
+				+ "class State {\n"
+				+ "\n"
+				+ "}\n"
+				+ "\n"
+				+ "class CompositeState {\n"
+				+ "}\n"
+				;
+		text = "package sm;";
+		EmfaticReader reader = new EmfaticReader();
+		Resource r = reader.read(text);
+		*/
+		
+		//String modelFileName = "/home/jesus/usr/mde-ml/workspace/zzzzTest/StateMachine.ecore";
+		String modelFileName = "/home/jesus/usr/mde-ml/workspace/zzzzTest/FSM.ecore";
+		
 		ILoader loader = factory.newLoader();
+		Resource r = loader.toEMF(new File(modelFileName));
+		
 		
 		File f = new File("/home/jesus/projects/mde-ml/word2vec-mde/vectors/glove_modelling/vectors.txt");
 		
-		EMFQuery emfQuery = new EMFQuery.Generic(loader.toEMF(new File(modelFileName)), new EmbeddingStrategy.GloveWordE(f));
+		EMFQuery emfQuery = new EMFQuery.Generic(r, new EmbeddingStrategy.GloveWordE(f));
 		
 		List<QueryResult> results = db.search(emfQuery, 50);
+		Collections.sort(results);
 		for (QueryResult m : results) {
-			System.out.println(m.modelId);
+			System.out.println(m.score + " - " + m.modelId);
 		}
 		
 		// Semantic search emf compare

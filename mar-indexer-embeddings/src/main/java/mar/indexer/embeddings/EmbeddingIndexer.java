@@ -40,7 +40,9 @@ public class EmbeddingIndexer {
 				ravv,
 				VectorEncoding.FLOAT32,
 				//VectorSimilarityFunction.COSINE, 32, 100, 1.5f, 1.4f
-				VectorSimilarityFunction.COSINE, 16, 50, 0.75f, 1.0f
+				//VectorSimilarityFunction.COSINE, 16, 50, 0.75f, 1.0f
+				//VectorSimilarityFunction.DOT_PRODUCT, 32, 100, 0.5f, 2.0f
+				VectorSimilarityFunction.COSINE, 32, 100, 0.5f, 2.0f
 			);
 		
 		

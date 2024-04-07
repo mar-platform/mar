@@ -3,6 +3,8 @@ package mar.indexer.embeddings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.emf.ecore.resource.Resource;
@@ -41,9 +43,26 @@ public interface EmbeddingStrategy {
 			
 			int totalVectors = 0;
 			float[] result = new float[WORDE_DIMENSIONS];
-			for (String w : words) {
+			for (String original : words) {
+				String w = original.toLowerCase();
 				WordVector v = gloveVectors.get(w);
-				if (v != null) {
+				
+				List<WordVector> moreVectors;
+				if (v == null) {
+					String[] moreWords = extractor.split(original);
+					moreVectors = new ArrayList<>(moreWords.length);
+					for (String string : moreWords) {
+						WordVector v2 = gloveVectors.get(string);
+						if (v2 != null) {
+							moreVectors.add(v2);
+						}
+					}
+				} else {
+					moreVectors = Collections.singletonList(v);
+				}
+				
+				for(int j = 0; j < moreVectors.size(); j++) {
+					v = moreVectors.get(j);
 					for(int i = 0, len = WORDE_DIMENSIONS; i < len; i++) {
 						result[i] += v.getAsDouble(i);
 					}

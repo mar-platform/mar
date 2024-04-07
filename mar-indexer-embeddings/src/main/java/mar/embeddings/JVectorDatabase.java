@@ -48,13 +48,18 @@ public class JVectorDatabase {
         return result;
 	}
 	
-	public static class QueryResult {
+	public static class QueryResult implements Comparable<QueryResult> {
 		public final String modelId;
 		public final float score;
 		
 		public QueryResult(String modelId, float score) {
 			this.modelId = modelId;
 			this.score = score;
+		}
+
+		@Override
+		public int compareTo(QueryResult o) {
+			return -1 * Float.compare(score, o.score);
 		}
 		
 	}
