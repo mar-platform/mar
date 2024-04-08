@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 import com.google.common.base.Preconditions;
 
+import mar.paths.stemming.CamelCaseTokenizer;
 import opennlp.tools.util.wordvector.Glove;
 import opennlp.tools.util.wordvector.WordVector;
 import opennlp.tools.util.wordvector.WordVectorTable;
@@ -20,10 +21,9 @@ public interface EmbeddingStrategy {
 	static final int WORDE_DIMENSIONS = 300;
 	
 	
-	public float[] toVector(Resource r);
+	public float[] toVector(WordedModel r);
 	
 	public static class GloveWordE implements EmbeddingStrategy {
-		private final WordExtractor extractor = WordExtractor.NAME_EXTRACTOR;
 		private WordVectorTable gloveVectors;
 
 		public GloveWordE(File vectorsFile) throws IOException {
@@ -36,8 +36,8 @@ public interface EmbeddingStrategy {
 			
 		}
 		
-		public float[] toVector(Resource r) {
-			List<String> words = extractor.toWords(r);
+		public float[] toVector(WordedModel r) {
+			List<? extends String> words = r.getWords();
 			
 			Preconditions.checkState(WORDE_DIMENSIONS == gloveVectors.dimension());
 			
@@ -49,7 +49,9 @@ public interface EmbeddingStrategy {
 				
 				List<WordVector> moreVectors;
 				if (v == null) {
-					String[] moreWords = extractor.split(original);
+					String[] moreWords = CamelCaseTokenizer.INSTANCE.tokenize(original);
+					// String[] moreWords = extractor.split(original);
+					
 					moreVectors = new ArrayList<>(moreWords.length);
 					for (String string : moreWords) {
 						WordVector v2 = gloveVectors.get(string);

@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
-import mar.analysis.emfatic.EmfaticReader;
 import mar.embeddings.JVectorDatabase.QueryResult;
 import mar.indexer.embeddings.EmbeddingStrategy;
+import mar.indexer.embeddings.WordExtractor;
 import mar.modelling.loader.ILoader;
 import mar.validation.AnalyserRegistry;
 import mar.validation.ResourceAnalyser.Factory;
@@ -51,7 +51,7 @@ public class TestEmbeddings {
 		
 		File f = new File("/home/jesus/projects/mde-ml/word2vec-mde/vectors/glove_modelling/vectors.txt");
 		
-		EMFQuery emfQuery = new EMFQuery.Generic(r, new EmbeddingStrategy.GloveWordE(f));
+		EMFQuery emfQuery = new EMFQuery.Generic(r, new EmbeddingStrategy.GloveWordE(f), WordExtractor.NAME_EXTRACTOR);
 		
 		List<QueryResult> results = db.search(emfQuery, 50);
 		Collections.sort(results);

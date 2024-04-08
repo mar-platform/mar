@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.emf.ecore.resource.Resource;
-
 import com.google.common.base.Preconditions;
 
 import io.github.jbellis.jvector.disk.OnDiskGraphIndex;
@@ -18,23 +16,19 @@ import io.github.jbellis.jvector.graph.OnHeapGraphIndex;
 import io.github.jbellis.jvector.graph.RandomAccessVectorValues;
 import io.github.jbellis.jvector.vector.VectorEncoding;
 import io.github.jbellis.jvector.vector.VectorSimilarityFunction;
-import mar.embeddings.IndexedDB.IndexedModel;
-import mar.modelling.loader.ILoader;
 
 public class EmbeddingIndexer {
 
 	static final int WORDE_DIMENSIONS = 300;
 	
-	private ILoader loader;
 	private EmbeddingStrategy embedding;
 
 
-	public EmbeddingIndexer(ILoader loader, EmbeddingStrategy embedding) throws IOException {
-		this.loader = loader;
+	public EmbeddingIndexer(EmbeddingStrategy embedding) throws IOException {
 		this.embedding = embedding;
 	}
 	
-	public void indexModels(File indexFileName, List<IndexedModel> models) throws IOException {
+	public void indexModels(File indexFileName, List<WordedModel> models) throws IOException {
 		ModelEmbeddingListAccess ravv = new ModelEmbeddingListAccess(models, this::embedWithGlove);
 		GraphIndexBuilder<float[]> indexBuilder = new GraphIndexBuilder<float[]>(
 				ravv,
@@ -42,7 +36,10 @@ public class EmbeddingIndexer {
 				//VectorSimilarityFunction.COSINE, 32, 100, 1.5f, 1.4f
 				//VectorSimilarityFunction.COSINE, 16, 50, 0.75f, 1.0f
 				//VectorSimilarityFunction.DOT_PRODUCT, 32, 100, 0.5f, 2.0f
+				
 				VectorSimilarityFunction.COSINE, 32, 100, 0.5f, 2.0f
+				
+				//VectorSimilarityFunction.COSINE, 16, 50, 0.1f, 4.0f
 			);
 		
 		
@@ -61,29 +58,21 @@ public class EmbeddingIndexer {
 		
 	}
 	
-	private float[] embedWithGlove(IndexedModel m) throws IOException {
+	private float[] embedWithGlove(WordedModel m) throws IOException {
 		System.out.println(m.getModelId());
-
-		Resource loaded = null;
-		try {
-			loaded = loader.toEMF(m.getFile());
-			return embedding.toVector(loaded);
-		} finally {
-			if (loaded != null)
-				loaded.unload();
-		}
+		return embedding.toVector(m);
 	}
 	
 	private static class ModelEmbeddingListAccess implements RandomAccessVectorValues<float[]> {
 
-		private final List<IndexedModel> models;
+		private final List<WordedModel> models;
 		private Map<Integer, float[]> results = new HashMap<>();
 		
-		public ModelEmbeddingListAccess(List<IndexedModel> models, EmbeddingComputation embedding) throws IOException {
+		public ModelEmbeddingListAccess(List<WordedModel> models, EmbeddingComputation embedding) throws IOException {
 			this.models = models;
 
 			for (int i = 0; i < models.size(); i++) {
-				IndexedModel m = models.get(i);
+				WordedModel m = models.get(i);
 				float[] e = embedding.compute(m);
 				if (e == null)
 					throw new IllegalStateException();
@@ -104,7 +93,7 @@ public class EmbeddingIndexer {
 
 		@Override
 		public float[] vectorValue(int targetOrd) {
-			IndexedModel m = models.get(targetOrd);
+			WordedModel m = models.get(targetOrd);
 			Preconditions.checkState(m.getSeqId() - 1 == targetOrd);
 			
 			float[] r = results.get(targetOrd);
@@ -126,7 +115,7 @@ public class EmbeddingIndexer {
 	
 	@FunctionalInterface
 	public static interface EmbeddingComputation {
-		public float[] compute(IndexedModel m) throws IOException;
+		public float[] compute(WordedModel m) throws IOException;
  	}
 	
 	

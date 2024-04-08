@@ -8,6 +8,8 @@ import mar.embeddings.EMFQuery;
 import mar.embeddings.JVectorDatabase;
 import mar.embeddings.JVectorDatabase.QueryResult;
 import mar.indexer.embeddings.EmbeddingStrategy;
+import mar.indexer.embeddings.WordExtractor;
+import mar.indexer.embeddings.WordExtractor.NameExtractor;
 
 public class VectorScorer {
 	private final EmbeddingStrategy strategy;
@@ -19,7 +21,9 @@ public class VectorScorer {
 	}
 	
 	public List<QueryResult> score(Resource r) {
-		EMFQuery emfQuery = new EMFQuery.Generic(r, strategy);
+		WordExtractor extractor = NameExtractor.NAME_EXTRACTOR;
+		
+		EMFQuery emfQuery = new EMFQuery.Generic(r, strategy, extractor);
 		return db.search(emfQuery, 500);		
 	}
 	

@@ -14,6 +14,8 @@ import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.SingleIndexJob;
 import mar.indexer.embeddings.EmbeddingStrategy.GloveWordE;
+import mar.indexer.embeddings.WordExtractor.NameExtractor;
+import mar.modelling.loader.ILoader;
 import mar.validation.AnalyserRegistry;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
@@ -93,14 +95,17 @@ public class CreateIndex implements Callable<Integer> {
 		Files.deleteIfExists(this.pathIndexDB.toPath());
 		
 		GloveWordE embedding = new EmbeddingStrategy.GloveWordE(data.getEmbedding("glove"));
+		ILoader loader = registry.newLoader();
+		WordExtractor extractor = NameExtractor.NAME_EXTRACTOR;
 		
 		try (IndexedDB db = new IndexedDB(this.pathIndexDB, IndexedDB.Mode.WRITE)) {
-			List<IndexedModel> newModels = new ArrayList<>();
+			List<WordedModel> newModels = new ArrayList<>();
 			for (Model model : models) {
-				newModels.add( db.addModel(model) );
+				IndexedModel indexedModel = db.addModel(model);
+				newModels.add( new WordedModel(indexedModel, extractor, loader) );
 			}
 			
-			EmbeddingIndexer indexer = new EmbeddingIndexer(registry.newLoader(), embedding);
+			EmbeddingIndexer indexer = new EmbeddingIndexer(embedding);
 			indexer.indexModels(pathIndexVector, newModels);
 		}
 		
