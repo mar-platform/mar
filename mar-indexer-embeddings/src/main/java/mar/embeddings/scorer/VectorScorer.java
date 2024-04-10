@@ -14,15 +14,15 @@ import mar.indexer.embeddings.WordExtractor.NameExtractor;
 public class VectorScorer {
 	private final EmbeddingStrategy strategy;
 	private final JVectorDatabase db;
+	private WordExtractor extractor;
 
-	public VectorScorer(JVectorDatabase db, EmbeddingStrategy strategy) {
+	public VectorScorer(JVectorDatabase db, EmbeddingStrategy strategy, WordExtractor extractor) {
 		this.db = db;
 		this.strategy = strategy;
+		this.extractor = extractor;
 	}
 	
-	public List<QueryResult> score(Resource r) {
-		WordExtractor extractor = NameExtractor.NAME_EXTRACTOR;
-		
+	public List<QueryResult> score(Resource r) {				
 		EMFQuery emfQuery = new EMFQuery.Generic(r, strategy, extractor);
 		return db.search(emfQuery, 500);		
 	}

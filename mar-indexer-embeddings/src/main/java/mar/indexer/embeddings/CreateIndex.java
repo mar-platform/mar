@@ -40,6 +40,9 @@ public class CreateIndex implements Callable<Integer> {
 	@Option(required = false, names = { "-t", "--type" }, description = "The model type: ecore, bpmn2, uml")
 	private String type;
 
+	@Option(required = true, names = { "-e", "--embedding" }, description = "The embedding strategy")
+	private EmbeddingOption embeddingOption = EmbeddingOption.ALL_NAMES_GLOVE_MDE;
+	
 	@Option(required = false, names = { "-r",
 			"--repository" }, description = "A specific repository in the configuration file")
 	private String repository = null;
@@ -94,9 +97,25 @@ public class CreateIndex implements Callable<Integer> {
 		
 		Files.deleteIfExists(this.pathIndexDB.toPath());
 		
-		GloveWordE embedding = new EmbeddingStrategy.GloveWordE(data.getEmbedding("glove"));
-		ILoader loader = registry.newLoader();
-		WordExtractor extractor = NameExtractor.NAME_EXTRACTOR;
+		EmbeddingStrategy embedding;
+		WordExtractor extractor;
+		
+		System.out.println("Using embedding strategy: " + embeddingOption);
+		switch (embeddingOption) {
+		case ALL_NAMES_GLOVE_MDE:
+			extractor = NameExtractor.NAME_EXTRACTOR;
+			embedding = new EmbeddingStrategy.GloveWordE(data.getEmbedding("glove"));
+			break;
+		case CONCAT_GLOVE_MDE:
+			extractor = NameExtractor.ECLASS_FEATURE_EXTRACTOR;
+			embedding = new EmbeddingStrategy.GloveConcatEmbeddings(data.getEmbedding("glove"));
+			break;			
+		default:
+			throw new IllegalStateException();
+		}
+		
+
+		ILoader loader = registry.newLoader();		
 		
 		try (IndexedDB db = new IndexedDB(this.pathIndexDB, IndexedDB.Mode.WRITE)) {
 			List<WordedModel> newModels = new ArrayList<>();
@@ -125,10 +144,14 @@ public class CreateIndex implements Callable<Integer> {
             
 	}
 	
+	private static enum EmbeddingOption {
+		ALL_NAMES_GLOVE_MDE,
+		CONCAT_GLOVE_MDE
+	}
+	
 	public static void main(String[] args) {
 		int exitCode = new CommandLine(new CreateIndex()).execute(args);
 		System.exit(exitCode);
 	}
 	
-
 }

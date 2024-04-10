@@ -13,7 +13,7 @@ import mar.modelling.loader.ILoader;
 
 public class WordedModel {
 
-	private List<String> words;
+	private WordList words;
 	
 	private String modelId = null;
 	private int seqId = -1;
@@ -47,15 +47,19 @@ public class WordedModel {
 	}
 	
 	public List<? extends String> getWords() {
-		return words.stream().filter(w -> ! isStopWord(w)).collect(Collectors.toList());
+		return words.all().stream().filter(w -> ! isStopWord(w)).collect(Collectors.toList());
 	}
 	
 	public boolean isStopWord(String w) {
-		return "name".equals(w.toLowerCase());
+		return false; //"name".equalsIgnoreCase(w);
 	}
 
 	public List<? extends String> getAllWords() {
-		return words;
+		return words.all();
+	}
+	
+	public List<? extends String> getWordsFromCategory(String category) {
+		return words.fromCategory(category);
 	}
 
 	public int getSeqId() {

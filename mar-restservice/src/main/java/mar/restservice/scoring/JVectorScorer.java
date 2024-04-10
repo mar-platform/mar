@@ -13,6 +13,7 @@ import mar.embeddings.JVectorDatabase;
 import mar.embeddings.JVectorDatabase.QueryResult;
 import mar.embeddings.scorer.VectorScorer;
 import mar.indexer.embeddings.EmbeddingStrategy;
+import mar.indexer.embeddings.WordExtractor;
 import mar.restservice.IScorer;
 import mar.restservice.Profiler;
 
@@ -20,9 +21,9 @@ public class JVectorScorer implements IScorer {
 
 	private VectorScorer impl;
 
-	public JVectorScorer(Path jvectorVectors, Path sqliteIndex, EmbeddingStrategy embeddingStrategy) throws IOException {
+	public JVectorScorer(Path jvectorVectors, Path sqliteIndex, EmbeddingStrategy embeddingStrategy, WordExtractor extractor) throws IOException {
 		JVectorDatabase db = new JVectorDatabase(jvectorVectors.toFile(), sqliteIndex.toFile());
-		this.impl = new VectorScorer(db, embeddingStrategy);
+		this.impl = new VectorScorer(db, embeddingStrategy, extractor);
 	}
 	
 	@Override

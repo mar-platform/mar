@@ -23,13 +23,12 @@ public class EmbeddingIndexer {
 	
 	private EmbeddingStrategy embedding;
 
-
 	public EmbeddingIndexer(EmbeddingStrategy embedding) throws IOException {
 		this.embedding = embedding;
 	}
 	
 	public void indexModels(File indexFileName, List<WordedModel> models) throws IOException {
-		ModelEmbeddingListAccess ravv = new ModelEmbeddingListAccess(models, this::embedWithGlove);
+		ModelEmbeddingListAccess ravv = new ModelEmbeddingListAccess(models, embedding);
 		GraphIndexBuilder<float[]> indexBuilder = new GraphIndexBuilder<float[]>(
 				ravv,
 				VectorEncoding.FLOAT32,
@@ -57,23 +56,20 @@ public class EmbeddingIndexer {
         }
 		
 	}
-	
-	private float[] embedWithGlove(WordedModel m) throws IOException {
-		System.out.println(m.getModelId());
-		return embedding.toVector(m);
-	}
-	
+
 	private static class ModelEmbeddingListAccess implements RandomAccessVectorValues<float[]> {
 
 		private final List<WordedModel> models;
 		private Map<Integer, float[]> results = new HashMap<>();
+		private int embeddingSize;
 		
-		public ModelEmbeddingListAccess(List<WordedModel> models, EmbeddingComputation embedding) throws IOException {
+		public ModelEmbeddingListAccess(List<WordedModel> models, EmbeddingStrategy embedding) throws IOException {
 			this.models = models;
+			this.embeddingSize = embedding.size();
 
 			for (int i = 0; i < models.size(); i++) {
 				WordedModel m = models.get(i);
-				float[] e = embedding.compute(m);
+				float[] e = embedding.toVector(m);
 				if (e == null)
 					throw new IllegalStateException();
 				results.put(m.getSeqId() - 1, e);
@@ -87,7 +83,7 @@ public class EmbeddingIndexer {
 
 		@Override
 		public int dimension() {
-			return WORDE_DIMENSIONS;
+			return embeddingSize;
 		}
 
 
@@ -111,13 +107,6 @@ public class EmbeddingIndexer {
 		public RandomAccessVectorValues<float[]> copy() {
 			return this;
 		}
-	}
-	
-	@FunctionalInterface
-	public static interface EmbeddingComputation {
-		public float[] compute(WordedModel m) throws IOException;
- 	}
-	
-	
+	}	
 	
 }

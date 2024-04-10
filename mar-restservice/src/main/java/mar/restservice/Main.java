@@ -48,6 +48,7 @@ import mar.indexer.common.configuration.InvalidJobSpecification;
 import mar.indexer.common.configuration.SingleIndexJob;
 import mar.indexer.embeddings.EmbeddingStrategy;
 import mar.indexer.embeddings.EmbeddingStrategy.GloveWordE;
+import mar.indexer.embeddings.WordExtractor;
 import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.Searcher;
 import mar.model2graph.AbstractPathComputation;
@@ -289,9 +290,15 @@ public class Main implements IConfigurationProvider {
 			Path jvectorVectors = getJVectorVectorDB(modelType);
 			File vectorsFile = this.configuration.getEmbedding("glove");
 			
+			System.out.println("Using jvector database: " + jvectorVectors);
 			try {
 				GloveWordE strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
-				return new JVectorScorer(jvectorVectors, sqliteIndex, strategy);
+				WordExtractor extractor = WordExtractor.NAME_EXTRACTOR;
+				
+				//GloveWordE strategy = new EmbeddingStrategy.GloveConcatEmbeddings(vectorsFile);
+				//WordExtractor extractor = WordExtractor.ECLASS_FEATURE_EXTRACTOR;
+				
+				return new JVectorScorer(jvectorVectors, sqliteIndex, strategy, extractor);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
