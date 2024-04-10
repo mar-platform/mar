@@ -54,9 +54,9 @@ public class WordedModel {
 		return false; //"name".equalsIgnoreCase(w);
 	}
 
-	public List<? extends String> getAllWords() {
-		return words.all();
-	}
+	//public List<? extends String> getAllWords() {
+	//	return words.all();
+	//}
 	
 	public List<? extends String> getWordsFromCategory(String category) {
 		return words.fromCategory(category);

@@ -1,15 +1,20 @@
 package mar.indexer.embeddings;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import mar.embeddings.IndexedDB;
 import mar.embeddings.IndexedDB.IndexedModel;
+import mar.embeddings.JVectorDatabase;
 import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.SingleIndexJob;
@@ -31,11 +36,8 @@ public class CreateIndex implements Callable<Integer> {
 	@Parameters(index = "0", description = "The configuration file.")
 	private File configurationFile;
 
-	@Parameters(index = "1", description = "The path to the JVector index")
-	private File pathIndexVector;
-
-	@Parameters(index = "2", description = "The path to the Index DB")
-	private File pathIndexDB;
+	@Parameters(index = "1", description = "Folder where the index will live")
+	private File pathIndex;
 
 	@Option(required = false, names = { "-t", "--type" }, description = "The model type: ecore, bpmn2, uml")
 	private String type;
@@ -87,15 +89,14 @@ public class CreateIndex implements Callable<Integer> {
 			}
 		}
 		
-		if (this.pathIndexDB.exists()) {
-			this.pathIndexDB.delete();
-		}
-		
-		//models = models.subList(0, 1000);
+		File pathIndexVector = JVectorDatabase.getJVectorDbFile(pathIndex, type);
+		File pathIndexDB = JVectorDatabase.getSqliteInfoDbFile(pathIndex, type);
+		File propertiesFile = JVectorDatabase.getDbPropertiesFile(pathIndex, type);
+
+		Files.deleteIfExists(pathIndexDB.toPath());
 		
 		long start = System.currentTimeMillis();
 		
-		Files.deleteIfExists(this.pathIndexDB.toPath());
 		
 		EmbeddingStrategy embedding;
 		WordExtractor extractor;
@@ -105,6 +106,10 @@ public class CreateIndex implements Callable<Integer> {
 		case ALL_NAMES_GLOVE_MDE:
 			extractor = NameExtractor.NAME_EXTRACTOR;
 			embedding = new EmbeddingStrategy.GloveWordE(data.getEmbedding("glove"));
+			break;
+		case ALL_NAMES_FASTTEXT:
+			extractor = NameExtractor.NAME_EXTRACTOR;
+			embedding = new EmbeddingStrategy.FastTextWordE(data.getEmbedding("fasttext"));
 			break;
 		case CONCAT_GLOVE_MDE:
 			extractor = NameExtractor.ECLASS_FEATURE_EXTRACTOR;
@@ -117,7 +122,7 @@ public class CreateIndex implements Callable<Integer> {
 
 		ILoader loader = registry.newLoader();		
 		
-		try (IndexedDB db = new IndexedDB(this.pathIndexDB, IndexedDB.Mode.WRITE)) {
+		try (IndexedDB db = new IndexedDB(pathIndexDB, IndexedDB.Mode.WRITE)) {
 			List<WordedModel> newModels = new ArrayList<>();
 			for (Model model : models) {
 				IndexedModel indexedModel = db.addModel(model);
@@ -127,6 +132,15 @@ public class CreateIndex implements Callable<Integer> {
 			EmbeddingIndexer indexer = new EmbeddingIndexer(embedding);
 			indexer.indexModels(pathIndexVector, newModels);
 		}
+
+		
+	    Properties properties = new Properties();	    
+	    properties.setProperty("distance", "dot_product");
+	    properties.setProperty("embedding", embeddingOption.name());
+
+        try (OutputStream output = new FileOutputStream(propertiesFile)) {
+            properties.store(output, "Config Properties");
+        }
 		
 		long end = System.currentTimeMillis();
 		System.out.println("Time: " + (end - start) / 1000.0);
@@ -146,7 +160,8 @@ public class CreateIndex implements Callable<Integer> {
 	
 	private static enum EmbeddingOption {
 		ALL_NAMES_GLOVE_MDE,
-		CONCAT_GLOVE_MDE
+		CONCAT_GLOVE_MDE,
+		ALL_NAMES_FASTTEXT
 	}
 	
 	public static void main(String[] args) {

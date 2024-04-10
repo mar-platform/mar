@@ -2,6 +2,7 @@ package mar.embeddings;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,16 +25,23 @@ public class JVectorDatabase {
 	private IndexedDB indexDb;
 
 	// possibly also pass the sqlite file which have the index data
-	public JVectorDatabase(File jvectorDb, File sqliteDb) throws IOException {
+	public JVectorDatabase(File indexFolder, String modelType) throws IOException {
+		File sqliteDb = getSqliteInfoDbFile(indexFolder, modelType);
+		File jvectorDb = getJVectorDbFile(indexFolder, modelType);
+		
 		this.indexDb = new IndexedDB(sqliteDb, Mode.READ);
 		
 		this.onDiskGraph = new OnDiskGraphIndex<float[]>(new SimpleMappedReaderSupplier(jvectorDb.toPath()), 0);
-        this.searcher = new GraphSearcher.Builder<float[]>(onDiskGraph.getView()).build();	
+        this.searcher = new GraphSearcher.Builder<float[]>(onDiskGraph.getView()).build();
+        
 	}
 	
 	public List<QueryResult> search(Query query, int numResults) {
+		// distance=dot_product
+		// embedding=ALL_NAMES_GLOVE_MDE 
+		//
         SearchResult r = this.searcher.search(
-        		new Score(VectorSimilarityFunction.COSINE, onDiskGraph.getView(), query.queryVector()), 
+        		new Score(VectorSimilarityFunction.DOT_PRODUCT, onDiskGraph.getView(), query.queryVector()), 
         		null, numResults, Bits.ALL);
         
         List<QueryResult> result = new ArrayList<>();
@@ -86,6 +94,18 @@ public class JVectorDatabase {
 			return f.compare(this.queryVector, v2);
 		}
 		
+	}
+
+	public static File getSqliteInfoDbFile(File indexFolder, String modelType) {
+		return Paths.get(indexFolder.getAbsolutePath(), modelType + ".info").toFile();
+	}
+
+	public static File getJVectorDbFile(File indexFolder, String modelType) {
+		return Paths.get(indexFolder.getAbsolutePath(), modelType + ".jvector").toFile();
+	}
+
+	public static File getDbPropertiesFile(File indexFolder, String modelType) {
+		return Paths.get(indexFolder.getAbsolutePath(), modelType + ".properties").toFile();
 	}
 	
 }

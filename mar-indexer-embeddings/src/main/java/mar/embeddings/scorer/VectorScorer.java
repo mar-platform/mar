@@ -9,7 +9,6 @@ import mar.embeddings.JVectorDatabase;
 import mar.embeddings.JVectorDatabase.QueryResult;
 import mar.indexer.embeddings.EmbeddingStrategy;
 import mar.indexer.embeddings.WordExtractor;
-import mar.indexer.embeddings.WordExtractor.NameExtractor;
 
 public class VectorScorer {
 	private final EmbeddingStrategy strategy;

@@ -47,6 +47,7 @@ import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.InvalidJobSpecification;
 import mar.indexer.common.configuration.SingleIndexJob;
 import mar.indexer.embeddings.EmbeddingStrategy;
+import mar.indexer.embeddings.EmbeddingStrategy.FastTextWordE;
 import mar.indexer.embeddings.EmbeddingStrategy.GloveWordE;
 import mar.indexer.embeddings.WordExtractor;
 import mar.indexer.lucene.core.ITextSearcher;
@@ -56,6 +57,7 @@ import mar.model2graph.Model2GraphAllpaths;
 import mar.paths.PathFactory;
 import mar.restservice.scoring.JVectorScorer;
 import mar.restservice.scoring.SqliteScorer;
+import mar.restservice.scoring.SqliteWithJVectorScorer;
 import mar.restservice.services.API;
 import mar.restservice.services.IConfigurationProvider;
 import mar.restservice.services.InvalidMarRequest;
@@ -277,6 +279,10 @@ public class Main implements IConfigurationProvider {
 	
 	@Override
 	public IScorer newScorer(AbstractPathComputation pathComputation, String modelType) {
+		return newScorer(pathComputation, modelType, storageKind);
+	}
+		
+	public IScorer newScorer(AbstractPathComputation pathComputation, String modelType, StorageKind storageKind) {
 		if (storageKind == StorageKind.HBASE) {
 			HBaseScorerFinal hsf = new HBaseScorerFinal(pathComputation, modelType);			
 			return hsf;
@@ -285,20 +291,28 @@ public class Main implements IConfigurationProvider {
 			// TODO: How to close this??
 			SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
 			return new SqliteScorer(pathComputation, db);
+		} else if (storageKind == StorageKind.SQLITE_JVECTOR) {
+			SqliteScorer sqliteScorer = (SqliteScorer) newScorer(pathComputation, modelType, StorageKind.SQLITE);
+			JVectorScorer jvectorScorer = (JVectorScorer) newScorer(pathComputation, modelType, StorageKind.JVECTOR);
+			return new SqliteWithJVectorScorer(sqliteScorer, jvectorScorer);
 		} else {
-			Path sqliteIndex    = getJVectorIndexDB(modelType);
-			Path jvectorVectors = getJVectorVectorDB(modelType);
-			File vectorsFile = this.configuration.getEmbedding("glove");
+			Path jvectorIndexFolder = getJVectorIndexFolder(modelType);
 			
-			System.out.println("Using jvector database: " + jvectorVectors);
+			System.out.println("Using jvector database: " + jvectorIndexFolder);
 			try {
-				GloveWordE strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+//				File vectorsFile = this.configuration.getEmbedding("glove");
+//				GloveWordE strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+//				WordExtractor extractor = WordExtractor.NAME_EXTRACTOR;
+
+				File vectorsFile = this.configuration.getEmbedding("fasttext");
+				FastTextWordE strategy = new EmbeddingStrategy.FastTextWordE(vectorsFile);
 				WordExtractor extractor = WordExtractor.NAME_EXTRACTOR;
+
 				
 				//GloveWordE strategy = new EmbeddingStrategy.GloveConcatEmbeddings(vectorsFile);
 				//WordExtractor extractor = WordExtractor.ECLASS_FEATURE_EXTRACTOR;
 				
-				return new JVectorScorer(jvectorVectors, sqliteIndex, strategy, extractor);
+				return new JVectorScorer(jvectorIndexFolder, modelType, strategy, extractor);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -309,7 +323,7 @@ public class Main implements IConfigurationProvider {
 	public ModelDataAccessor getModelAccessor(String modelType) {
 		if (storageKind == StorageKind.HBASE) {
 			return new HBaseGetInfo();
-		} else if (storageKind == StorageKind.SQLITE) {
+		} else if (storageKind == StorageKind.SQLITE || storageKind == StorageKind.SQLITE_JVECTOR) {
 			// We use here the jvector database because they are compatible
 			// TODO: Generate a similar file but in the SQLite folder
 			Path dbFile = getJVectorIndexDB(modelType);			
@@ -346,10 +360,10 @@ public class Main implements IConfigurationProvider {
 		return dbFile;
 	}
 
-	private Path getJVectorVectorDB(String modelType) {
+	private Path getJVectorIndexFolder(String modelType) {
 		File dbFolder = new File(EnvironmentVariables.getVariable(MAR.INDEX_TARGET));
-		Path dbFile = Paths.get(dbFolder.getAbsolutePath(), "jvector", modelType + ".jvector");
-		Preconditions.checkState(Files.exists(dbFile));
+		Path dbFile = Paths.get(dbFolder.getAbsolutePath(), "jvector");
+		Preconditions.checkState(Files.exists(dbFile), "File " + dbFile + " doesn't exist.");
 		return dbFile;
 	}
 
@@ -363,7 +377,8 @@ public class Main implements IConfigurationProvider {
 	private static enum StorageKind {
 		HBASE,
 		SQLITE, 
-		JVECTOR
+		JVECTOR,
+		SQLITE_JVECTOR
 	}
 	
 }

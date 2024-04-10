@@ -21,8 +21,8 @@ public class JVectorScorer implements IScorer {
 
 	private VectorScorer impl;
 
-	public JVectorScorer(Path jvectorVectors, Path sqliteIndex, EmbeddingStrategy embeddingStrategy, WordExtractor extractor) throws IOException {
-		JVectorDatabase db = new JVectorDatabase(jvectorVectors.toFile(), sqliteIndex.toFile());
+	public JVectorScorer(Path jvectorIndexFolder, String modelType, EmbeddingStrategy embeddingStrategy, WordExtractor extractor) throws IOException {
+		JVectorDatabase db = new JVectorDatabase(jvectorIndexFolder.toFile(), modelType);
 		this.impl = new VectorScorer(db, embeddingStrategy, extractor);
 	}
 	

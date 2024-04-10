@@ -28,7 +28,7 @@ public abstract class EMFQuery implements Query {
 		@Override
 		public float[] queryVector() {
 			WordedModel worded = new WordedModel(resource, extractor);
-			return embedding.toVector(worded);
+			return embedding.toNormalizedVector(worded);
 		}
 	}
 

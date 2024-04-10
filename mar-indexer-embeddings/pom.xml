@@ -67,6 +67,14 @@
 			<version>${dl4j.version}</version>
 		</dependency>
 
+		<!--
+		<dependency>
+			<groupId>ai.djl.fasttext</groupId>
+			<artifactId>fasttext-engine</artifactId>
+			<version>0.27.0</version>
+		</dependency>	
+		-->
+
 		<!-- <dependency> <groupId>org.nd4j</groupId> <artifactId>nd4j-cuda-11.4-platform</artifactId> 
 			<version>${dl4j.version}</version> </dependency> -->
 		<dependency>

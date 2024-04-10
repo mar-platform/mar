@@ -16,6 +16,7 @@ import io.github.jbellis.jvector.graph.OnHeapGraphIndex;
 import io.github.jbellis.jvector.graph.RandomAccessVectorValues;
 import io.github.jbellis.jvector.vector.VectorEncoding;
 import io.github.jbellis.jvector.vector.VectorSimilarityFunction;
+import io.github.jbellis.jvector.vector.VectorUtil;
 
 public class EmbeddingIndexer {
 
@@ -36,9 +37,10 @@ public class EmbeddingIndexer {
 				//VectorSimilarityFunction.COSINE, 16, 50, 0.75f, 1.0f
 				//VectorSimilarityFunction.DOT_PRODUCT, 32, 100, 0.5f, 2.0f
 				
-				VectorSimilarityFunction.COSINE, 32, 100, 0.5f, 2.0f
+				//VectorSimilarityFunction.COSINE, 32, 100, 0.5f, 2.0f
+				VectorSimilarityFunction.DOT_PRODUCT, 32, 100, 0.5f, 2.0f
 				
-				//VectorSimilarityFunction.COSINE, 16, 50, 0.1f, 4.0f
+				
 			);
 		
 		
@@ -55,6 +57,8 @@ public class EmbeddingIndexer {
             //testRecallInternal(onDiskGraph, null, queryVectors, groundTruth, compressedVectors);
         }
 		
+		
+		
 	}
 
 	private static class ModelEmbeddingListAccess implements RandomAccessVectorValues<float[]> {
@@ -69,7 +73,7 @@ public class EmbeddingIndexer {
 
 			for (int i = 0; i < models.size(); i++) {
 				WordedModel m = models.get(i);
-				float[] e = embedding.toVector(m);
+				float[] e = embedding.toNormalizedVector(m);
 				if (e == null)
 					throw new IllegalStateException();
 				results.put(m.getSeqId() - 1, e);
