@@ -11,7 +11,7 @@ import com.clearspring.analytics.util.Preconditions;
 import mar.embeddings.IndexedDB.IndexedModel;
 import mar.modelling.loader.ILoader;
 
-public class WordedModel {
+public class WordedModel implements Embeddable {
 
 	private WordList words;
 	
@@ -46,6 +46,7 @@ public class WordedModel {
 		return modelId;
 	}
 	
+	@Override
 	public List<? extends String> getWords() {
 		return words.all().stream().filter(w -> ! isStopWord(w)).collect(Collectors.toList());
 	}
@@ -62,6 +63,7 @@ public class WordedModel {
 		return words.fromCategory(category);
 	}
 
+	@Override
 	public int getSeqId() {
 		Preconditions.checkState(seqId >= 0);
 		return seqId;

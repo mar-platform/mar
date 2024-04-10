@@ -1,6 +1,6 @@
 package mar.paths;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Path {
@@ -8,7 +8,7 @@ public class Path {
 	private List<PathNode> path;
 	
 	public Path() {
-		path = new LinkedList<PathNode>();
+		path = new ArrayList<PathNode>();
 	}
 	
 	public Path(List<PathNode> path) {

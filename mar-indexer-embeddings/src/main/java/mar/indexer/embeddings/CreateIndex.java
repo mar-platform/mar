@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,6 @@ import mar.embeddings.JVectorDatabase;
 import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.SingleIndexJob;
-import mar.indexer.embeddings.EmbeddingStrategy.GloveWordE;
 import mar.indexer.embeddings.WordExtractor.NameExtractor;
 import mar.modelling.loader.ILoader;
 import mar.validation.AnalyserRegistry;
@@ -42,6 +40,10 @@ public class CreateIndex implements Callable<Integer> {
 	@Option(required = false, names = { "-t", "--type" }, description = "The model type: ecore, bpmn2, uml")
 	private String type;
 
+	@Option(required = false, names = { "-p", "--paths" }, description = "The SQLite database containing the paths")
+	private File sqlitePathIndex;
+
+	
 	@Option(required = true, names = { "-e", "--embedding" }, description = "The embedding strategy")
 	private EmbeddingOption embeddingOption = EmbeddingOption.ALL_NAMES_GLOVE_MDE;
 	
@@ -78,17 +80,7 @@ public class CreateIndex implements Callable<Integer> {
 
 		Factory registry = AnalyserRegistry.INSTANCE.getFactory(type);
 		registry.configureEnvironment();
-		
-		List<Model> models = new ArrayList<>();
-		for (SingleIndexJob repoConf : jobs) {
-			try {
-				models.addAll(getModels(repoConf));
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Error indexing: " + repoConf.getRootFolder());
-			}
-		}
-		
+
 		File pathIndexVector = JVectorDatabase.getJVectorDbFile(pathIndex, type);
 		File pathIndexDB = JVectorDatabase.getSqliteInfoDbFile(pathIndex, type);
 		File propertiesFile = JVectorDatabase.getDbPropertiesFile(pathIndex, type);
@@ -121,16 +113,28 @@ public class CreateIndex implements Callable<Integer> {
 		
 
 		ILoader loader = registry.newLoader();		
-		
-		try (IndexedDB db = new IndexedDB(pathIndexDB, IndexedDB.Mode.WRITE)) {
-			List<WordedModel> newModels = new ArrayList<>();
-			for (Model model : models) {
-				IndexedModel indexedModel = db.addModel(model);
-				newModels.add( new WordedModel(indexedModel, extractor, loader) );
+
+		if (sqlitePathIndex == null) {			
+			List<Model> models = new ArrayList<>();
+			for (SingleIndexJob repoConf : jobs) {
+				try {
+					models.addAll(getModels(repoConf));
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("Error indexing: " + repoConf.getRootFolder());
+				}
 			}
 			
-			EmbeddingIndexer indexer = new EmbeddingIndexer(embedding);
-			indexer.indexModels(pathIndexVector, newModels);
+			try (IndexedDB db = new IndexedDB(pathIndexDB, IndexedDB.Mode.WRITE)) {
+				List<WordedModel> newModels = new ArrayList<>();
+				for (Model model : models) {
+					IndexedModel indexedModel = db.addModel(model);
+					newModels.add( new WordedModel(indexedModel, extractor, loader) );
+				}
+				
+				EmbeddingIndexer indexer = new EmbeddingIndexer(embedding);
+				indexer.indexModels(pathIndexVector, newModels);
+			}
 		}
 
 		

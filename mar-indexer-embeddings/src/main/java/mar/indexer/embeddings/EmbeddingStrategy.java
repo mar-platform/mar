@@ -31,16 +31,16 @@ public interface EmbeddingStrategy {
 	
 	public int size();
 	
-	public float[] toVectorOrNull(WordedModel r);
+	public float[] toVectorOrNull(Embeddable r);
 	
-	public default float[] toVector(WordedModel r) {
+	public default float[] toVector(Embeddable r) {
 		float[] e = toVectorOrNull(r);
 		if (e == null)
 			return new float[size()];
 		return e;
 	}
 	
-	public default float[] toNormalizedVector(WordedModel r) {
+	public default float[] toNormalizedVector(Embeddable r) {
 		float[] e = toVectorOrNull(r);
 		if (e == null)
 			return new float[size()];
@@ -81,7 +81,7 @@ public interface EmbeddingStrategy {
 		@CheckForNull
 		public abstract WordVector getWordVector(String w);
 		
-		public float[] toVectorOrNull(WordedModel r) {
+		public float[] toVectorOrNull(Embeddable r) {
 			List<? extends String> words = r.getWords();
 			return getVectorsFromWords(words);
 		}
@@ -195,7 +195,8 @@ public interface EmbeddingStrategy {
 		}		
 		
 		@Override
-		public float[] toVector(WordedModel r) {
+		public float[] toVector(Embeddable e) {
+			WordedModel r = (WordedModel) e;
 			List<? extends String> classes  = r.getWordsFromCategory(WordExtractor.CLASS_CATEGORY);
 			List<? extends String> features = r.getWordsFromCategory(WordExtractor.FEATURE_CATEGORY);
 			float[] v1  = getVectorsFromWords(classes);

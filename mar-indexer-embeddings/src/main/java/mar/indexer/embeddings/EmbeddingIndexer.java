@@ -28,7 +28,7 @@ public class EmbeddingIndexer {
 		this.embedding = embedding;
 	}
 	
-	public void indexModels(File indexFileName, List<WordedModel> models) throws IOException {
+	public void indexModels(File indexFileName, List<? extends Embeddable> models) throws IOException {
 		ModelEmbeddingListAccess ravv = new ModelEmbeddingListAccess(models, embedding);
 		GraphIndexBuilder<float[]> indexBuilder = new GraphIndexBuilder<float[]>(
 				ravv,
@@ -63,16 +63,16 @@ public class EmbeddingIndexer {
 
 	private static class ModelEmbeddingListAccess implements RandomAccessVectorValues<float[]> {
 
-		private final List<WordedModel> models;
+		private final List<? extends Embeddable> models;
 		private Map<Integer, float[]> results = new HashMap<>();
 		private int embeddingSize;
 		
-		public ModelEmbeddingListAccess(List<WordedModel> models, EmbeddingStrategy embedding) throws IOException {
+		public ModelEmbeddingListAccess(List<? extends Embeddable> models, EmbeddingStrategy embedding) throws IOException {
 			this.models = models;
 			this.embeddingSize = embedding.size();
 
 			for (int i = 0; i < models.size(); i++) {
-				WordedModel m = models.get(i);
+				Embeddable m = models.get(i);
 				float[] e = embedding.toNormalizedVector(m);
 				if (e == null)
 					throw new IllegalStateException();
@@ -93,7 +93,7 @@ public class EmbeddingIndexer {
 
 		@Override
 		public float[] vectorValue(int targetOrd) {
-			WordedModel m = models.get(targetOrd);
+			Embeddable m = models.get(targetOrd);
 			Preconditions.checkState(m.getSeqId() - 1 == targetOrd);
 			
 			float[] r = results.get(targetOrd);
