@@ -11,11 +11,11 @@ import mar.restservice.model.IModelResult;
 import mar.utils.Utils;
 import mar.validation.AnalysisMetadataDocument;
 
-public class SQLiteGetInfo implements ModelDataAccessor {
+public class SQLiteGetJVectorInfo implements ModelDataAccessor {
 
 	private IndexedDB db;
 
-	public SQLiteGetInfo(Path dbFile) {
+	public SQLiteGetJVectorInfo(Path dbFile) {
 		db = new IndexedDB(dbFile.toFile(), IndexedDB.Mode.READ);
 	}
 

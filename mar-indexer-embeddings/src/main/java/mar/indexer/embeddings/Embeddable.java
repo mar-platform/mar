@@ -8,4 +8,12 @@ public interface Embeddable {
 
 	List<? extends String> getWords();
 
+	default float[] getVector() {
+		throw new UnsupportedOperationException();
+	}
+	
+	default boolean isAlreadyEmbedded() {
+		return false;
+	}
+	
 }

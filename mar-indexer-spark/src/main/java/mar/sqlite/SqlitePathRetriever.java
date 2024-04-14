@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
@@ -28,6 +29,9 @@ public class SqlitePathRetriever {
 				String p = head + rest;
 				p = p.replace("'", "''");
 				inPaths.add(p);
+//
+// The original idea was to split this into several subqueries to avoid some limitation in SQLite
+//
 //				String s = "select path, doc_id, n_docs_t, n_occurences, n_tokens from mar_index where path = '" + p + "'";
 //				newList.add(s);
 //				if (newList.size() == 500) {
@@ -57,5 +61,15 @@ public class SqlitePathRetriever {
 	}
 	
 
+	public void retrieve(Resource r, int[] pathIds, SqlitePathConsumer consumer) throws IOException {
+		String inSet = "(" + IntStream.of(pathIds).mapToObj(Integer::toString).collect(Collectors.joining(",")) + ")";
+		String query = "select path, doc_id, n_docs_t, n_occurences, n_tokens from mar_index where id in " + inSet + "";
+		try {
+			db.getModels(query, consumer);
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}		
+	}
+	
 	
 }

@@ -79,7 +79,7 @@ public interface EmbeddingStrategy {
 		}
 		
 		@CheckForNull
-		public abstract WordVector getWordVector(String w);
+		protected abstract WordVector getWordVector(String w);
 		
 		public float[] toVectorOrNull(Embeddable r) {
 			List<? extends String> words = r.getWords();

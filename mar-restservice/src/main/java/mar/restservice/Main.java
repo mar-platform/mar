@@ -40,6 +40,7 @@ import avro.shaded.com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.MarChatBotConfiguration;
 import mar.MarConfiguration;
+import mar.embeddings.scorer.PathRetriever;
 import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.EnvironmentVariables;
 import mar.indexer.common.configuration.EnvironmentVariables.MAR;
@@ -48,7 +49,6 @@ import mar.indexer.common.configuration.InvalidJobSpecification;
 import mar.indexer.common.configuration.SingleIndexJob;
 import mar.indexer.embeddings.EmbeddingStrategy;
 import mar.indexer.embeddings.EmbeddingStrategy.FastTextWordE;
-import mar.indexer.embeddings.EmbeddingStrategy.GloveWordE;
 import mar.indexer.embeddings.WordExtractor;
 import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.Searcher;
@@ -58,6 +58,7 @@ import mar.paths.PathFactory;
 import mar.restservice.scoring.JVectorScorer;
 import mar.restservice.scoring.SqliteScorer;
 import mar.restservice.scoring.SqliteWithJVectorScorer;
+import mar.restservice.scoring.VectorizedPathScorer;
 import mar.restservice.services.API;
 import mar.restservice.services.IConfigurationProvider;
 import mar.restservice.services.InvalidMarRequest;
@@ -295,6 +296,23 @@ public class Main implements IConfigurationProvider {
 			SqliteScorer sqliteScorer = (SqliteScorer) newScorer(pathComputation, modelType, StorageKind.SQLITE);
 			JVectorScorer jvectorScorer = (JVectorScorer) newScorer(pathComputation, modelType, StorageKind.JVECTOR);
 			return new SqliteWithJVectorScorer(sqliteScorer, jvectorScorer);
+		} else if (storageKind == StorageKind.VECTORIZED_PATHS) {
+			Path jvectorIndexFolder = getJVectorIndexFolder(modelType);			
+			System.out.println("Using jvector vectorized database: " + jvectorIndexFolder);
+
+			try {
+				File vectorsFile = this.configuration.getEmbedding("glove");
+				EmbeddingStrategy strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+				
+				PathRetriever retriever = new PathRetriever(jvectorIndexFolder.toFile(), modelType, strategy);
+				
+				Path sqliteIndex = getSqliteIndexDB(modelType);
+				SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
+				
+				return new VectorizedPathScorer(pathComputation, db, retriever);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		} else {
 			Path jvectorIndexFolder = getJVectorIndexFolder(modelType);
 			
@@ -323,14 +341,14 @@ public class Main implements IConfigurationProvider {
 	public ModelDataAccessor getModelAccessor(String modelType) {
 		if (storageKind == StorageKind.HBASE) {
 			return new HBaseGetInfo();
-		} else if (storageKind == StorageKind.SQLITE || storageKind == StorageKind.SQLITE_JVECTOR) {
-			// We use here the jvector database because they are compatible
-			// TODO: Generate a similar file but in the SQLite folder
-			Path dbFile = getJVectorIndexDB(modelType);			
-			return new SQLiteGetInfo(dbFile);
+		} else if (storageKind == StorageKind.SQLITE || storageKind == StorageKind.SQLITE_JVECTOR || storageKind == StorageKind.VECTORIZED_PATHS) {
+			Path sqliteIndex    = getSqliteIndexDB(modelType);
+			// TODO: How to close this??
+			SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
+			return new SQLiteIndexGetInfo(db);
 		} else {
 			Path dbFile = getJVectorIndexDB(modelType);			
-			return new SQLiteGetInfo(dbFile);
+			return new SQLiteGetJVectorInfo(dbFile);
 		}
 	}
 	
@@ -378,7 +396,8 @@ public class Main implements IConfigurationProvider {
 		HBASE,
 		SQLITE, 
 		JVECTOR,
-		SQLITE_JVECTOR
+		SQLITE_JVECTOR,
+		VECTORIZED_PATHS
 	}
 	
 }

@@ -104,6 +104,10 @@ public class JVectorDatabase {
 		return Paths.get(indexFolder.getAbsolutePath(), modelType + ".jvector").toFile();
 	}
 
+	public static File getJVectorPathIndexDbFile(File indexFolder, String modelType) {
+		return Paths.get(indexFolder.getAbsolutePath(), modelType + ".path.db").toFile();
+	}
+	
 	public static File getDbPropertiesFile(File indexFolder, String modelType) {
 		return Paths.get(indexFolder.getAbsolutePath(), modelType + ".properties").toFile();
 	}
