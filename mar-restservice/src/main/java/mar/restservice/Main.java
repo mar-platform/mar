@@ -301,10 +301,14 @@ public class Main implements IConfigurationProvider {
 			System.out.println("Using jvector vectorized database: " + jvectorIndexFolder);
 
 			try {
-				File vectorsFile = this.configuration.getEmbedding("glove");
-				EmbeddingStrategy strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+				//File vectorsFile = this.configuration.getEmbedding("glove");
+				//EmbeddingStrategy strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+				File vectorsFile = this.configuration.getEmbedding("fasttext");
+				FastTextWordE strategy = new EmbeddingStrategy.FastTextWordE(vectorsFile);
 				
-				PathRetriever retriever = new PathRetriever(jvectorIndexFolder.toFile(), modelType, strategy);
+				PathRetriever retriever = new PathRetriever(jvectorIndexFolder.toFile(), modelType, strategy)
+						.withMaxPathGroups(1)
+						.withMinSimilarity(0.99f);
 				
 				Path sqliteIndex = getSqliteIndexDB(modelType);
 				SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());

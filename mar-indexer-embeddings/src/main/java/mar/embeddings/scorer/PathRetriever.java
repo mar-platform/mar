@@ -33,6 +33,9 @@ public class PathRetriever {
 
 	private PathIndexesDB pathDb;
 	private EmbeddingStrategy strategy;
+	
+	private int maxPathGroups = 1;
+	private float minSimilarity = 0.98f;
 
 	public PathRetriever(File indexFolder, String modelType, EmbeddingStrategy strategy) throws IOException {
 		File jvectorDb = JVectorDatabase.getJVectorDbFile(indexFolder, modelType);	
@@ -47,29 +50,43 @@ public class PathRetriever {
 	    this.searcher = new GraphSearcher.Builder<float[]>(onDiskGraph.getView()).build();
 	}
 	
+	public PathRetriever withMaxPathGroups(int maxSimilarPaths) {
+		this.maxPathGroups = maxSimilarPaths;
+		return this;
+	}
+	
+	public PathRetriever withMinSimilarity(float minSimilarity) {
+		Preconditions.checkArgument(minSimilarity >= 0 && minSimilarity <= 1);
+		this.minSimilarity  = minSimilarity;
+		return this;
+	}
+	
+	
 	public List<SimilarPath> retrieve(String[] pathParts) {
-		final int numResults = 1000;
+		final int numResults = 100;
+		//final int numResults = 5;
 		
 		float[] queryVector = strategy.toNormalizedVector(new IndexedPath(-1, pathParts));
         SearchResult r = this.searcher.search(
         		new Score(VectorSimilarityFunction.DOT_PRODUCT, onDiskGraph.getView(), queryVector), 
-        		null, numResults, 0.98f, Bits.ALL);
+        		null, numResults, minSimilarity, Bits.ALL);
 
-        int x = 0;
+        int pathGroupCount = 0;
         List<SimilarPath> paths = new ArrayList<>(r.getNodes().length);
         for (NodeScore nodeScore : r.getNodes()) {
-        	if (x++ > 2)
+        	if (pathGroupCount == maxPathGroups)
         		break;
+        	pathGroupCount++;
         	
 			int node = nodeScore.node + 1;
 			int[] result = pathDb.getPaths(node);
 			Preconditions.checkNotNull(result);
 			
 			
-			System.out.println(node + ":" + String.join(",", pathParts) + " - " + nodeScore.score);
-			for(int i = 0; i < result.length; i++) {
-				System.out.println("  - " + result[i]);
-			}
+			//System.out.println(node + ":" + String.join(",", pathParts) + " - " + nodeScore.score);
+			//for(int i = 0; i < result.length; i++) {
+			//	System.out.println("  - " + result[i]);
+			//}
 			paths.add(new SimilarPath(nodeScore.score, result));
 		}
         

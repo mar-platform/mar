@@ -25,6 +25,8 @@ public class PathIndexesDB implements Closeable {
 	@Nonnull
 	protected Connection connection;
 	
+	protected boolean keepPath = false;
+	
 	public static enum Mode {
 		READ,
 		WRITE
@@ -105,13 +107,19 @@ public class PathIndexesDB implements Closeable {
 	}
 
 	public void addPath(@Nonnull VectorizedPath vp) {
-		try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO paths(seq_id, path_ids, vector, path) VALUES (?, ?, ?, ?)")) {
+		String query = keepPath ? 
+				"INSERT INTO paths(seq_id, path_ids, vector, path) VALUES (?, ?, ?, ?)" :
+				"INSERT INTO paths(seq_id, path_ids, vector) VALUES (?, ?, ?)";
+				
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 			// We can insert
 			preparedStatement.setInt(1, vp.getSeqId());
 			preparedStatement.setString(2, vp.toPathIdsString());
 			preparedStatement.setString(3, vp.toVectorString());			
 			
-			preparedStatement.setString(4, vp.getPathText());
+			if (keepPath) {
+				preparedStatement.setString(4, vp.getPathText());
+			}
 			preparedStatement.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);		

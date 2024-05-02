@@ -219,6 +219,7 @@ public interface EmbeddingStrategy {
 			this.ft.loadBinaryModel(binaryFile.getAbsolutePath());
 			
 			this.splitWords = false;
+			this.bagOfWords = false;
 		}
 		
 		@Override

@@ -82,12 +82,12 @@ public class VectorizedPathScorer implements IScorer {
 				
 				associatedPaths.put(path, pathIndexes);
 			}
-			System.out.println("\n");
+			//System.out.println("\n");
 			
 			SqlitePathRetriever retriever = new SqlitePathRetriever(database);
 
 			associatedPaths.forEach((originalPath, similarPaths) -> {
-				System.out.println(originalPath);
+				//System.out.println(originalPath);
 				for (SimilarPath sPaths : similarPaths) {					
 					try {
 						int[] pathIds = sPaths.getPathIds();
@@ -102,7 +102,7 @@ public class VectorizedPathScorer implements IScorer {
 								poq_float = sPaths.getScore();
 							}
 							
-							System.out.println(" - " + path + "  " + pathOccurencesInQuery + " " + numDocsWithPath + " " + nTokens + " " + nOccurences);
+							//System.out.println(" - " + path + "  " + pathOccurencesInQuery + " " + numDocsWithPath + " " + nTokens + " " + nOccurences);
 							calculator.addPathApproximate(path, docId, numDocsWithPath, poq_float, nOccurences, nTokens);
 						});
 					} catch (IOException e) {
