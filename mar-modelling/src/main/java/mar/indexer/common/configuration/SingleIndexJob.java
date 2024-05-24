@@ -22,6 +22,7 @@ import mar.model2graph.Model2GraphAllpaths;
 import mar.paths.PathFactory;
 import mar.paths.PathFactory.DefaultPathFactory;
 import mar.paths.PathFactory.WSandCCTokenizerSWStemming;
+import mar.utils.Utils;
 
 public class SingleIndexJob implements Serializable {
 
@@ -142,17 +143,7 @@ public class SingleIndexJob implements Serializable {
 	 */
 	@VisibleForTesting
 	/* pp */ String replaceEnv(@Nonnull String path, @Nonnull Map<String, String> env) {
-		Pattern pattern = Pattern.compile("\\$\\((.+)\\)");
-		Matcher matcher = pattern.matcher(path);
-        while (matcher.find()) {
-        	String var = matcher.group(1);
-        	String sub = env.get(var);
-        	if (sub == null)
-        		throw new RuntimeException("No variable: " + var);
-        	path = matcher.replaceFirst(sub);
-        	matcher.reset(path);
-        }
-		return path;
+		return Utils.replaceEnv(path, env);
 	}
 
 	@Nonnull

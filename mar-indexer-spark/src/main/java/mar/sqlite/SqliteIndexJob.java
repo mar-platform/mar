@@ -70,13 +70,17 @@ public class SqliteIndexJob implements Callable<Integer> {
 			String rootFolder = repoConf.getRootFolder();
 			List<Model> allModels = db.getValidModels(f -> rootFolder + File.separator + f);
 			for (Model model : allModels) {
+				//if (! model.getId().toLowerCase().contains("relational") && !(model.getId().toLowerCase().contains("expression")))
+				//	continue;
 				origins.add(new ModelOrigin(model.getFile().getAbsolutePath(), model.getId(), repoConf, model.getMetadata()));
 			}			
 		}
 
 		long init = System.currentTimeMillis();
 		try (SqliteIndexDatabase db = new SqliteIndexDatabase(outputDb)) {
-			new SqliteIndexer().index(db, origins);
+			new SqliteIndexer().
+				withIncludeMetada(true).
+				index(db, origins);
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("Index time: " + ((end - init) / (1000.0 * 60)));

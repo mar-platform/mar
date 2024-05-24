@@ -76,6 +76,7 @@
 
     <module>mar-indexer-lucene</module>
     <module>mar-indexer-spark</module>
+    <module>mar-indexer-embeddings</module>
 
     <module>mar-spring-webserver</module>
   </modules>

@@ -1,13 +1,15 @@
 package mar.restservice;
 
 import static spark.Spark.get;
-import static spark.Spark.post;
 import static spark.Spark.port;
+import static spark.Spark.post;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -34,24 +36,33 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.uml2.uml.UMLPackage;
 
+import avro.shaded.com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import mar.MarChatBotConfiguration;
 import mar.MarConfiguration;
+import mar.embeddings.scorer.PathRetriever;
 import mar.indexer.common.cmd.CmdOptions;
 import mar.indexer.common.configuration.EnvironmentVariables;
 import mar.indexer.common.configuration.EnvironmentVariables.MAR;
 import mar.indexer.common.configuration.IndexJobConfigurationData;
 import mar.indexer.common.configuration.InvalidJobSpecification;
 import mar.indexer.common.configuration.SingleIndexJob;
+import mar.indexer.embeddings.EmbeddingStrategy;
+import mar.indexer.embeddings.EmbeddingStrategy.FastTextWordE;
+import mar.indexer.embeddings.WordExtractor;
 import mar.indexer.lucene.core.ITextSearcher;
 import mar.indexer.lucene.core.Searcher;
 import mar.model2graph.AbstractPathComputation;
 import mar.model2graph.Model2GraphAllpaths;
 import mar.paths.PathFactory;
+import mar.restservice.scoring.JVectorScorer;
+import mar.restservice.scoring.SqliteScorer;
+import mar.restservice.scoring.SqliteWithJVectorScorer;
+import mar.restservice.scoring.VectorizedPathScorer;
 import mar.restservice.services.API;
-import mar.restservice.services.APIchatbot;
 import mar.restservice.services.IConfigurationProvider;
 import mar.restservice.services.InvalidMarRequest;
+import mar.sqlite.SqliteIndexDatabase;
 import mar.validation.AnalysisDB;
 import mar.validation.AnalysisDB.Model;
 import spark.Request;
@@ -68,8 +79,11 @@ public class Main implements IConfigurationProvider {
 	/** The list of all models by ID and its location in the filesystem */
 	private final Map<String, String> modelFilesById = new HashMap<String, String>();
 
-	public Main(@Nonnull IndexJobConfigurationData configuration) {
+	private StorageKind storageKind;
+
+	public Main(@Nonnull IndexJobConfigurationData configuration, StorageKind storageKind) {
 		this.configuration = configuration;
+		this.storageKind = storageKind;
 		preLoad();
 	}
 	
@@ -115,11 +129,16 @@ public class Main implements IConfigurationProvider {
 		debugOpt.setRequired(false);
 		options.addOption(debugOpt);
 
+		Option storageOpt = new Option("s", "storage", true, "type of storage");
+		storageOpt.setRequired(false);
+		options.addOption(storageOpt);
+		
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		int port = 1234;
 		boolean debug = false;
 		File configurationFile;
+		StorageKind storageKind = StorageKind.JVECTOR;
 		
 		try {
 			CommandLine cmd = parser.parse(options, args);
@@ -130,6 +149,15 @@ public class Main implements IConfigurationProvider {
 			} else {
 				formatter.printHelp("mar", options);
 				return;
+			}
+			
+			if (cmd.hasOption(storageOpt.getOpt())) {
+				String str = cmd.getOptionValue("storage");
+				storageKind = StorageKind.valueOf(str.toUpperCase());
+				if (storageKind == null) {
+					System.out.println("Invalid storage: " + str);
+					System.exit(1);
+				}
 			}
 		} catch (ParseException e) {
 			System.out.println(e.getMessage());
@@ -158,10 +186,12 @@ public class Main implements IConfigurationProvider {
 			});
 		}		
 
-		Main main = new Main(configuration);
+		Main main = new Main(configuration, storageKind);
 		// Services
 		API api = new API(main);
-		APIchatbot apiChatBot = new APIchatbot(main);
+		
+		// Disabled, it is not used
+		// APIchatbot apiChatBot = new APIchatbot(main);
 
 		if (debug) {
 			post("/read-configuration", (req, res) -> {
@@ -216,7 +246,8 @@ public class Main implements IConfigurationProvider {
 				pathComputation = new Model2GraphAllpaths(3).withPathFactory(new PathFactory.DefaultPathFactory());			
 			}
 						
-			HBaseScorerFinal hsf = new HBaseScorerFinal(pathComputation, modelType);						
+			IScorer hsf = newScorer(pathComputation, modelType);
+			
 			conf = new MarConfiguration(pathComputation, hsf);
 			configurationCache.put(modelType, conf);
 		}
@@ -248,6 +279,84 @@ public class Main implements IConfigurationProvider {
 	}
 	
 	@Override
+	public IScorer newScorer(AbstractPathComputation pathComputation, String modelType) {
+		return newScorer(pathComputation, modelType, storageKind);
+	}
+		
+	public IScorer newScorer(AbstractPathComputation pathComputation, String modelType, StorageKind storageKind) {
+		if (storageKind == StorageKind.HBASE) {
+			HBaseScorerFinal hsf = new HBaseScorerFinal(pathComputation, modelType);			
+			return hsf;
+		} else if (storageKind == StorageKind.SQLITE) {
+			Path sqliteIndex    = getSqliteIndexDB(modelType);
+			// TODO: How to close this??
+			SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
+			return new SqliteScorer(pathComputation, db);
+		} else if (storageKind == StorageKind.SQLITE_JVECTOR) {
+			SqliteScorer sqliteScorer = (SqliteScorer) newScorer(pathComputation, modelType, StorageKind.SQLITE);
+			JVectorScorer jvectorScorer = (JVectorScorer) newScorer(pathComputation, modelType, StorageKind.JVECTOR);
+			return new SqliteWithJVectorScorer(sqliteScorer, jvectorScorer);
+		} else if (storageKind == StorageKind.VECTORIZED_PATHS) {
+			Path jvectorIndexFolder = getJVectorIndexFolder(modelType);			
+			System.out.println("Using jvector vectorized database: " + jvectorIndexFolder);
+
+			try {
+				//File vectorsFile = this.configuration.getEmbedding("glove");
+				//EmbeddingStrategy strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+				File vectorsFile = this.configuration.getEmbedding("fasttext");
+				FastTextWordE strategy = new EmbeddingStrategy.FastTextWordE(vectorsFile);
+				
+				PathRetriever retriever = new PathRetriever(jvectorIndexFolder.toFile(), modelType, strategy)
+						.withMaxPathGroups(1)
+						.withMinSimilarity(0.99f);
+				
+				Path sqliteIndex = getSqliteIndexDB(modelType);
+				SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
+				
+				return new VectorizedPathScorer(pathComputation, db, retriever);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			Path jvectorIndexFolder = getJVectorIndexFolder(modelType);
+			
+			System.out.println("Using jvector database: " + jvectorIndexFolder);
+			try {
+//				File vectorsFile = this.configuration.getEmbedding("glove");
+//				GloveWordE strategy = new EmbeddingStrategy.GloveWordE(vectorsFile);
+//				WordExtractor extractor = WordExtractor.NAME_EXTRACTOR;
+
+				File vectorsFile = this.configuration.getEmbedding("fasttext");
+				FastTextWordE strategy = new EmbeddingStrategy.FastTextWordE(vectorsFile);
+				WordExtractor extractor = WordExtractor.NAME_EXTRACTOR;
+
+				
+				//GloveWordE strategy = new EmbeddingStrategy.GloveConcatEmbeddings(vectorsFile);
+				//WordExtractor extractor = WordExtractor.ECLASS_FEATURE_EXTRACTOR;
+				
+				return new JVectorScorer(jvectorIndexFolder, modelType, strategy, extractor);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+	
+	@Override
+	public ModelDataAccessor getModelAccessor(String modelType) {
+		if (storageKind == StorageKind.HBASE) {
+			return new HBaseGetInfo();
+		} else if (storageKind == StorageKind.SQLITE || storageKind == StorageKind.SQLITE_JVECTOR || storageKind == StorageKind.VECTORIZED_PATHS) {
+			Path sqliteIndex    = getSqliteIndexDB(modelType);
+			// TODO: How to close this??
+			SqliteIndexDatabase db = new SqliteIndexDatabase(sqliteIndex.toFile());
+			return new SQLiteIndexGetInfo(db);
+		} else {
+			Path dbFile = getJVectorIndexDB(modelType);			
+			return new SQLiteGetJVectorInfo(dbFile);
+		}
+	}
+	
+	@Override
 	public IndexJobConfigurationData getIndexJobConfiguration() {
 		return configuration;
 	}
@@ -266,4 +375,33 @@ public class Main implements IConfigurationProvider {
 		return conf;
 	}
 
+	private Path getJVectorIndexDB(String modelType) {
+		File dbFolder = new File(EnvironmentVariables.getVariable(MAR.INDEX_TARGET));
+		Path dbFile = Paths.get(dbFolder.getAbsolutePath(), "jvector", modelType + ".info");
+		Preconditions.checkState(Files.exists(dbFile));
+		return dbFile;
+	}
+
+	private Path getJVectorIndexFolder(String modelType) {
+		File dbFolder = new File(EnvironmentVariables.getVariable(MAR.INDEX_TARGET));
+		Path dbFile = Paths.get(dbFolder.getAbsolutePath(), "jvector");
+		Preconditions.checkState(Files.exists(dbFile), "File " + dbFile + " doesn't exist.");
+		return dbFile;
+	}
+
+	private Path getSqliteIndexDB(String modelType) {
+		File dbFolder = new File(EnvironmentVariables.getVariable(MAR.INDEX_TARGET));
+		Path dbFile = Paths.get(dbFolder.getAbsolutePath(), "sqlite", modelType + ".db");
+		Preconditions.checkState(Files.exists(dbFile));
+		return dbFile;
+	}
+	
+	private static enum StorageKind {
+		HBASE,
+		SQLITE, 
+		JVECTOR,
+		SQLITE_JVECTOR,
+		VECTORIZED_PATHS
+	}
+	
 }

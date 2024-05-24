@@ -1,4 +1,7 @@
 {
+    embeddings: {
+	glove: "$(W2V_MDE)/glove_modelling/vectors.txt"
+    },
     types: {
 	"ecore": {
 	    mrank: {

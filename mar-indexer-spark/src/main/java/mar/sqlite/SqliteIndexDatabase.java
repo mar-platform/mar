@@ -21,7 +21,6 @@ public class SqliteIndexDatabase implements AutoCloseable {
 	@Nonnull	
 	public SqliteIndexDatabase(File file) {					
 		String url = getConnectionString(file);
-		 
         try {
         	Connection conn = DriverManager.getConnection(url);
             if (conn != null) {
@@ -128,6 +127,19 @@ public class SqliteIndexDatabase implements AutoCloseable {
 		stm.close();
 	}
 
+	public void getPaths(SqliteSimplePathConsumer consumer) throws SQLException {
+		PreparedStatement stm = this.connection.prepareStatement("select path, id from mar_index");
+		stm.execute();
+		
+		ResultSet rs = stm.getResultSet();
+		while (rs.next()) {
+			String path  = rs.getString(1);
+			long pathId = rs.getLong(2);
+			consumer.consume(pathId, path);
+		}
+		stm.close();
+	}
+	
 	public void addGlobalStats(long totalTokens, long totalDocuments) throws SQLException {
 		PreparedStatement stm = connection.prepareStatement("INSERT INTO stats(total_tokens, total_documents) VALUES (?, ?)");
 		stm.setLong(1, totalTokens);
@@ -136,7 +148,7 @@ public class SqliteIndexDatabase implements AutoCloseable {
 		stm.close();
 	}	
 
-	public String getModelById(String modelId) throws SQLException {
+	public String getModelMetadataById(String modelId) throws SQLException {
 		PreparedStatement stm = connection.prepareStatement("SELECT metadata FROM metadata WHERE doc_id = ?");
 		stm.setString(1, modelId);
 		stm.execute();
@@ -146,6 +158,31 @@ public class SqliteIndexDatabase implements AutoCloseable {
 		}
 		stm.close();
 		return null;		
+	}
+
+	public int getPathCount() throws SQLException {
+		PreparedStatement stm = connection.prepareStatement("SELECT count(*) FROM mar_index");
+		stm.execute();
+		ResultSet rs = stm.getResultSet();
+		if (rs.next()) {
+			return rs.getInt(1);
+		}
+		stm.close();
+		throw new IllegalStateException();	
+	}
+
+
+	public String getPath(Integer pathId) throws SQLException {
+		PreparedStatement stm = connection.prepareStatement("SELECT path FROM mar_index WHERE id = ?");
+		stm.setLong(1, pathId);
+		stm.execute();
+		ResultSet rs = stm.getResultSet();
+		if (rs.next()) {
+			return rs.getString(1);
+		}
+		stm.close();
+
+		throw new IllegalArgumentException("No path with id " + pathId);	
 	}
 	
 	@CheckForNull
@@ -181,4 +218,5 @@ public class SqliteIndexDatabase implements AutoCloseable {
 		//    select id, path from mar_index where id in (select id from mar_index group by path having count(*) > (select total_documents * 0.7 from stats limit 1));
 		// As the basis to drop stop paths
 	}
+
 }

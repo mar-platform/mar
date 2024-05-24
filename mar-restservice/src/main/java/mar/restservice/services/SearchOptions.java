@@ -61,7 +61,8 @@ public class SearchOptions {
 
 	private static String getContent(Request req) throws InvalidMarRequest {
 		String body;
-		if (req.contentType().startsWith("multipart/form-data")) {
+		String contentType = req.contentType();
+		if (contentType != null && contentType.startsWith("multipart/form-data")) {
 			body = getUploadedFile(req);			
 		} else {
 			body = req.body();

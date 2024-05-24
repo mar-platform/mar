@@ -79,6 +79,23 @@ public class BM25ScoreCalculator {
 		
 	}
 
+	public void addPathApproximate(String path, String docName, int totalDocsContainingPath, float pathOcurrencesInQuery,
+			int pathOcurrencesInDoc, int totalPathsInDoc) {
+		final float c_w_q = pathOcurrencesInQuery;
+		final int c_w_d = pathOcurrencesInDoc;
+		final int n_docs_t = totalDocsContainingPath;
+		final int doc_len = totalPathsInDoc;
+
+		double old_score = scores.computeDoubleIfAbsent(docName, (k) -> 0.0d);
+		double new_score = old_score + ((c_w_q * (k + 1) * c_w_d) / (c_w_d + k * (1 - b + b * (doc_len / average))))
+				* Math.log((numDocuments + 1) / n_docs_t);
+//			double new_score = old_score +
+//					((c_w_q * (k+1) * c_w_d)/
+//					(c_w_d + k*(1-b+b*(doc_len/average)))) * Math.log(((numDocuments - n_docs_t + 0.5)/(n_docs_t + 0.5))); //+ 1, TAKE CARE
+		scores.put(docName, new_score);
+	}
+		
+		
 	@NonNull
 	public Map<String, Double> getScores() {
 		return scores;
