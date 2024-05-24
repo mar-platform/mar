@@ -48,6 +48,8 @@ public interface EmbeddingStrategy {
 		return e;
 	}
 	
+	public float[] getWordVectorFromWord(String word);
+	
 	public static class GloveWordE extends AbstractWordE4MDEEmbedding {
 		private WordVectorTable gloveVectors;
 
@@ -67,6 +69,7 @@ public interface EmbeddingStrategy {
 			WordVector wv = gloveVectors.get(w);
 			return wv;
 		}
+	
 	}
 	
 	public static abstract class AbstractWordE4MDEEmbedding implements EmbeddingStrategy {	
@@ -80,6 +83,17 @@ public interface EmbeddingStrategy {
 		
 		@CheckForNull
 		protected abstract WordVector getWordVector(String w);
+		
+		public float[] getWordVectorFromWord(String word) {
+			WordVector wv = getWordVector(word);
+			if (wv == null)
+				return null;
+			float[] v = new float[wv.dimension()];
+			for(int i = 0, len = wv.dimension(); i < len; i++) {
+				v[i] += wv.getAsFloat(i);
+			}
+			return v;
+		}
 		
 		public float[] toVectorOrNull(Embeddable r) {
 			List<? extends String> words = r.getWords();
