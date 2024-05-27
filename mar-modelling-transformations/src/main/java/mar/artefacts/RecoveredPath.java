@@ -71,7 +71,12 @@ public class RecoveredPath {
 			return loosyFilePath;
 		}
 	}
-	
+
+	/**
+	 * A path that was found but we are not sure if this is the real file.
+	 * 
+	 * @author jesus
+	 */
 	public static class HeuristicPath extends RecoveredPath {
 
 		public HeuristicPath(Path path) {
@@ -80,11 +85,29 @@ public class RecoveredPath {
 		
 	}
 	
+	/**
+	 * A path that was expected but could not be found.
+	 * 
+	 * @author jesus
+	 */
 	public static class MissingPath extends RecoveredPath {
 
 		public MissingPath(Path path) {
 			super(path);
-		}
-		
+		}		
 	}
+	
+	/**
+	 * A path that doesn't actually exist but could be generated.
+	 * For instance, an .emf file generates an .ecore.
+	 *  
+	 * @author jesus
+	 */
+	public static class GeneratedPath extends RecoveredPath {
+
+		public GeneratedPath(Path path) {
+			super(path);
+		}		
+	}
+		
 }

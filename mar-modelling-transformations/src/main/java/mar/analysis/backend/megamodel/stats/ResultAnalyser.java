@@ -365,10 +365,11 @@ public class ResultAnalyser implements Callable<Integer> {
 			throws SQLException {
 		Multimap<String, RawFile> byType = compare(rawDb, megamodelDb, artefactTypes);
 
+		out.println("Files in the raw repository which do not have a correspondence in the mega-model.");
 		out.println("Number of mismatches: " + byType.size());
 		byType.asMap().forEach((type, values) -> {
 			if (! values.isEmpty()) {
-				out.println("Missing " + type);
+				out.println(type + ":");
 				values.forEach(v -> {
 					out.println("  - " + v.getFilepath());
 				});

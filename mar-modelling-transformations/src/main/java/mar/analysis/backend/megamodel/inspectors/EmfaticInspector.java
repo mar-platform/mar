@@ -86,7 +86,7 @@ public class EmfaticInspector extends ProjectInspector {
 			String filename = f.getName().replace(".emf", ".ecore");
 			File parent = f.getParentFile();
 
-			RecoveredPath rp = getFileSearcher().findInFolder(parent.toPath(), filename);
+			RecoveredPath rp = getFileSearcher().findPotentiallyGeneratedFile(parent.toPath(), filename);
 			Metamodel mm = Metamodel.fromFile(filename, rp);
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		

@@ -82,11 +82,13 @@ public class FileSearcher {
 		}		
 	}
 
-	public RecoveredPath findInFolder(Path folderPath, String filename) {
+	public RecoveredPath findPotentiallyGeneratedFile(Path folderPath, String filename) {
 		Path path = folderPath.resolve(filename);
-		if (Files.exists(path))
-			return new HeuristicPath(path);
-		return new RecoveredPath.MissingPath(path);
+		Path relPath = projectRoot.relativize(path);
+		if (Files.exists(path)) {
+			return new RecoveredPath(relPath);
+		}
+		return new RecoveredPath.GeneratedPath(relPath);
 	}
 
 	public boolean fileExistsInFolder(Path folderPath, String filename) {
