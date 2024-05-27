@@ -9,7 +9,7 @@ fi
 pushd .
 mkdir -p $REPO_MAR/external-resources
 cd $REPO_MAR/external-resources
-wget http://sanchezcuadrado.es/mar/external-resources/tests.tar.gz
+wget http://models-lab.inf.um.es/files/mar-dev/tests.tar.gz
 tar xzf tests.tar.gz
 rm tests.tar.gz
 popd

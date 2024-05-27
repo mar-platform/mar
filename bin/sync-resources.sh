@@ -13,7 +13,7 @@ echo
 
 pushd .
 cd $REPO_MAR
-wget http://sanchezcuadrado.es/mar/external-resources/libs.tar.gz
+wget http://models-lab.inf.um.es/files/mar-dev/libs.tar.gz
 tar xzf libs.tar.gz
 rm libs.tar.gz
 popd
