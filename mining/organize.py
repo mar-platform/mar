@@ -167,7 +167,9 @@ if __name__ == "__main__":
         '.eol': 'epsilon',
         '.ewl': 'epsilon',
         '.eml': 'epsilon',
+        '.epl': 'epsilon',
         '.mig': 'epsilon',
+        '.emg': 'epsilon', 
         
         '.atl': 'atl',
 
