@@ -65,6 +65,7 @@ public class MegamodelDB implements Closeable {
                         + "    type          varchar(255) NOT NULL,\n"
                         + "    category      varchar(255) NOT NULL,\n"
                         + "    name          varchar(255) NOT NULL,\n"
+                        + "    file_status   varchar(255) NOT NULL,\n"
                         + "    project_id    varchar(255)\n"
                         + ");";
 
@@ -131,7 +132,7 @@ public class MegamodelDB implements Closeable {
 
 	private Map<String, Artefact> getArtefacts() throws SQLException {
 		Map<String, Artefact> result = new HashMap<String, Artefact>();     
-		PreparedStatement allArtefactsStm = connection.prepareStatement("SELECT id, type, category, name, project_id FROM artefacts");
+		PreparedStatement allArtefactsStm = connection.prepareStatement("SELECT id, type, category, name, project_id, file_status FROM artefacts");
 		allArtefactsStm.execute();
 		ResultSet rs = allArtefactsStm.getResultSet();
 		while (rs.next()) {
@@ -140,7 +141,8 @@ public class MegamodelDB implements Closeable {
 			String category = rs.getString(3);
 			String name = rs.getString(4);
 			String projectId = rs.getString(5);
-			result.put(id, new Artefact(new Project(projectId), id, type, category, name));
+			String fileStatus = rs.getString(6);
+			result.put(id, new Artefact(new Project(projectId), id, type, category, name, fileStatus));
 		}
 		allArtefactsStm.close();
 		return result;
@@ -315,23 +317,24 @@ public class MegamodelDB implements Closeable {
 
 
 	@CheckForNull
-	public void addArtefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name) {
+	public void addArtefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name, @Nonnull String fileStatus) {
 		try {
 			if (allArtefacts.containsKey(id)) {				
 				return;
 			}
 						
 			// We can insert
-			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO artefacts(id, type, category, name, project_id) VALUES (?, ?, ?, ?, ?)");
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO artefacts(id, type, category, name, project_id, file_status) VALUES (?, ?, ?, ?, ?, ?)");
 			preparedStatement.setString(1, id);
 			preparedStatement.setString(2, type);
 			preparedStatement.setString(3, category);
 			preparedStatement.setString(4, name);
 			preparedStatement.setString(5, project.getId());
+			preparedStatement.setString(6, fileStatus);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();			
 			
-			allArtefacts.put(id, new Artefact(project, id, type, category, name));
+			allArtefacts.put(id, new Artefact(project, id, type, category, name, fileStatus));
 		} catch (SQLException e) {
 			throw new RuntimeException(e);		
 		}
@@ -427,7 +430,7 @@ public class MegamodelDB implements Closeable {
 		for (Node node : graph.getNodes()) {
 			if (node instanceof ArtefactNode) {
 				Artefact artefact = ((ArtefactNode) node).getArtefact();
-				addArtefact(artefact.getProject(), artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName());
+				addArtefact(artefact.getProject(), artefact.getId(), artefact.getType(), artefact.getCategory(), artefact.getName(), artefact.getFileStatus());
 			} else {
 				throw new UnsupportedOperationException();
 			}

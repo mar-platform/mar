@@ -95,7 +95,13 @@ public class BuildFileInspector extends XMLProjectInspector {
 	    	if (fileNode == null)
 	    		continue;
 	      	
-	    	RecoveredPath file = AntUtils.parseAntPath(buildFileFolder, fileNode.getTextContent());
+	    	// TODO: Identify basedir if given in the build.xml
+	    	Path basedir = buildFileFolder;	    	
+	    	
+	    	//RecoveredPath file = AntUtils.parseAntPath(buildFileFolder, basedir, fileNode.getTextContent());
+	    	String potentialFileName = AntUtils.parseAntPath2(buildFileFolder, basedir, fileNode.getTextContent());
+	    	RecoveredPath file = getFileSearcher().findFile(Paths.get(potentialFileName));
+	    	
 	    	EpsilonProgram program = new EpsilonProgram(file);
 	    	graph.addProgram(program);
 	    	
@@ -211,7 +217,8 @@ public class BuildFileInspector extends XMLProjectInspector {
 	    	String name = nameNode.getTextContent();
 	    	Metamodel metamodel;
 	    	if (metamodelfileNode != null) {
-	    		RecoveredPath path = AntUtils.parseAntPath(buildFileFolder, metamodelfileNode.getTextContent());
+	    		Path basedir = buildFileFolder;
+	    		RecoveredPath path = AntUtils.parseAntPath(buildFileFolder, basedir, metamodelfileNode.getTextContent());
 	    		if (! Files.exists(path.getCompletePath(this.repoFolder))) {
 	    			// TODO: Somehow loosely match the given file. We need to strip the builddir, etc. from metamodelfileNode.getTextContent()
 	    			String loosyPath = AntUtils.stripUnknownElements(metamodelfileNode.getTextContent());

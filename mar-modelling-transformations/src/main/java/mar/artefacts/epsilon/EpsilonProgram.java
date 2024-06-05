@@ -30,6 +30,9 @@ public class EpsilonProgram extends FileProgram {
 		case "epl":
 			language = Language.EPL;
 			break;
+		case "emg":
+			language = Language.EMG;
+			break;
 		case "ecl":
 			language = Language.ECL;
 			break;			
@@ -47,6 +50,7 @@ public class EpsilonProgram extends FileProgram {
 		ETL,
 		EVL,
 		EPL,
+		EMG,
 		ECL,
 		EML,
 		OTHER
@@ -71,6 +75,7 @@ public class EpsilonProgram extends FileProgram {
 		case EML:
 		case ECL:
 		case EPL:
+		case EMG:
 		case ETL: return "transformation";
 		case EVL: return "validation";
 		}

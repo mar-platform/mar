@@ -45,8 +45,8 @@ public class FileSearcher {
 	}
 
 	@CheckForNull
-	public RecoveredPath findFile(Path loosyPath) {
-		final String loosyPathStr = loosyPath.toString();
+	public RecoveredPath findFile(Path loosyPath) {			
+		final String loosyPathStr = normalize(loosyPath.toString());
 		String filename = loosyPath.getName(loosyPath.getNameCount() - 1).toString();
 		String projectName = projectSubPath.toString();
 		try {
@@ -62,6 +62,13 @@ public class FileSearcher {
 		}
 	}
 	
+	private String normalize(String string) {
+		string = string.replace("\\", "/");
+		if (string.startsWith("/"))
+			return string.substring(1);
+		return string;
+	}
+
 	@CheckForNull
 	public RecoveredPath findFileInFilesystem(Path loosyPath) {
 		if (Files.exists(projectRoot.resolve(loosyPath))) {

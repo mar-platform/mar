@@ -44,6 +44,7 @@ import mar.analysis.uml.UMLAnalyser;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
+import mar.artefacts.RecoveredPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
@@ -169,8 +170,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
 						String id = toId(metamodel); /* , metamodels); */
 						String name = toName(metamodel);
+						String status = toRecoveryStatus(metamodel.getPath());
+						
 						System.out.println("Adding id: " + id);
-						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name));
+						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name, status));
 						graph.addNode(node);
 					}
 					
@@ -185,6 +188,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					for (FileProgram p : miniGraph.getPrograms()) {
 						String id = toId(p);
 						String name = toName(p);
+						String status = toRecoveryStatus(p.getFilePath());
 						
 						// It may happen that the same node is recovered with two different methods (e.g., EpsilonInspector and LaunchInspector)
 						// This perform the merge.
@@ -192,7 +196,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						if (graph.hasNode(id)) {
 							node = graph.getNode(id);
 						} else {
-							node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, p.getKind(), p.getCategory(), name));
+							node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, p.getKind(), p.getCategory(), name, status));
 							graph.addNode(node);
 						}
 						
@@ -400,6 +404,12 @@ public class MegamodelAnalysis implements Callable<Integer> {
 
 	private String toName(FileProgram p) {
 		return p.getFilePath().getPath().getFileName().toString();		
+	}
+	
+	private String toRecoveryStatus(RecoveredPath p) {
+		if (p == null)
+			return "no-path";
+		return p.toPathStatusId();
 	}
 
 	private String toName(Metamodel metamodel) {

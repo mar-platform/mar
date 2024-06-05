@@ -123,6 +123,10 @@ public class RawRepositoryDB implements AutoCloseable {
 			return filepath;
 		}
 		
+		public String getId() {
+			return filepath;
+		}
+		
 		public String getType() {
 			return type;
 		}

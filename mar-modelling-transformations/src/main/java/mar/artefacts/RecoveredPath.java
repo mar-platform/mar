@@ -22,6 +22,11 @@ public class RecoveredPath {
 		Preconditions.checkArgument(! path.isAbsolute());
 		this.path = path;
 	}
+
+
+	public String toPathStatusId() {
+		return this.getClass().getSimpleName().replace("Path", "").toLowerCase();
+	}
 	
 	public Path getPath() {
 		return path;
@@ -70,6 +75,11 @@ public class RecoveredPath {
 		public boolean isLoosyFilePath() {
 			return loosyFilePath;
 		}
+		
+		@Override
+		public String toPathStatusId() {
+			return "Heuristic";
+		}
 	}
 
 	/**
@@ -108,6 +118,7 @@ public class RecoveredPath {
 		public GeneratedPath(Path path) {
 			super(path);
 		}		
+		
 	}
 		
 }

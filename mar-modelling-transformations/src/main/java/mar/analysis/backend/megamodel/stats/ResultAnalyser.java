@@ -29,7 +29,12 @@ import org.eclipse.epsilon.etl.EtlModule;
 import org.jgrapht.Graph;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
@@ -42,6 +47,7 @@ import mar.analysis.backend.megamodel.Error;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
+import mar.analysis.backend.megamodel.stats.ArtefactAnalysis.Result;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.RelationshipsGraph;
@@ -125,10 +131,29 @@ public class ResultAnalyser implements Callable<Integer> {
 	}
 	
 	public void run(Set<String> artefactTypes, File rawDbFile, File megamodelDbFile) throws SQLException, IOException {
+		Preconditions.checkState(rawDbFile.exists(), "File doesn't exist: " + rawDbFile);
+		Preconditions.checkState(megamodelDbFile.exists(), "File doesn't exist: " + megamodelDbFile);
+		
 		try (RawRepositoryDB rawDb = new RawRepositoryDB(rawDbFile);
 			MegamodelDB megamodelDb = new MegamodelDB(megamodelDbFile)) {
 
-			computeFileLevelStats(artefactTypes, rawDb, megamodelDb);
+			//computeFileLevelStats(artefactTypes, rawDb, megamodelDb);
+			
+			
+			ArtefactAnalysis analysis = new ArtefactAnalysis(rawDb, megamodelDb, getConfiguration());
+			Result result = analysis.analyse(artefactTypes);
+			
+			ObjectMapper omapper = new ObjectMapper();
+			omapper.enable(SerializationFeature.INDENT_OUTPUT);
+			DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
+			prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+			ObjectWriter writer = omapper.writer(prettyPrinter);
+			
+			// TODO: Do this better
+			writer.writeValue(System.out, result);
+			writer.writeValue(new File("/tmp/stats.json"), result);
+			
+						
 			GraphLevelStats graphStats = computeGraphLevelStats(artefactTypes, megamodelDb, rawDb);
 			
 			if (statsFile != null) {
@@ -161,7 +186,7 @@ public class ResultAnalyser implements Callable<Integer> {
 			});
 			
 			
-			System.out.println("\nStats:");
+			System.out.println("\nArtefact completion stats:");
 			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
 				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
