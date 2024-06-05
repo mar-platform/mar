@@ -5,9 +5,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -148,7 +150,7 @@ public class ArtefactAnalysis {
 		
 		@JsonProperty
 		public Map<String, Collection<String>> getNotFoundInMegamodel() {
-			Map<String, Collection<String>> notFound = new HashMap<>();			
+			Map<String, Collection<String>> notFound = new TreeMap<>();			
 			notFoundInMegamodel.entries().forEach(entry -> {
 				Collection<String> list = notFound.computeIfAbsent(entry.getKey(), (k) -> new ArrayList<String>());
 				list.add(entry.getValue().getId());
@@ -158,7 +160,7 @@ public class ArtefactAnalysis {
 
 		@JsonProperty
 		public Map<String, Collection<String>> getNotFoundInRawDb() {
-			Map<String, Collection<String>> notFound = new HashMap<>();			
+			Map<String, Collection<String>> notFound = new TreeMap<>();			
 			notFoundInRawDb.entries().forEach(entry -> {
 				Collection<String> list = notFound.computeIfAbsent(entry.getKey(), (k) -> new ArrayList<String>());
 				list.add(entry.getValue().getId());
@@ -168,7 +170,7 @@ public class ArtefactAnalysis {
 		
 		@JsonProperty
 		public Map<String, Collection<String>> getMissingArtefacts() {
-			Map<String, Collection<String>> missing = new HashMap<>();			
+			Map<String, Collection<String>> missing = new TreeMap<>();			
 			missingArtefacts.entries().forEach(entry -> {
 				Collection<String> list = missing.computeIfAbsent(entry.getKey(), (k) -> new ArrayList<String>());
 				list.add(entry.getValue().getId());
