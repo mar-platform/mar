@@ -173,8 +173,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 						String status = toRecoveryStatus(metamodel.getPath());
 						
 						System.out.println("Adding id: " + id);
-						Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name, status));
-						graph.addNode(node);
+						if (! graph.hasNode(id)) {						
+							Node node = new RelationshipsGraph.ArtefactNode(id, new Artefact(miniGraph.getProject(), id, "ecore", "metamodel", name, status));
+							graph.addNode(node);
+						}
 					}
 					
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
@@ -299,6 +301,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 				 RepositoryDB repoDB = openRepositoryDB(repositoryDataFolder.toPath())) {
 				try (ResourceAnalyser analyser = new ResourceAnalyser(singleAnalyser, new RepositoryDBProvider(repoDB), ecoreAnalysisDbFile)) {
 					analyser.withParallelThreads(4);
+					analyser.withIncludeMetadataForDuplicates(true);
 					analyser.check();
 				}
 			}

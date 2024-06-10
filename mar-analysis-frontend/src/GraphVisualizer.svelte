@@ -100,7 +100,7 @@
   
       renderer.setSetting("nodeReducer", (nodeId, data) => {
         const res: Partial<NodeDisplayData> = { ...data };
-  
+
         if (checkedTypes[data.nodeType]) {
           // res.color = colorMap[data.nodeType];
         } else {
@@ -108,7 +108,7 @@
           // res.color = "#ffffff";
           res.hidden = true;
         }
-
+        
         if (!showUnconnectedNodes && graph.degree(nodeId) == 0) {
           res.hidden = true;
         }

@@ -121,8 +121,10 @@ public class TransformationRelationshipsAnalysis {
 					// every project of the artefact's of the group
 					dup.forEachArtefact(groupId, (nodeId) -> {
 						Artefact tgtArtefact = db.getArtefactById(nodeId);
-						// TODO: Add more information to the edge, like why it exists: because X and Y artefacts are duplicated
-						graph.addEdge(projectId, tgtArtefact.getProject().getId(), Relationship.PROJECT_RELATED_TO);
+						if (! artefact.getProject().getId().equals(tgtArtefact.getProject().getId())) {
+							// TODO: Add more information to the edge, like why it exists: because X and Y artefacts are duplicated
+							graph.addEdge(projectId, tgtArtefact.getProject().getId(), Relationship.PROJECT_RELATED_TO);
+						}
 					});
 				}
 			}

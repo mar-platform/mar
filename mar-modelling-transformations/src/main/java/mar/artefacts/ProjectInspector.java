@@ -22,9 +22,9 @@ public abstract class ProjectInspector {
 
 	protected final Path repoFolder;
 	protected final Path projectSubPath;
-	private final FileSearcher searcher;
-	private final AnalysisDB analysisDb;
-	private final MetamodelSeacher mmSearcher;
+	protected final FileSearcher searcher;
+	protected final AnalysisDB analysisDb;
+	protected final MetamodelSeacher mmSearcher;
 
 	public ProjectInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB rawRepoDb) {
 		this.repoFolder = repoFolder;

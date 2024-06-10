@@ -72,8 +72,10 @@ public class ArtefactAnalysis {
 		
 		Multimap<String, RawFile> byType = MultimapBuilder.hashKeys().arrayListValues().build();
 		for (RawFile rawFile : files) {
-			if (! artefactTypes.contains(rawFile.getType()))
+			if (! artefactTypes.contains(rawFile.getType())) {
+				System.out.println("Type not considered: " + rawFile.getType());
 				continue;
+			}
 				
 			String artefactId = rawFile.getId();
 						
@@ -181,6 +183,13 @@ public class ArtefactAnalysis {
 		@JsonProperty
 		public int totalMissingArtefacts() {
 			return missingArtefacts.size();
+		}
+
+		@JsonIgnore
+		@JsonProperty
+		public Map<String, Double> getArtefactCompletionStats() {
+			// TODO Auto-generated method stub
+			throw new UnsupportedOperationException("Not implemented");
 		}
 
 	}

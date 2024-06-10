@@ -41,6 +41,8 @@ public class ResourceAnalyser implements AutoCloseable {
 	private final ISingleFileAnalyser analyser;
 
 	private int parallelThreads = -1;
+
+	private boolean includeMetadataForDuplicates;
 	
 	public static enum Option {
 		
@@ -97,6 +99,12 @@ public class ResourceAnalyser implements AutoCloseable {
 		return this;
 	}
 	
+	public ResourceAnalyser withIncludeMetadataForDuplicates(boolean b) {
+		this.includeMetadataForDuplicates = b;
+		return this;
+	}
+
+	
 	public boolean isParallel() {
 		return parallelThreads > 1;
 	}
@@ -147,6 +155,8 @@ public class ResourceAnalyser implements AutoCloseable {
 		switch(status) {
 		case DUPLICATED:
 			System.out.println("Duplicated: " + f.getAbsolutePath());
+			if (this.includeMetadataForDuplicates)
+				break;
 			return;			
 		case NOT_PROCESSED:
 			// Inserted ok

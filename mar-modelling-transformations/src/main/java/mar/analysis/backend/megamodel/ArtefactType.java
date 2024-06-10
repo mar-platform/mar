@@ -7,6 +7,7 @@ public enum ArtefactType {
 	OCL("ocl"),
 	XTEXT("xtext"),
 	EMFATIC("emfatic"),
+	ECORE("ecore"),
 	EPSILON("epsilon"),
 	ACCELEO("acceleo"),
 	ATL("atl"),
