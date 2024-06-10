@@ -4,8 +4,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +51,7 @@ public class ArtefactAnalysis {
 		
 		return new Result(notFoundInRawDb.totalRawFiles, notFoundInRawDb.totalArtefacts, 
 				notFoundInMegamodel.notFoundInMegamodel, notFoundInRawDb.notFoundInRawDb,
-				notFoundInRawDb.missingArtefacts);
+				notFoundInRawDb.missingArtefacts, notFoundInMegamodel.buildFiles, notFoundInMegamodel.filesWithError, notFoundInMegamodel.typesNotConsidered);
 	}
 	
 	/**
@@ -68,12 +67,25 @@ public class ArtefactAnalysis {
 
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
 		
-		Map<String, Error> allErrorsById = megamodelDb.getErrors();
+		Map<String, Error> allErrorsById = megamodelDb.getErrors();		
+		
+		Multimap<String, String> buildFiles = MultimapBuilder.hashKeys().arrayListValues().build();
+		
+		Multimap<String, String> typesNotConsidered = MultimapBuilder.hashKeys().arrayListValues().build();
 		
 		Multimap<String, RawFile> byType = MultimapBuilder.hashKeys().arrayListValues().build();
 		for (RawFile rawFile : files) {
 			if (! artefactTypes.contains(rawFile.getType())) {
-				System.out.println("Type not considered: " + rawFile.getType());
+				switch(rawFile.getType()) {
+				case "maven":
+				case "eclipse-launcher":
+				case "ant":
+					buildFiles.put(rawFile.getType(), rawFile.getId());
+					continue;
+				}
+				
+				typesNotConsidered.put(rawFile.getType(), rawFile.getId());				
+				// System.out.println("Type not considered: " + rawFile.getType());
 				continue;
 			}
 				
@@ -88,7 +100,8 @@ public class ArtefactAnalysis {
 			} 			
 		}
 
-		return new Result(files.size(), artefacts.size(), byType, null, null);
+		System.out.println("Errors ==> " + allErrorsById.size());
+		return new Result(files.size(), artefacts.size(), byType, null, null, buildFiles, megamodelDb.getErrors().keySet(), typesNotConsidered);
 	}
 	
 	/**
@@ -115,7 +128,7 @@ public class ArtefactAnalysis {
 			}
 		});
 		
-		return new Result(files.size(), artefacts.size(), null, byType, missingArtefacts);
+		return new Result(files.size(), artefacts.size(), null, byType, missingArtefacts, null, null, null);
 	}
 
 	public static class Result {
@@ -131,13 +144,28 @@ public class ArtefactAnalysis {
 		private int totalArtefacts;
 		@JsonProperty
 		private int totalRawFiles;
+		
+		@JsonProperty
+		private List<String> filesWithError;
+		
+		@JsonIgnore
+		private Multimap<String, String> buildFiles;
+		@JsonIgnore
+		private Multimap<String, String> typesNotConsidered;
+		
 
-		public Result(int totalRawFiles, int totalArtefacts, Multimap<String, RawFile> notFoundInMegamodel, Multimap<String, Artefact> notFoundInRawDb, Multimap<String, Artefact> missingArtefacts) {
+		public Result(int totalRawFiles, int totalArtefacts, Multimap<String, RawFile> notFoundInMegamodel, Multimap<String, Artefact> notFoundInRawDb, Multimap<String, Artefact> missingArtefacts, Multimap<String, String> buildFiles, Collection<String> errors, Multimap<String, String> typesNotConsidered) {
 			this.notFoundInMegamodel = notFoundInMegamodel;			
 			this.notFoundInRawDb = notFoundInRawDb;
 			this.totalArtefacts = totalArtefacts;
 			this.totalRawFiles = totalRawFiles;
 			this.missingArtefacts = missingArtefacts;
+			this.buildFiles = buildFiles;
+			this.filesWithError = errors != null ? new ArrayList<>(errors) : null;
+			if (filesWithError != null)
+				Collections.sort(filesWithError);
+			
+			this.typesNotConsidered = typesNotConsidered;
 		}
 		
 		@JsonProperty
@@ -185,6 +213,26 @@ public class ArtefactAnalysis {
 			return missingArtefacts.size();
 		}
 
+		@JsonProperty
+		public int totalBuildFiles() {
+			return buildFiles.size();
+		}
+		
+		@JsonProperty
+		public int totalTypesNotConsidered() {
+			return typesNotConsidered.size();
+		}
+		
+		@JsonProperty
+		public Set<String> typesNotConsidered() {
+			return typesNotConsidered.keySet();
+		}
+		
+		@JsonProperty
+		public int totalFilesWithError() {
+			return filesWithError.size();
+		}
+		
 		@JsonIgnore
 		@JsonProperty
 		public Map<String, Double> getArtefactCompletionStats() {
@@ -192,6 +240,12 @@ public class ArtefactAnalysis {
 			throw new UnsupportedOperationException("Not implemented");
 		}
 
+		@JsonProperty
+		public boolean isCoherent() {
+			int files = totalRawFiles - totalBuildFiles() - totalFilesWithError() - totalTypesNotConsidered();
+			int artefats = totalArtefacts - getTotalNotFoundInRawDb() - totalMissingArtefacts();
+			return files == artefats;
+		}
 	}
 	
 	public static class MegamodelFiles {
