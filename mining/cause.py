@@ -21,15 +21,25 @@ RELEVANT_EXTENSIONS = {
     'epsilon': {'.launch', '.etl', '.evl', '.egl', '.egx', '.eol', '.ewl', '.eml', '.mig'},
 }
 
-
+def safe_decode(string):
+    try:
+        return string.decode('utf-8')
+    except UnicodeDecodeError as e:
+        return ""
+              
 def get_using_files(file: str, type: str, root: str):
     parts = file.split("/")
     name = os.path.basename(file)
     project = "/".join(parts[0:2])
     full_project = os.path.join(root, project)
 
-    result = subprocess.run(['git', 'grep', name], stdout=subprocess.PIPE, cwd=full_project)
-    output = result.stdout.decode('utf-8')
+    #result = subprocess.run(['git', 'grep', name], stdout=subprocess.PIPE, cwd=full_project)
+
+    # Use ripgrep for better performance
+    # rg --color never --no-heading 'JsonFormatter.cs' 
+    result = subprocess.run(['rg', '--color', 'never', '--no-heading', name], stdout=subprocess.PIPE, cwd=full_project)
+
+    output = safe_decode(result.stdout)
     output = output.strip()
 
     result = []
