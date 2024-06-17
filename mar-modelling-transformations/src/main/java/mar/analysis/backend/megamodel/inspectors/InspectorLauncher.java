@@ -141,6 +141,7 @@ public class InspectorLauncher {
 			} catch (InspectionErrorException e) {
 				result.addError(e);
 			} catch (Exception e) {
+				result.addInternalError(path, e);
 				e.printStackTrace();
 			}
 		}
@@ -193,9 +194,14 @@ public class InspectorLauncher {
 		private List<RecoveryGraph> graphs = new ArrayList<>();
 		private List<Ignored> ignored = new ArrayList<>();
 		private List<InspectionErrorException> errors = new ArrayList<>();
+		private List<InternalError> internalErrors = new ArrayList<>();
 
 		public void add(RecoveryGraph minigraph) {
 			graphs.add(minigraph);
+		}
+
+		public void addInternalError(Path path, Exception e) {
+			internalErrors.add(new InternalError(path, e));			
 		}
 
 		public void addIgnored(Ignored i) {
@@ -214,8 +220,32 @@ public class InspectorLauncher {
 			return errors;
 		}
 		
+		public List<InternalError> getInternalErrors() {
+			return internalErrors;
+		}
+		
 		public List<Ignored> getIgnored() {
 			return ignored;
 		}
+	}
+	
+	public static class InternalError {
+
+		private Path path;
+		private Exception exception;
+
+		public InternalError(Path path, Exception e) {
+			this.path = path;
+			this.exception = e;
+		}
+		
+		public Path getPath() {
+			return path;
+		}
+		
+		public Exception getException() {
+			return exception;
+		}
+		
 	}
 }

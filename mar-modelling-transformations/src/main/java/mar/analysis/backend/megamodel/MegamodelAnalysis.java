@@ -330,9 +330,16 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, duplicates, repositoryDataFolder, analysisDb);
 		
 		// 5. Organize errors for dumping (this is just for statistics purposes)
-		List<Error> allErrors = inspectionResults.values().stream().flatMap(i -> i.getErrors().stream()).
+		List<Error> explicitErrors = inspectionResults.values().stream().flatMap(i -> i.getErrors().stream()).
 				map(e -> new Error(toId(e.getProgram()), "syntax", "-")).
 				collect(Collectors.toList());
+		List<Error> internalErrors = inspectionResults.values().stream().flatMap(i -> i.getInternalErrors().stream()).
+			map(e -> new Error(toId(e.getPath()), "internal", e.getException().getMessage())).
+			collect(Collectors.toList());
+		
+		List<Error> allErrors = new ArrayList<>(explicitErrors);
+		allErrors.addAll(internalErrors);
+		
 		
 		List<Ignored> allIgnored = inspectionResults.values().stream().flatMap(i -> i.getIgnored().stream()).
 			map(i -> {

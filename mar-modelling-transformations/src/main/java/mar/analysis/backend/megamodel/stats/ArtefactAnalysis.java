@@ -67,7 +67,7 @@ public class ArtefactAnalysis {
 
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
 		
-		Map<String, Error> allErrorsById = megamodelDb.getErrors();		
+		Map<String, Error> allErrorsById = megamodelDb.getErrorsExplicit();		
 		
 		Multimap<String, String> buildFiles = MultimapBuilder.hashKeys().arrayListValues().build();
 		
@@ -101,7 +101,7 @@ public class ArtefactAnalysis {
 		}
 
 		System.out.println("Errors ==> " + allErrorsById.size());
-		return new Result(files.size(), artefacts.size(), byType, null, null, buildFiles, megamodelDb.getErrors().keySet(), typesNotConsidered);
+		return new Result(files.size(), artefacts.size(), byType, null, null, buildFiles, megamodelDb.getErrorsExplicit().keySet(), typesNotConsidered);
 	}
 	
 	/**

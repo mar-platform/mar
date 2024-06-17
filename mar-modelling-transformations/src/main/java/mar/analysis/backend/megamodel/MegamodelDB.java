@@ -148,9 +148,9 @@ public class MegamodelDB implements Closeable {
 		return result;
 	}
 
-	public Map<String, Error> getErrors() throws SQLException {
+	public Map<String, Error> getErrorsExplicit() throws SQLException {
 		Map<String, Error> result = new HashMap<String, Error>();     
-		PreparedStatement allErrorsStm = connection.prepareStatement("SELECT id, type, cause FROM detected_errors");
+		PreparedStatement allErrorsStm = connection.prepareStatement("SELECT id, type, cause FROM detected_errors WHERE type <> 'internal'");
 		allErrorsStm.execute();
 		ResultSet rs = allErrorsStm.getResultSet();
 		while (rs.next()) {

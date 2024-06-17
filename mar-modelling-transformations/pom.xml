@@ -52,7 +52,7 @@
 			<artifactId>anatlyzer-bundle</artifactId>
 			<version>0.8.0</version>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.eclipse.m2m.atl</groupId>
 			<artifactId>org.eclipse.m2m.atl.core.emf</artifactId>
