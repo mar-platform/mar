@@ -103,7 +103,14 @@ public abstract class ProjectInspector {
  			p = getRepositoryPath(p); // Convert back to relative...
 			// Heuristically...
 			return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
-		} 
+		} else if (uriOrFile.startsWith("/")) {
+			Path repoName = folder.subpath(0, 2);
+			p = repoFolder.resolve(repoName).resolve(uriOrFile.substring(1));
+			if (Files.exists(p)) {
+	 			p = getRepositoryPath(p); 				
+				return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));				
+			}
+		}
 		
 		// TODO: This is going to fail if uriOrFile is not absolute...
 		//p = getRepositoryPath(Paths.get(uriOrFile));
