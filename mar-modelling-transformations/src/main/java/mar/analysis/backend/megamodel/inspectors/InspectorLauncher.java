@@ -1,5 +1,6 @@
 package mar.analysis.backend.megamodel.inspectors;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -129,6 +130,9 @@ public class InspectorLauncher {
 			Preconditions.checkState(fullPath.isAbsolute());
 
 			try {
+				if (Files.size(fullPath) == 0)
+					throw new InspectionErrorException.EmptyFile(path);
+				
 				// QvtoInspector inspector = new QvtoInspector(repositoryDataFolder,
 				// projectPath);
 				ProjectInspector inspector = factory.apply(projectPath);

@@ -1,19 +1,25 @@
 package mar.analysis.backend.megamodel.inspectors;
 
+import java.nio.file.Path;
+
 import mar.artefacts.FileProgram;
 
 public abstract class InspectionErrorException extends Exception {
 
 	private static final long serialVersionUID = -2366721485183025547L;
 	
-	private final FileProgram program;
+	private final Path path;
 
 	public InspectionErrorException(FileProgram program) {
-		this.program = program;
+		this.path = program.getFilePath().getPath();
+	}
+
+	public InspectionErrorException(Path path) {
+		this.path = path;
 	}
 	
-	public FileProgram getProgram() {
-		return program;
+	public Path getProgramPath() {
+		return path;
 	}
 	
 	public static class SyntaxError extends InspectionErrorException {
@@ -21,6 +27,15 @@ public abstract class InspectionErrorException extends Exception {
 
 		public SyntaxError(FileProgram program) {
 			super(program);
+		}
+
+	}
+	
+	public static class EmptyFile extends InspectionErrorException {
+		private static final long serialVersionUID = -2344827262848185670L;
+
+		public EmptyFile(Path path) {
+			super(path);
 		}
 
 	}

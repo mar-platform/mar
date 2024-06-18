@@ -331,7 +331,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		// 5. Organize errors for dumping (this is just for statistics purposes)
 		List<Error> explicitErrors = inspectionResults.values().stream().flatMap(i -> i.getErrors().stream()).
-				map(e -> new Error(toId(e.getProgram()), "syntax", "-")).
+				map(e -> new Error(toId(e.getProgramPath()), "syntax", "-")).
 				collect(Collectors.toList());
 		List<Error> internalErrors = inspectionResults.values().stream().flatMap(i -> i.getInternalErrors().stream()).
 			map(e -> new Error(toId(e.getPath()), "internal", e.getException().getMessage())).

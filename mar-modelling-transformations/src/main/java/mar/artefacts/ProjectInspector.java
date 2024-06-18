@@ -10,6 +10,7 @@ import javax.annotation.CheckForNull;
 
 import mar.analysis.megamodel.model.Project;
 import mar.artefacts.RecoveredPath.HeuristicPath;
+import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
@@ -82,6 +83,10 @@ public abstract class ProjectInspector {
 	}
 	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder) {
+		return toMetamodel(uriOrFile, folder, false);
+	}
+	
+	protected Metamodel toMetamodel(String uriOrFile, Path folder, boolean allowProjectRelativeFiles) {
 		uriOrFile = sanitize(uriOrFile);
 		
 		Metamodel mm = tryFindURI(uriOrFile);
@@ -103,12 +108,15 @@ public abstract class ProjectInspector {
  			p = getRepositoryPath(p); // Convert back to relative...
 			// Heuristically...
 			return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
-		} else if (uriOrFile.startsWith("/")) {
+		} else if (uriOrFile.startsWith("/") && allowProjectRelativeFiles) {
 			Path repoName = folder.subpath(0, 2);
 			p = repoFolder.resolve(repoName).resolve(uriOrFile.substring(1));
 			if (Files.exists(p)) {
 	 			p = getRepositoryPath(p); 				
 				return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));				
+			} else {
+				// The path should exist but it doesn't
+				return Metamodel.fromFile(uriOrFile, new MissingPath(repoName.resolve(uriOrFile.substring(1))));
 			}
 		}
 		
