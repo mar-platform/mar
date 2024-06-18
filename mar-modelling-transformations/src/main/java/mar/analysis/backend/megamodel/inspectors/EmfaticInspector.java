@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.google.common.base.Preconditions;
 
+import mar.analysis.backend.megamodel.inspectors.InspectionErrorException.SyntaxError;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
@@ -40,10 +41,14 @@ public class EmfaticInspector extends ProjectInspector {
 		super(repoFolder, projectSubPath, analysisDb, repoDb);
 	}
 	
-	protected String extractURI(@Nonnull String text, int startIndex) {
+	protected String extractURI(@Nonnull String text, int startIndex, EmfaticProgram p) throws SyntaxError {
 		final String uriTag = "uri=\"";
-		int idx = text.indexOf(uriTag, startIndex) + uriTag.length();
-		Preconditions.checkState(idx != -1);
+		final int uriNameStart = text.indexOf(uriTag, startIndex);
+		if (uriNameStart == -1) {
+			throw new InspectionErrorException.SyntaxError(p);
+		}
+		int idx = uriNameStart + uriTag.length();
+		
 		
 		int last = text.indexOf("\"", idx);
 		Preconditions.checkState(last != -1);
@@ -51,7 +56,7 @@ public class EmfaticInspector extends ProjectInspector {
 		return text.substring(idx, last);
 	}
 	
-	private List<String> getUris(File f) throws IOException {
+	private List<String> getUris(File f, EmfaticProgram p) throws IOException, SyntaxError {
 		List<String> uris = new ArrayList<>();
 
 		String contents = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
@@ -63,7 +68,7 @@ public class EmfaticInspector extends ProjectInspector {
 				break;
 			
 			int namespaceEnd = namespaceStart + NAMESPACE.length();
-			String uri = extractURI(contents, namespaceEnd);
+			String uri = extractURI(contents, namespaceEnd, p);
 			uris.add(uri);
 			index = namespaceEnd + uri.length(); // an estimation
 		}
@@ -74,13 +79,13 @@ public class EmfaticInspector extends ProjectInspector {
 	
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-		List<String> uris = getUris(f);
-				
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
 		EmfaticProgram p = new EmfaticProgram(new RecoveredPath(getRepositoryPath(f)));		
 		graph.addProgram(p);
-		
+
+		List<String> uris = getUris(f, p);
+						
 		if (uris.isEmpty()) {
 			// TODO: Is this even possible?
 			String filename = f.getName().replace(".emf", ".ecore");
