@@ -144,6 +144,8 @@ public class InspectorLauncher {
 				}
 			} catch (InspectionErrorException e) {
 				result.addError(e);
+			} catch (java.nio.file.NoSuchFileException e) {
+				result.addError(new InspectionErrorException.IOError(path));
 			} catch (Exception e) {
 				result.addInternalError(path, e);
 				e.printStackTrace();

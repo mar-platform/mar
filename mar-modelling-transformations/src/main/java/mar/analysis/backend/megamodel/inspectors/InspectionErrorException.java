@@ -39,4 +39,14 @@ public abstract class InspectionErrorException extends Exception {
 		}
 
 	}
+	
+	public static class IOError extends InspectionErrorException {	
+
+		private static final long serialVersionUID = 5629987312175667385L;
+
+		public IOError(Path path) {
+			super(path);
+		}
+
+	}
 }
