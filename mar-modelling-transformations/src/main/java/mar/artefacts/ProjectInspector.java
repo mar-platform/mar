@@ -83,10 +83,10 @@ public abstract class ProjectInspector {
 	}
 	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder) {
-		return toMetamodel(uriOrFile, folder, false);
+		return toMetamodel(uriOrFile, folder, new AbsolutePathResolutionStrategy[0]);
 	}
 	
-	protected Metamodel toMetamodel(String uriOrFile, Path folder, boolean allowProjectRelativeFiles) {
+	protected Metamodel toMetamodel(String uriOrFile, Path folder, AbsolutePathResolutionStrategy... resolutionStrategies) {
 		uriOrFile = sanitize(uriOrFile);
 		
 		Metamodel mm = tryFindURI(uriOrFile);
@@ -108,15 +108,23 @@ public abstract class ProjectInspector {
  			p = getRepositoryPath(p); // Convert back to relative...
 			// Heuristically...
 			return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
-		} else if (uriOrFile.startsWith("/") && allowProjectRelativeFiles) {
+		} else if (uriOrFile.startsWith("/") && resolutionStrategies.length > 0) {
 			Path repoName = folder.subpath(0, 2);
-			p = repoFolder.resolve(repoName).resolve(uriOrFile.substring(1));
-			if (Files.exists(p)) {
-	 			p = getRepositoryPath(p); 				
-				return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));				
-			} else {
-				// The path should exist but it doesn't
-				return Metamodel.fromFile(uriOrFile, new MissingPath(repoName.resolve(uriOrFile.substring(1))));
+			
+			AbsolutePathResolutionStrategy matchedStrategy = null;
+			for(AbsolutePathResolutionStrategy r : resolutionStrategies) {
+				if (r.match(uriOrFile)) {
+					matchedStrategy = r;
+					p = r.tryRecover(repoFolder, repoName, uriOrFile);
+					if (p != null) {
+						return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
+					}
+				}
+			}
+			
+			if (matchedStrategy != null) {
+				Path expected = matchedStrategy.getExpectedPath(repoFolder, repoName, uriOrFile);
+				return Metamodel.fromFile(uriOrFile, new MissingPath(expected));				
 			}
 		}
 		
@@ -155,7 +163,7 @@ public abstract class ProjectInspector {
 	}
 	
 	private String sanitize(String uriOrFile) {
-		if (uriOrFile.endsWith("/#"))
+		if (uriOrFile.endsWith("/#") || uriOrFile.endsWith("#/"))
 			return uriOrFile.substring(0, uriOrFile.length() - 2);
 		if (uriOrFile.endsWith("#"))
 			return uriOrFile.substring(0, uriOrFile.length() - 1);		
@@ -166,4 +174,54 @@ public abstract class ProjectInspector {
 	@CheckForNull
 	public abstract RecoveryGraph process(File f) throws Exception;
 
+	public static enum AbsolutePathResolutionStrategy {
+		ABSOLUTE {
+			@Override
+			boolean match(String filePath) {				
+				return filePath.startsWith("/");
+			}
+
+			@Override
+			Path tryRecover(Path repoFolder, Path repoName, String filePath) {
+				Path p = getExpectedPath(repoFolder, repoName, filePath);
+				Path absolute = repoFolder.resolve(p);
+				if (Files.exists(absolute)) {
+		 			return p; 				
+				}
+				return null;
+				
+			}
+
+			@Override
+			Path getExpectedPath(Path repoFolder, Path repoName, String filePath) {
+				return repoName.resolve(filePath.substring(1));
+			}
+		},
+		RESOURCE_PREFIX {
+			@Override
+			boolean match(String uriOrFile) {
+				return uriOrFile.startsWith("/resource/");
+			}
+
+			@Override
+			Path tryRecover(Path repoFolder, Path repoName, String filePath) {
+				Path p = getExpectedPath(repoFolder, repoName, filePath);
+				Path absolute = repoFolder.resolve(p);
+				if (Files.exists(absolute)) {
+		 			return p; 				
+				}
+				return null;			
+			}
+			
+			Path getExpectedPath(Path repoFolder, Path repoName, String filePath) {
+				return repoName.resolve(filePath.replaceFirst("/resource/", ""));
+			}
+		};
+
+		abstract boolean match(String uriOrFile);
+
+		abstract Path getExpectedPath(Path repoFolder, Path repoName, String uriOrFile);
+
+		abstract Path tryRecover(Path repoFolder, Path repoName, String filePath);
+	}
 }

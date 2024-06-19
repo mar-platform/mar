@@ -50,7 +50,7 @@ public class QvtoInspector extends ProjectInspector {
 		
 		for (TransformationParameter p : expectedMetamodels) {
 			// Do I have a way to extract the logical name of the meta-model from QVTo file?
-			Metamodel mm = toMetamodel(p.getUri(), qvtoFilePath.getParent());
+			Metamodel mm = toMetamodel(p.getUri(), qvtoFilePath.getParent(), ProjectInspector.AbsolutePathResolutionStrategy.RESOURCE_PREFIX);
 			graph.addMetamodel(mm);
 			
 			List<MetamodelReference.Kind> kinds = new ArrayList<>();

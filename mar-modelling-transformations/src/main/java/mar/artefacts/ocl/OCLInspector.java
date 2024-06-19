@@ -66,7 +66,7 @@ public class OCLInspector extends ProjectInspector {
 		if (import_ == null)
 			return null;
 		
-		return toMetamodel(import_, folder);
+		return toMetamodel(import_, folder, ProjectInspector.AbsolutePathResolutionStrategy.RESOURCE_PREFIX);
 	}
 	
 	private String parseImport(String line) {

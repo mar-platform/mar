@@ -47,7 +47,7 @@ public class AcceleoInspector extends ProjectInspector {
 	    	return graph;
 	    
 		for (String uri : uris) {
-			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent(), true);
+			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent(), ProjectInspector.AbsolutePathResolutionStrategy.ABSOLUTE);
 			graph.addMetamodel(mm);
 			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
 		}
