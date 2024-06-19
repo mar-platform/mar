@@ -83,7 +83,7 @@ public abstract class ProjectInspector {
 	}
 	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder) {
-		return toMetamodel(uriOrFile, folder, new AbsolutePathResolutionStrategy[0]);
+		return toMetamodel(uriOrFile, folder, EMPTY_RESOLUTION_STRATEGY);
 	}
 	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder, AbsolutePathResolutionStrategy... resolutionStrategies) {
@@ -114,7 +114,9 @@ public abstract class ProjectInspector {
 			AbsolutePathResolutionStrategy matchedStrategy = null;
 			for(AbsolutePathResolutionStrategy r : resolutionStrategies) {
 				if (r.match(uriOrFile)) {
-					matchedStrategy = r;
+					if (matchedStrategy == null)
+						matchedStrategy = r;
+					
 					p = r.tryRecover(repoFolder, repoName, uriOrFile);
 					if (p != null) {
 						return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
@@ -174,6 +176,8 @@ public abstract class ProjectInspector {
 	@CheckForNull
 	public abstract RecoveryGraph process(File f) throws Exception;
 
+	private static AbsolutePathResolutionStrategy[] EMPTY_RESOLUTION_STRATEGY = new AbsolutePathResolutionStrategy[0];
+	
 	public static enum AbsolutePathResolutionStrategy {
 		ABSOLUTE {
 			@Override
@@ -215,6 +219,27 @@ public abstract class ProjectInspector {
 			
 			Path getExpectedPath(Path repoFolder, Path repoName, String filePath) {
 				return repoName.resolve(filePath.replaceFirst("/resource/", ""));
+			}
+		},
+		
+		PLUGIN_PREFIX {
+			@Override
+			boolean match(String uriOrFile) {
+				return uriOrFile.startsWith("/plugin/");
+			}
+
+			@Override
+			Path tryRecover(Path repoFolder, Path repoName, String filePath) {
+				Path p = getExpectedPath(repoFolder, repoName, filePath);
+				Path absolute = repoFolder.resolve(p);
+				if (Files.exists(absolute)) {
+		 			return p; 				
+				}
+				return null;			
+			}
+			
+			Path getExpectedPath(Path repoFolder, Path repoName, String filePath) {
+				return repoName.resolve(filePath.replaceFirst("/plugin/", ""));
 			}
 		};
 

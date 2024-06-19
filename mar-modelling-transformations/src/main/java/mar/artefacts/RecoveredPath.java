@@ -14,16 +14,25 @@ import com.google.common.base.Preconditions;
 public class RecoveredPath {
 
 	private Path path;
+	// This means that we can't guarantee that the path is within the repository root (e.g., can be an absolute path)
+	private boolean unchecked;
 
 	/**
 	 * @param path The path (relative to the root) of the artefact
 	 */
 	public RecoveredPath(Path path) {
-		Preconditions.checkArgument(! path.isAbsolute());
-		this.path = path;
+		this(path, false);
 	}
 
+	
+	public RecoveredPath(Path path, boolean unchecked) {
+		this.unchecked = unchecked;
+		this.path = path;
+		if (this.unchecked == false)
+			Preconditions.checkArgument(! path.isAbsolute());
+	}
 
+	
 	public String toPathStatusId() {
 		return this.getClass().getSimpleName().replace("Path", "").toLowerCase();
 	}
@@ -103,7 +112,7 @@ public class RecoveredPath {
 	public static class MissingPath extends RecoveredPath {
 
 		public MissingPath(Path path) {
-			super(path);
+			super(path, true);
 		}		
 	}
 	
