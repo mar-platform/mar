@@ -35,11 +35,11 @@
 		<dependency>
 			<groupId>org.eclipse.xtext</groupId>
 			<artifactId>org.eclipse.xtext</artifactId>
-			<version>2.24.0</version>
+			<version>2.30.0</version>
 			<!-- Not sure if this is going to work, but it is to avoid conflicts with 
 				gymnast -->
 			<scope>provided</scope>
-
+			
 			<!-- It seems that this guava version was taken precedence because of 
 				the provided flag... -->
 			<!-- <exclusions> -->
@@ -53,8 +53,16 @@
 		<dependency>
 			<groupId>org.eclipse.xtext</groupId>
 			<artifactId>org.eclipse.xtext.generator</artifactId>
-			<version>2.24.0</version>
+			<version>2.30.0</version>
 			<scope>provided</scope>
+			<exclusions>
+			  <exclusion>
+			    <groupId>org.osgi.service</groupId>
+			    <artifactId>org.osgi.service.prefs</artifactId>
+			  </exclusion>
+			</exclusions>
+			<!-- On 15/June/2022 we got the error reported here. The easiest workaround was to use this exclusion (see also mar-modelling-eclipse) -->
+			<!-- https://stackoverflow.com/questions/72625637/maven-build-failed-due-to-jdt-dependencies-no-versions-available-for-org-osgi -->
 		</dependency>
 
 		<dependency>

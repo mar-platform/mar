@@ -1,0 +1,200 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>io.github.models-lab.mar</groupId>
+		<artifactId>mar-main</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>mar-modelling-transformations</artifactId>
+	<name>mar-modelling-transformations</name>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>atl</id>
+			<name>Eclipse ATL repository</name>
+			<url>https://repo.eclipse.org/content/repositories/atl-releases/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Project dependencies -->
+		<dependency>
+			<groupId>io.github.models-lab.mar</groupId>
+			<artifactId>mar-common</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>at.ac.wu.nm</groupId>
+			<artifactId>qvt-bundle</artifactId>
+			<version>4.4</version>
+			<classifier>repackaged</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>anatlyzer</groupId>
+			<artifactId>anatlyzer-bundle</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.core.emf</artifactId>
+			<version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.dsls</artifactId>
+			<version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.engine</artifactId>
+			<version>4.5.0</version>
+		</dependency>
+
+		<!-- Needed for the analyser, but why this isn't inherited from mar-modelling -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.10.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.github.models-lab.mar</groupId>
+			<artifactId>mar-modelling</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<!-- To avoid module conflicts with java.xml -->
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>31.1-jre</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.10.0</version>
+		</dependency>
+
+		<!-- Epsilon EOL -->
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.eol.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.egl.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.etl.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Java 11 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<version>5.0.0</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+						<phase>initialize</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<!-- <includeOnlyProperties> <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty> 
+						<includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty> 
+						<includeOnlyProperty>^git.branch$</includeOnlyProperty> <includeOnlyProperty>^git.commit.message.full$</includeOnlyProperty> 
+						</includeOnlyProperties> -->
+					<commitIdGenerationMode>full</commitIdGenerationMode>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>mar.analysis.backend.megamodel.MegamodelAnalysis</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>.</Class-Path>
+						</manifestEntries>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>assemble-all</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+
+			</plugin>
+		</plugins>
+	</build>
+</project>

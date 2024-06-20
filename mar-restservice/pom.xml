@@ -319,24 +319,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>emfatic</groupId>
-			<artifactId>emfatic-core</artifactId>
-			<version>0.8</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/emfatic/org.eclipse.emf.emfatic.core_0.8.0.202003241508.jar
-			</systemPath>
-		</dependency>
-
-		<dependency>
-			<groupId>emfatic</groupId>
-			<artifactId>emfatic-gymnast</artifactId>
-			<version>0.8</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/emfatic/org.eclipse.gymnast.runtime.core_0.8.0.202003241508.jar
-			</systemPath>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.11</version>

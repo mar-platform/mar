@@ -3,6 +3,8 @@ package mar.validation;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -19,6 +21,8 @@ import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.google.common.base.Preconditions;
 
 public class AnalysisDB implements Closeable {
@@ -29,9 +33,10 @@ public class AnalysisDB implements Closeable {
 	}
 
 	@Nonnull
-	private Connection connection;
+	protected Connection connection;
 	@Nonnull
 	private Map<String, Status> alreadyChecked = new HashMap<>();
+	private boolean isReadOnly;
 	
 	@Nonnull	
 	public AnalysisDB(File file) {					
@@ -67,6 +72,9 @@ public class AnalysisDB implements Closeable {
                         + "    value text NOT NULL\n"                          
                         + ");";
                 
+                String index = "create index if not exists idx_metadata on metadata(type, value);";
+                String indexByPath = "create index if not exists by_path on models(relative_file);";
+                
                 Statement stmt = conn.createStatement();
                 stmt.execute(models);
                 
@@ -75,6 +83,12 @@ public class AnalysisDB implements Closeable {
 
                 stmt = conn.createStatement();
                 stmt.execute(metadata);
+
+                stmt = conn.createStatement();
+                stmt.execute(index);
+
+                stmt = conn.createStatement();
+                stmt.execute(indexByPath);                
             }
                         
             this.connection = conn;
@@ -129,6 +143,10 @@ public class AnalysisDB implements Closeable {
 		}
 	}
 
+	public void setReadOnly(boolean isReadOnly) {
+		this.isReadOnly = isReadOnly;
+	}
+	
 	@Nonnull
 	public static String getConnectionString(File file) {
 		return "jdbc:sqlite:" + file.getAbsolutePath();
@@ -143,7 +161,7 @@ public class AnalysisDB implements Closeable {
 	public List<String> getValidModels() throws SQLException {
 		PreparedStatement statement = connection.prepareStatement(getValidModelsQuery());
 		statement.execute();
-		
+
 		List<String> result = new ArrayList<>();
 		ResultSet rs = statement.getResultSet();
 		while (rs.next()) {
@@ -161,16 +179,18 @@ public class AnalysisDB implements Closeable {
 		ResultSet rs = statement.getResultSet();
 		while (rs.next()) {
 			String id = rs.getString(2);
+			Path relative = Paths.get(rs.getString(1));
 			File file = new File(relativePathTransformer.apply(rs.getString(1)));
 			String metadata = rs.getString(3);
-			models.add(new Model(id, file, metadata));			
+			models.add(new Model(id, relative, file, metadata));			
 		}
 		
 		return models;
 	}
 	
 	@CheckForNull
-	public Status addFile(@Nonnull String modelId, @Nonnull String relativeName, @Nonnull String hash) {		
+	public Status addFile(@Nonnull String modelId, @Nonnull String relativeName, @Nonnull String hash) {
+		Preconditions.checkState(! isReadOnly);
 		try {
 			Status status = Status.NOT_PROCESSED;
 			
@@ -264,6 +284,7 @@ public class AnalysisDB implements Closeable {
 	}
 
 	public void addStats(@Nonnull String modelId, @Nonnull String type, int count) {
+		Preconditions.checkState(! isReadOnly);
 		try {
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO stats(id, type, count) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, modelId);
@@ -277,6 +298,7 @@ public class AnalysisDB implements Closeable {
 	}
 
 	public void addMetadata(@Nonnull String modelId, @Nonnull String type, @Nonnull String value) {
+		Preconditions.checkState(! isReadOnly);
 		try {
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO metadata(id, type, value) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, modelId);
@@ -289,6 +311,72 @@ public class AnalysisDB implements Closeable {
 		}			
 	}
 
+	
+	private Map<String, Model> modelByPathCache = null;
+	
+	@CheckForNull
+	public Model getModelByPath(String relativePath, @Nonnull Function<String, String> relativePathTransformer) {
+		Preconditions.checkNotNull(relativePath);
+		if (isReadOnly) {
+			if (modelByPathCache == null) {
+				modelByPathCache = new HashMap<>();
+				try(PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value, type FROM models m, metadata mm WHERE m.id = mm.id ORDER BY relative_file, type")) {
+					stm.execute();
+					ResultSet rs = stm.getResultSet();
+					Model m = null;
+					while (rs.next()) {
+						String id = rs.getString(1);
+						if (m == null || !m.getId().equals(id)) {
+							m = getModelFromRecord(rs, relativePathTransformer);
+							modelByPathCache.put(m.getRelativePath().toString(), m);
+						} else {
+							String type = rs.getString(5);
+							String metadataValue = rs.getString(4);
+							m.putKeyValueMetadata(type, metadataValue);
+						}
+					}
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}			
+			}
+			return modelByPathCache.get(relativePath);
+		}
+		
+		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value, type FROM models m, metadata mm WHERE m.id = mm.id AND relative_file = ?")) {
+			stm.setString(1, relativePath);
+			//stm.setString(2, metadataType); // Typically nsURI
+			stm.execute();
+			ResultSet rs = stm.getResultSet();			
+		
+			// Previously, we had 'AND type = ?' in the query above so that we get only one result. However this has a performance impact
+			// becase we can't have multi-table indexes. Since there are typically few metadata records, we check programatically.
+			Model m = null;
+			while (rs.next()) {
+				if (m != null) {
+					m = getModelFromRecord(rs, relativePathTransformer);
+				}
+				String metadataValue = rs.getString(4);
+				String type = rs.getString(5);			
+				m.putKeyValueMetadata(type, metadataValue);
+			}
+			return null;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}			
+	}
+
+	private Model getModelFromRecord(ResultSet rs, Function<String, String> relativePathTransformer)
+			throws SQLException {
+		String id = rs.getString(1);
+		Path relative = Paths.get(rs.getString(2));
+		File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
+		String metadataDocument = rs.getString(3);
+		String metadataValue = rs.getString(4); // This is because we have two flavours of metadata (a Json document and additional data in a string-map style, which is a pity)			
+		String type = rs.getString(5);
+		return new Model(id, relative, fullFile, metadataDocument).putKeyValueMetadata(type, metadataValue);
+	}
+
+	
 	@Nonnull
 	public List<Model> findByMetadata(@Nonnull String key, @Nonnull String value, @Nonnull Function<String, String> relativePathTransformer) {
 		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document FROM models m, metadata mm WHERE m.id = mm.id AND m.status IN ('VALID', 'INVALID') AND mm.type = ? AND mm.value = ?")) {			
@@ -300,9 +388,9 @@ public class AnalysisDB implements Closeable {
 			ResultSet rs = stm.getResultSet();
 			while (rs.next()) {
 				String id = rs.getString(1);
-				File relativeFile = new File(relativePathTransformer.apply(rs.getString(2)));
+				File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
 				String metadataDocument = rs.getString(3);
-				result.add(new Model(id, relativeFile, metadataDocument));
+				result.add(new Model(id, Paths.get(rs.getString(2)), fullFile, metadataDocument));
 			}
 			return result;
 		} catch (SQLException e) {
@@ -317,18 +405,42 @@ public class AnalysisDB implements Closeable {
 		private File file;
 		@Nonnull
 		private String metadata;
-
-		public Model(@Nonnull String id, @Nonnull File file, String metadata) {
+		@Nonnull
+		private Path relativePath;		
+		@Nonnull
+		private Map<String, String> keyValueMetadata;
+		
+		public Model(@Nonnull String id, @Nonnull Path relativePath, @Nonnull File file, String metadata) {
 			this.id = id;
 			this.file = file;
+			this.relativePath = relativePath;
 			this.metadata = metadata;
+		}		
+		
+		protected Map<String, String> getKeyValueMetadata() {
+			if (keyValueMetadata == null)
+				keyValueMetadata = new HashMap<>();
+			return keyValueMetadata;
 		}
 		
+		public Model putKeyValueMetadata(String metadataType, String metadataValue) {
+			getKeyValueMetadata().put(metadataType, metadataValue);
+			return this;
+		}
+
+		public String getKeyValueMetadata(String metadataType) {
+			return getKeyValueMetadata().get(metadataType);
+		}
 		
 		public String getId() {
 			return id;
 		}
-		
+
+		@Nonnull
+		public Path getRelativePath() {
+			return relativePath;
+		}
+
 		@Nonnull
 		public File getFile() {
 			return file;
@@ -337,6 +449,7 @@ public class AnalysisDB implements Closeable {
 		public String getMetadata() {
 			return metadata;
 		}
+
 	}
 
 }
