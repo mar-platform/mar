@@ -362,3 +362,8 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+# Eclipse
+org.eclipse.jdt.apt.core.prefs
+.classpath
+.factorypath
