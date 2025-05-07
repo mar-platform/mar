@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
@@ -18,6 +19,7 @@ import mar.validation.ResourceAnalyser.Factory;
 public class EcoreDuplicateFinderTest {
 
 	@Test
+	@Ignore
 	public void testFinder() throws IOException {
 		String m = "/home/jesus/projects/mde-ml/model-mate/experiments/data/mar/repo-genmymodel-ecore/data/_DmvCgAwjEeWATac42w0kFQ.ecore";
 		EcoreDuplicateFinder<String> finder = new EcoreDuplicateFinder<>();
@@ -26,8 +28,6 @@ public class EcoreDuplicateFinderTest {
 		String m3 = "/home/jesus/projects/mde-ml/model-mate/experiments/data/mar/repo-genmymodel-ecore/data/_4DA1oPokEeSE6sazzutmkA.ecore";
 
 		String m4 = "/home/jesus/projects/mde-ml/model-mate/experiments/data/mar/repo-genmymodel-ecore/data/_u_vNsOQjEeiyGtLb2crGgA.ecore";
-
-		
 		
 		
 		Factory factory = AnalyserRegistry.INSTANCE.getFactory("ecore");

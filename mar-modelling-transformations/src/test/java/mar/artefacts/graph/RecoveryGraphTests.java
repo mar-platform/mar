@@ -19,7 +19,7 @@ public class RecoveryGraphTests {
 		Path buildFileDir = Paths.get("test/folder");
 		Ant path = AntUtils.parseAntPath(buildFileDir, buildFileDir, "${basedir}/sm/sm.ecore");		
 		assertFalse(path.isLoosyFilePath());
-		assertEquals("test/folder/sm/sm.ecore", path.getPath());
+		assertEquals(Path.of("test/folder/sm/sm.ecore"), path.getPath());
 	}
 
 	@Test
@@ -27,7 +27,7 @@ public class RecoveryGraphTests {
 		Path buildFileDir = Paths.get("test/folder");
 		Ant path = AntUtils.parseAntPath(buildFileDir, buildFileDir, "${mypath}/sm/sm.ecore");
 		assertTrue(path.isLoosyFilePath());
-		assertEquals("sm/sm.ecore", path.getPath());
+		assertEquals(Path.of("sm/sm.ecore"), path.getPath());
 	}
 
 }

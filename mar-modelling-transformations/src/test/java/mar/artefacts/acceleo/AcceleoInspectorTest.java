@@ -16,10 +16,13 @@ public class AcceleoInspectorTest {
 		List<String> uris = AcceleoInspector.getURIs(new StringReader(dcl));
 		assertEquals("http://myDSL", uris.get(0));
 		assertEquals("anotherDSL", uris.get(1));
-
-		dcl = "[for i in mylist]";
-		uris = AcceleoInspector.getURIs(new StringReader(dcl));
-		assertEquals(0, uris.size());
+	}
+	
+	@Test
+	public void testInvalidProgram() throws IOException {
+		String dcl = "[for i in mylist]";
+		List<String> uris = AcceleoInspector.getURIs(new StringReader(dcl));
+		assertNull(uris);
 	}
 
 	@Test

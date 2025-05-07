@@ -1,6 +1,7 @@
 package mar.renderers;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -40,7 +41,7 @@ public class PlantUmlText {
 	
 	public void toImage(@Nonnegative File file) throws IOException {
 		SourceStringReader reader = new SourceStringReader(builder.toString());
-		reader.generateImage(file);
+		reader.generateImage(new FileOutputStream(file));
 		// toText(System.out);
 	}
 	
