@@ -3,15 +3,31 @@
   import API from './API';
   import { artefactTypes } from './GraphNodeTypes';
   import GraphVisualizer from './GraphVisualizer.svelte';  
+  import { onMount } from 'svelte';
 
+  let allProjects = [];
   let projects = [];
   let document;
 
+  onMount(() => {
+      fetch(API.getProjects()).
+        then(res => res.json()).
+        then(doc => {
+          projects = doc
+          allProjects = doc;
+        });
+  });
+
   const searchOnChange = (e: Event) => {
       const changeValue = (e.target as HTMLInputElement).value;
-      fetch(API.searchProject(changeValue)).
+      if (changeValue == '') {
+          projects = allProjects;
+          return;
+      } else {
+        fetch(API.searchProject(changeValue)).
           then(res => res.json()).
           then(doc => projects = doc);
+      }
   };
 
   const selectProject = (p : string) => {

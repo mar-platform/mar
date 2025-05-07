@@ -280,7 +280,13 @@ public class MegamodelDB implements Closeable {
 			collect(Collectors.toList());
 	}
 
-
+	public List<Project> allProjects() {
+		return getAllArtefacts().values().stream().
+			map(a -> a.getProject()).
+			distinct().
+			collect(Collectors.toList());
+	}
+		
 	public MegamodelStats getStats() {
 		try {
 			PreparedStatement artefactCount = connection.prepareStatement("select type, count(*) from artefacts group by type");

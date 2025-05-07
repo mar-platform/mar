@@ -84,7 +84,13 @@ public class MegamodelController {
 		return db.searchProjects(value);
 	}
 	
-	
+	@GetMapping(value = "/all-projects", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:3000")
+    public List<Project> allProjects() throws JsonProcessingException {
+		List<Project> projects = db.allProjects();
+		projects.sort((p1, p2) -> p1.getId().compareTo(p2.getId()));
+		return projects;
+	}
 	
 	@GetMapping(value = "/clustering/label-propagation", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:3000")

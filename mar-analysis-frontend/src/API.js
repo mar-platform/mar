@@ -12,6 +12,9 @@ const API = {
     searchProject : function(value) {
         return `http://localhost:8080/search-project?value=${value}`;        
     },
+    getProjects : function(value) {
+        return `http://localhost:8080/all-projects`;        
+    },    
     projectGraph : function(id) {
         return `http://localhost:8080/project-graph?projectId=${id}`;        
     },
