@@ -106,7 +106,7 @@ public class MetamodelSeacher {
 					continue;
 				}		
 				
-				compareSimilarities(classFootprints, names, Metamodel.fromFile("recovered", new RecoveredPath(toProjectPathNormalizer.apply(f.toPath()))));
+				compareSimilarities(classFootprints, names, Metamodel.fromFile("recovered", new RecoveredPath.ExistingPath(toProjectPathNormalizer.apply(f.toPath()))));
 			}
 			
 			builtinMetamodelsFootprints.forEach((mm, names) -> {

@@ -6,12 +6,15 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
+import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
+
 /**
  * Represents a path in a repository
  * 
  * @author jesus
  */
-public class RecoveredPath {
+public abstract class RecoveredPath {
 
 	private Path path;
 	// This means that we can't guarantee that the path is within the repository root (e.g., can be an absolute path)
@@ -33,9 +36,7 @@ public class RecoveredPath {
 	}
 
 	
-	public String toPathStatusId() {
-		return this.getClass().getSimpleName().replace("Path", "").toLowerCase();
-	}
+	public abstract Artefact.ArtefactStatus toPathStatus();
 	
 	public Path getPath() {
 		return path;
@@ -71,6 +72,18 @@ public class RecoveredPath {
 		return true;
 	}
 
+	public static class ExistingPath extends RecoveredPath {
+
+		public ExistingPath(Path path) {
+			super(path);
+		}
+
+		@Override
+		public ArtefactStatus toPathStatus() {
+			return ArtefactStatus.EXISTS;
+		}
+		
+	}
 
 
 	public static class Ant extends RecoveredPath {
@@ -86,8 +99,8 @@ public class RecoveredPath {
 		}
 		
 		@Override
-		public String toPathStatusId() {
-			return "Heuristic";
+		public Artefact.ArtefactStatus toPathStatus() {
+			return Artefact.ArtefactStatus.HEURISTIC;
 		}
 	}
 
@@ -102,6 +115,10 @@ public class RecoveredPath {
 			super(path);
 		}
 		
+		@Override
+		public Artefact.ArtefactStatus toPathStatus() {
+			return Artefact.ArtefactStatus.HEURISTIC;
+		}
 	}
 	
 	/**
@@ -114,6 +131,11 @@ public class RecoveredPath {
 		public MissingPath(Path path) {
 			super(path, true);
 		}		
+		
+		@Override
+		public Artefact.ArtefactStatus toPathStatus() {
+			return Artefact.ArtefactStatus.MISSING;
+		}
 	}
 	
 	/**
@@ -128,6 +150,10 @@ public class RecoveredPath {
 			super(path);
 		}		
 		
+		@Override
+		public Artefact.ArtefactStatus toPathStatus() {
+			return Artefact.ArtefactStatus.GENERATED;
+		}
 	}
 		
 }

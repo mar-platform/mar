@@ -50,7 +50,7 @@ public class SimpleATLInspector extends ProjectInspector {
 
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-		ATLProgram program = new ATLProgram(new RecoveredPath(getRepositoryPath(f)));
+		ATLProgram program = new ATLProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f)));
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);

@@ -50,7 +50,7 @@ public class EpsilonInspector extends ProjectInspector {
 
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-		EpsilonProgram program = new EpsilonProgram(new RecoveredPath(getRepositoryPath(f)));
+		EpsilonProgram program = new EpsilonProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f)));
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		

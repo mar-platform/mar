@@ -23,9 +23,9 @@ public class Artefact {
 	@JsonIdentityReference(alwaysAsId=true)
 	private final Project project;
 	@JsonProperty
-	private String fileStatus;
+	private ArtefactStatus fileStatus;
 
-	public Artefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name, @Nonnull String status) {
+	public Artefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name, @Nonnull ArtefactStatus status) {
 		this.project = project;
 		this.id = id;
 		this.type = type;
@@ -54,7 +54,15 @@ public class Artefact {
 		return project;
 	}
 
-	public String getFileStatus() {
+	public ArtefactStatus getFileStatus() {
 		return fileStatus;
+	}
+	
+	public static enum ArtefactStatus {
+		EXISTS,
+		MISSING,
+		GENERATED,
+		HEURISTIC, 
+		ERROR /* no-path */
 	}
 }

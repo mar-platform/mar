@@ -107,7 +107,7 @@ public abstract class ProjectInspector {
  		if (Files.exists(p)) {
  			p = getRepositoryPath(p); // Convert back to relative...
 			// Heuristically...
-			return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
+			return Metamodel.fromFile(uriOrFile, new RecoveredPath.ExistingPath(p));
 		} else if (uriOrFile.startsWith("/") && resolutionStrategies.length > 0) {
 			Path repoName = folder.subpath(0, 2);
 			
@@ -119,7 +119,7 @@ public abstract class ProjectInspector {
 					
 					p = r.tryRecover(repoFolder, repoName, uriOrFile);
 					if (p != null) {
-						return Metamodel.fromFile(uriOrFile, new RecoveredPath(p));
+						return Metamodel.fromFile(uriOrFile, new RecoveredPath.ExistingPath(p));
 					}
 				}
 			}
@@ -146,7 +146,7 @@ public abstract class ProjectInspector {
 		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s);
 		for(Model m : models) {
 			if (m.getRelativePath().startsWith(projectSubPath)) {
-				return Metamodel.fromFile(uriOrFile, new RecoveredPath(m.getRelativePath()));
+				return Metamodel.fromFile(uriOrFile, new RecoveredPath.ExistingPath(m.getRelativePath()));
 			}
 		}
 		return null;

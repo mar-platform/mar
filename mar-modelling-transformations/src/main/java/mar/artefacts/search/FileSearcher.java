@@ -72,7 +72,7 @@ public class FileSearcher {
 	@CheckForNull
 	public RecoveredPath findFileInFilesystem(Path loosyPath) {
 		if (Files.exists(projectRoot.resolve(loosyPath))) {
-			return new RecoveredPath(repoRoot.relativize(projectRoot.resolve(loosyPath)));
+			return new RecoveredPath.ExistingPath(repoRoot.relativize(projectRoot.resolve(loosyPath)));
 		}
 		Path filename = loosyPath.getName(loosyPath.getNameCount() - 1);
 		try {
@@ -93,7 +93,7 @@ public class FileSearcher {
 		Path path = folderPath.resolve(filename);
 		Path relPath = projectRoot.relativize(path);
 		if (Files.exists(path)) {
-			return new RecoveredPath(relPath);
+			return new RecoveredPath.ExistingPath(relPath);
 		}
 		return new RecoveredPath.GeneratedPath(relPath);
 	}

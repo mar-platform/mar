@@ -37,6 +37,7 @@ import mar.analysis.duplicates.DuplicationAnalysisResult;
 import mar.analysis.duplicates.EcoreDuplicateFinder;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
@@ -170,7 +171,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
 						String id = toId(metamodel); /* , metamodels); */
 						String name = toName(metamodel);
-						String status = toRecoveryStatus(metamodel.getPath());
+						ArtefactStatus status = toRecoveryStatus(metamodel.getPath());
 						
 						System.out.println("Adding id: " + id);
 						if (! graph.hasNode(id)) {						
@@ -190,7 +191,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					for (FileProgram p : miniGraph.getPrograms()) {
 						String id = toId(p);
 						String name = toName(p);
-						String status = toRecoveryStatus(p.getFilePath());
+						ArtefactStatus status = toRecoveryStatus(p.getFilePath());
 						
 						// It may happen that the same node is recovered with two different methods (e.g., EpsilonInspector and LaunchInspector)
 						// This perform the merge.
@@ -416,10 +417,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return p.getFilePath().getPath().getFileName().toString();		
 	}
 	
-	private String toRecoveryStatus(RecoveredPath p) {
+	private ArtefactStatus toRecoveryStatus(RecoveredPath p) {
 		if (p == null)
-			return "no-path";
-		return p.toPathStatusId();
+			return ArtefactStatus.ERROR;
+		return p.toPathStatus();
 	}
 
 	private String toName(Metamodel metamodel) {

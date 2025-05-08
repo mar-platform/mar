@@ -79,7 +79,7 @@ public class SiriusInspector extends XMLProjectInspector {
 		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "sirius");
 		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 		
-		SiriusProgram program = new SiriusProgram(new RecoveredPath(getRepositoryPath(f)));
+		SiriusProgram program = new SiriusProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f)));
 		graph.addProgram(program);
 		
 		Document doc = loadDocument(stream);

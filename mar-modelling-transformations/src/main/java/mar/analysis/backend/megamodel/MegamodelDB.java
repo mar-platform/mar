@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 
 import mar.analysis.backend.megamodel.stats.MegamodelStats;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Relationship;
@@ -141,7 +142,7 @@ public class MegamodelDB implements Closeable {
 			String category = rs.getString(3);
 			String name = rs.getString(4);
 			String projectId = rs.getString(5);
-			String fileStatus = rs.getString(6);
+			ArtefactStatus fileStatus = ArtefactStatus.valueOf(rs.getString(6));
 			result.put(id, new Artefact(new Project(projectId), id, type, category, name, fileStatus));
 		}
 		allArtefactsStm.close();
@@ -323,7 +324,7 @@ public class MegamodelDB implements Closeable {
 
 
 	@CheckForNull
-	public void addArtefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name, @Nonnull String fileStatus) {
+	public void addArtefact(@Nonnull Project project, @Nonnull String id, @Nonnull String type, @Nonnull String category, @Nonnull String name, @Nonnull ArtefactStatus fileStatus) {
 		try {
 			if (allArtefacts.containsKey(id)) {				
 				return;
@@ -336,7 +337,7 @@ public class MegamodelDB implements Closeable {
 			preparedStatement.setString(3, category);
 			preparedStatement.setString(4, name);
 			preparedStatement.setString(5, project.getId());
-			preparedStatement.setString(6, fileStatus);
+			preparedStatement.setString(6, fileStatus.name());
 			preparedStatement.executeUpdate();
 			preparedStatement.close();			
 			
