@@ -81,7 +81,7 @@ public class EmfaticInspector extends ProjectInspector {
 	public RecoveryGraph process(File f) throws Exception {
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
-		EmfaticProgram p = new EmfaticProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f)));		
+		EmfaticProgram p = new EmfaticProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));		
 		graph.addProgram(p);
 
 		List<String> uris = getUris(f, p);

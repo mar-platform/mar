@@ -11,6 +11,7 @@ import javax.annotation.CheckForNull;
 import mar.analysis.megamodel.model.Project;
 import mar.artefacts.RecoveredPath.HeuristicPath;
 import mar.artefacts.RecoveredPath.MissingPath;
+import mar.artefacts.RecoveredPath.UnexpectedPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.search.FileSearcher;
@@ -106,8 +107,8 @@ public abstract class ProjectInspector {
 		}
  		if (Files.exists(p)) {
  			p = getRepositoryPath(p); // Convert back to relative...
-			// Heuristically...
-			return Metamodel.fromFile(uriOrFile, new RecoveredPath.ExistingPath(p));
+			// Heuristically... 			
+			return Metamodel.fromFile(uriOrFile, RecoveredPath.newExistingPath(p, repoFolder));
 		} else if (uriOrFile.startsWith("/") && resolutionStrategies.length > 0) {
 			Path repoName = folder.subpath(0, 2);
 			
@@ -117,9 +118,9 @@ public abstract class ProjectInspector {
 					if (matchedStrategy == null)
 						matchedStrategy = r;
 					
-					p = r.tryRecover(repoFolder, repoName, uriOrFile);
+					RecoveredPath rp = r.tryRecover(repoFolder, repoName, uriOrFile);
 					if (p != null) {
-						return Metamodel.fromFile(uriOrFile, new RecoveredPath.ExistingPath(p));
+						return Metamodel.fromFile(uriOrFile, rp);
 					}
 				}
 			}
@@ -138,7 +139,7 @@ public abstract class ProjectInspector {
 		//} 
 		
 		// Which is a proper fallback?
-		return Metamodel.fromFile(uriOrFile, new HeuristicPath(folder.resolve(uriOrFile)));
+		return Metamodel.fromFile(uriOrFile, new UnexpectedPath(folder.resolve(uriOrFile)));
 	}
 
 	@CheckForNull
@@ -146,7 +147,15 @@ public abstract class ProjectInspector {
 		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s);
 		for(Model m : models) {
 			if (m.getRelativePath().startsWith(projectSubPath)) {
-				return Metamodel.fromFile(uriOrFile, new RecoveredPath.ExistingPath(m.getRelativePath()));
+				RecoveredPath p;
+				Path rp = repoFolder.resolve(m.getRelativePath());
+				if (Files.exists(rp)) {
+					p = RecoveredPath.newExistingPath(m.getRelativePath(), repoFolder);
+				} else {
+					p = new RecoveredPath.MissingPath(m.getRelativePath());
+				}
+				
+				return Metamodel.fromFile(uriOrFile, p);
 			}
 		}
 		return null;
@@ -186,11 +195,11 @@ public abstract class ProjectInspector {
 			}
 
 			@Override
-			Path tryRecover(Path repoFolder, Path repoName, String filePath) {
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath) {
 				Path p = getExpectedPath(repoFolder, repoName, filePath);
 				Path absolute = repoFolder.resolve(p);
 				if (Files.exists(absolute)) {
-		 			return p; 				
+		 			return RecoveredPath.newExistingPath(p, repoFolder); 				
 				}
 				return null;
 				
@@ -208,11 +217,11 @@ public abstract class ProjectInspector {
 			}
 
 			@Override
-			Path tryRecover(Path repoFolder, Path repoName, String filePath) {
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath) {
 				Path p = getExpectedPath(repoFolder, repoName, filePath);
 				Path absolute = repoFolder.resolve(p);
 				if (Files.exists(absolute)) {
-		 			return p; 				
+		 			return RecoveredPath.newExistingPath(p, repoFolder); 				
 				}
 				return null;			
 			}
@@ -229,11 +238,11 @@ public abstract class ProjectInspector {
 			}
 
 			@Override
-			Path tryRecover(Path repoFolder, Path repoName, String filePath) {
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath) {
 				Path p = getExpectedPath(repoFolder, repoName, filePath);
 				Path absolute = repoFolder.resolve(p);
 				if (Files.exists(absolute)) {
-		 			return p; 				
+		 			return RecoveredPath.newExistingPath(p, repoFolder); 				
 				}
 				return null;			
 			}
@@ -247,6 +256,6 @@ public abstract class ProjectInspector {
 
 		abstract Path getExpectedPath(Path repoFolder, Path repoName, String uriOrFile);
 
-		abstract Path tryRecover(Path repoFolder, Path repoName, String filePath);
+		abstract RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath);
 	}
 }

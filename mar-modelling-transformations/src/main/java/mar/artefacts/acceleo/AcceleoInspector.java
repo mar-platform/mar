@@ -34,7 +34,7 @@ public class AcceleoInspector extends ProjectInspector {
 	 */
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
-		AcceleoProgram program = new AcceleoProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f)));
+		AcceleoProgram program = new AcceleoProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 

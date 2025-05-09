@@ -1,5 +1,6 @@
 package mar.artefacts;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.annotation.Nonnull;
@@ -26,7 +27,6 @@ public abstract class RecoveredPath {
 	public RecoveredPath(Path path) {
 		this(path, false);
 	}
-
 	
 	public RecoveredPath(Path path, boolean unchecked) {
 		this.unchecked = unchecked;
@@ -74,7 +74,7 @@ public abstract class RecoveredPath {
 
 	public static class ExistingPath extends RecoveredPath {
 
-		public ExistingPath(Path path) {
+		private ExistingPath(Path path) {
 			super(path);
 		}
 
@@ -154,6 +154,26 @@ public abstract class RecoveredPath {
 		public Artefact.ArtefactStatus toPathStatus() {
 			return Artefact.ArtefactStatus.GENERATED;
 		}
+	}
+	
+	public static class UnexpectedPath extends RecoveredPath {
+
+		public UnexpectedPath(Path path) {
+			super(path);
+		}
+		
+		@Override
+		public Artefact.ArtefactStatus toPathStatus() {
+			return Artefact.ArtefactStatus.ERROR;
+		}
+	}
+	
+	public static RecoveredPath newExistingPath(Path relative, Path repoFolder) {
+		Path r = repoFolder.resolve(relative);
+		if (! Files.exists(r)) {
+			throw new IllegalStateException("Non-existing path: " + r);
+		}
+		return new ExistingPath(relative);
 	}
 		
 }

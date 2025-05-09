@@ -32,7 +32,7 @@ public class OCLInspector extends ProjectInspector {
 		// CSTNode cs = analyzer.parseConcreteSyntax();
 		
 		Path filePathInRepo = getRepositoryPath(f);
-		OclProgram program = new OclProgram(new RecoveredPath.ExistingPath(filePathInRepo));
+		OclProgram program = new OclProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);

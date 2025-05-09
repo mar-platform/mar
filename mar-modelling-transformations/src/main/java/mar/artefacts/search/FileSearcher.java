@@ -72,7 +72,8 @@ public class FileSearcher {
 	@CheckForNull
 	public RecoveredPath findFileInFilesystem(Path loosyPath) {
 		if (Files.exists(projectRoot.resolve(loosyPath))) {
-			return new RecoveredPath.ExistingPath(repoRoot.relativize(projectRoot.resolve(loosyPath)));
+			Path repoBasedPath = repoRoot.relativize(projectRoot.resolve(loosyPath));
+			return RecoveredPath.newExistingPath(repoBasedPath, repoRoot);
 		}
 		Path filename = loosyPath.getName(loosyPath.getNameCount() - 1);
 		try {
@@ -91,9 +92,9 @@ public class FileSearcher {
 
 	public RecoveredPath findPotentiallyGeneratedFile(Path folderPath, String filename) {
 		Path path = folderPath.resolve(filename);
-		Path relPath = projectRoot.relativize(path);
+		Path relPath = repoRoot.relativize(path);
 		if (Files.exists(path)) {
-			return new RecoveredPath.ExistingPath(relPath);
+			return RecoveredPath.newExistingPath(relPath, repoRoot);
 		}
 		return new RecoveredPath.GeneratedPath(relPath);
 	}

@@ -57,7 +57,7 @@ public class HenshinInspector extends XMLProjectInspector {
 		RecoveryStats.PerFile stats = new RecoveryStats.PerFile(f.toPath(), "henshin");
 		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 		
-		HenshinProgram program = new HenshinProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f)));
+		HenshinProgram program = new HenshinProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
 		graph.addProgram(program);
 		
 		Document doc = loadDocument(stream);

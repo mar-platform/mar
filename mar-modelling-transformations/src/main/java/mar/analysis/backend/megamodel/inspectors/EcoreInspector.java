@@ -26,14 +26,14 @@ public class EcoreInspector extends ProjectInspector {
 		Path repoPath = getRepositoryPath(f);
 		Model m = analysisDb.getModelByPath(repoPath.toString(), (s) -> s);
 		if (m != null) {
-			Metamodel mm = Metamodel.fromFile(f.getName(), new RecoveredPath.ExistingPath(m.getRelativePath()));
+			Metamodel mm = Metamodel.fromFile(f.getName(), RecoveredPath.newExistingPath(m.getRelativePath(), repoFolder));
 			graph.addMetamodel(mm);	
 			return graph;
 		} else {
 			Status s = analysisDb.hasFile(repoPath.toString());
 			if (s != null) {
 				// TODO: Mark the meta-model with metadata, like it is erroneous or something like this
-				Metamodel mm = Metamodel.fromFile(f.getName(), new RecoveredPath.ExistingPath(repoPath));
+				Metamodel mm = Metamodel.fromFile(f.getName(), RecoveredPath.newExistingPath(repoPath, repoFolder));
 				graph.addMetamodel(mm);	
 				return graph;
 			}

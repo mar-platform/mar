@@ -28,7 +28,7 @@ public class XtextInspector extends ProjectInspector {
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
-		XtextProgram p = new XtextProgram(new RecoveredPath.ExistingPath(getRepositoryPath(f.toPath())));
+		XtextProgram p = new XtextProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
 		graph.addProgram(p);
 		
 		for (String uri : info.getGeneratedURIs()) {

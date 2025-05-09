@@ -81,7 +81,7 @@ public class MetamodelSeacher {
 		return singleton.get(FAKE_KEY);
 	}
 	
-	public <T> void scoreFootprints(Map<T, RecoveredMetamodelFile> classFootprints) {
+	private <T> void scoreFootprints(Map<T, RecoveredMetamodelFile> classFootprints) {
 		try {
 			List<Path> files = searcher.findFilesByExtension("ecore");
 			for (Path path : files) {
@@ -106,7 +106,9 @@ public class MetamodelSeacher {
 					continue;
 				}		
 				
-				compareSimilarities(classFootprints, names, Metamodel.fromFile("recovered", new RecoveredPath.ExistingPath(toProjectPathNormalizer.apply(f.toPath()))));
+				compareSimilarities(classFootprints, names, 
+						Metamodel.fromFile("recovered", 
+								RecoveredPath.newExistingPath(toProjectPathNormalizer.apply(f.toPath()), searcher.getRepoRoot())));
 			}
 			
 			builtinMetamodelsFootprints.forEach((mm, names) -> {

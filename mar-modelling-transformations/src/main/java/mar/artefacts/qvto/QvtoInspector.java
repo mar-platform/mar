@@ -43,7 +43,7 @@ public class QvtoInspector extends ProjectInspector {
 		Collection<TransformationParameter> expectedMetamodels = Qvto.getModelParameters(unit, qvtoFile.toString());		
 		
 		Path qvtoFilePath = getRepositoryPath(qvtoFile);
-		QvtoProgram program = new QvtoProgram(new RecoveredPath.ExistingPath(qvtoFilePath));
+		QvtoProgram program = new QvtoProgram(RecoveredPath.newExistingPath(qvtoFilePath, repoFolder));
 		
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
