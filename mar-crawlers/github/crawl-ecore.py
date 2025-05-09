@@ -7,10 +7,10 @@ if __name__ == "__main__":
     
     print("Generating in ", args.output)
     print("  with initial=", args.init)
-    
+    print("       save_contents=", args.save_contents)
     with open(os.path.join(args.output, 'ecore_download.csv'), 'a+', newline='') as file:
         writer = csv.writer(file)
-        gc.process('EPackage', 'ecore', writer, args.output, args.init, 30_000_000, args.step)
+        gc.process('EPackage', 'ecore', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)
 
         
 # from github import Github
