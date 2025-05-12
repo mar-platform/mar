@@ -9,6 +9,8 @@ import javax.annotation.Nonnull;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
+
 @VisibleForTesting
 public class Metamodel {
 
@@ -21,14 +23,20 @@ public class Metamodel {
 	@Nonnull
 	private Set<Metamodel> dependents = new HashSet<>();
 	private Set<Metamodel> subpackages = new HashSet<>();
+	private ArtefactStatus status;
 	
 	private Metamodel(@Nonnull String  name) {
 		this.name = name;
 	}
 	
+	public ArtefactStatus getStatus() {
+		return status;
+	}
+	
 	@Nonnull
-	public static Metamodel fromURI(@Nonnull String name, @Nonnull String uri) {
+	public static Metamodel fromURI(@Nonnull String name, @Nonnull String uri, ArtefactStatus status) {
 		Metamodel mm = new Metamodel(name);
+		mm.status = status; 
 		mm.setURI(uri);
 		return mm;
 	}
@@ -36,6 +44,7 @@ public class Metamodel {
 	@Nonnull
 	public static Metamodel fromFile(@Nonnull String name, @Nonnull RecoveredPath file) {
 		Metamodel mm = new Metamodel(name);
+		mm.status = file.toPathStatus();
 		mm.setPath(file);
 		return mm;
 	}

@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 
 import mar.analysis.megamodel.model.Project;
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 import mar.artefacts.RecoveredPath.HeuristicPath;
 import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.RecoveredPath.UnexpectedPath;
@@ -72,6 +73,10 @@ public abstract class ProjectInspector {
 	
 	protected Metamodel toMetamodelFromURI(String name, String uri) {
 		uri = sanitize(uri);
+		if (BuiltinMetamodels.INSTANCE.isBuiltin(uri)) {
+			return Metamodel.fromURI(name, uri, ArtefactStatus.BUILTIN);
+		}
+		
 		Metamodel mm = tryFindURI(uri);
 		if (mm != null)
 			return mm;
@@ -80,7 +85,7 @@ public abstract class ProjectInspector {
 			return fromPlatformResource(uri);
 		}
 		
-		return Metamodel.fromURI(uri, uri);
+		return Metamodel.fromURI(uri, uri, ArtefactStatus.UNRESOLVED);
 	}
 	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder) {
@@ -89,6 +94,9 @@ public abstract class ProjectInspector {
 	
 	protected Metamodel toMetamodel(String uriOrFile, Path folder, AbsolutePathResolutionStrategy... resolutionStrategies) {
 		uriOrFile = sanitize(uriOrFile);
+		if (BuiltinMetamodels.INSTANCE.isBuiltin(uriOrFile)) {
+			return Metamodel.fromURI(uriOrFile, uriOrFile, ArtefactStatus.BUILTIN);
+		}
 		
 		Metamodel mm = tryFindURI(uriOrFile);
 		if (mm != null)
@@ -96,7 +104,7 @@ public abstract class ProjectInspector {
 		
 		if (uriOrFile.startsWith("http")) {
 			// This shouldn't happen, but in case, we have this fallback to detect URIs
-			return Metamodel.fromURI(uriOrFile, uriOrFile);
+			return Metamodel.fromURI(uriOrFile, uriOrFile, ArtefactStatus.UNRESOLVED);
 		} else if (uriOrFile.startsWith("platform:/")) {
 			return fromPlatformResource(uriOrFile);
 		}
@@ -105,7 +113,7 @@ public abstract class ProjectInspector {
 		if (! p.isAbsolute()) {
 			p = repoFolder.resolve(p);
 		}
- 		if (Files.exists(p)) {
+ 		if (Files.exists(p) && Files.isRegularFile(p)) {
  			p = getRepositoryPath(p); // Convert back to relative...
 			// Heuristically... 			
 			return Metamodel.fromFile(uriOrFile, RecoveredPath.newExistingPath(p, repoFolder));

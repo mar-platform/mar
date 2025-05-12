@@ -103,7 +103,8 @@ public class SimpleATLInspector extends ProjectInspector {
 	@CheckForNull
 	private Metamodel extractURI(String line) {
 		Pair<String, String> parts = extractParts(line, NS_URI_LENGTH);
-		return Metamodel.fromURI(parts.getLeft(), parts.getRight());
+		return toMetamodelFromURI(parts.getLeft(), parts.getRight());
+		// return Metamodel.fromURI(parts.getLeft(), parts.getRight());
 	}
 
 	private Pair<String, String> extractParts(String line, int skip) {

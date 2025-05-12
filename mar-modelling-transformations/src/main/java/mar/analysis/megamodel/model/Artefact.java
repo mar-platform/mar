@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 public class Artefact {
-
-	public static final String MISSING_STATUS = "missing";
 	
 	@JsonProperty
 	private final String id;
@@ -60,9 +58,13 @@ public class Artefact {
 	
 	public static enum ArtefactStatus {
 		EXISTS,
+		/** A file is expected but can't be found */
 		MISSING,
+		/** A meta-model (typically) is referenced by URI and we can't find it in the project */
+		UNRESOLVED,
 		GENERATED,
-		HEURISTIC, 
-		ERROR /* no-path */
+		HEURISTIC,
+		BUILTIN,
+		ERROR /* no-path */, 
 	}
 }

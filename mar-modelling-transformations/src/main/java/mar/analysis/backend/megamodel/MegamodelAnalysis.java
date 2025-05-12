@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.emf.ecore.resource.Resource;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 
 import mar.analysis.backend.megamodel.AnalyserConfiguration.ContentFilter;
@@ -171,7 +172,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					for (Metamodel metamodel : miniGraph.getMetamodels()) {
 						String id = toId(metamodel); /* , metamodels); */
 						String name = toName(metamodel);
-						ArtefactStatus status = toRecoveryStatus(metamodel.getPath());
+						ArtefactStatus status = metamodel.getStatus();
+						Preconditions.checkNotNull(status);
 						
 						System.out.println("Adding id: " + id);
 						if (! graph.hasNode(id)) {						

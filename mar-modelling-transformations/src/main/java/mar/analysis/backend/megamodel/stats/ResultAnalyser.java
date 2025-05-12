@@ -230,7 +230,7 @@ public class ResultAnalyser implements Callable<Integer> {
 			}
 		}
 		
-		Integer falseIsolated = isolatedCauses.get("FalseIsolated");
+		Integer falseIsolated = isolatedCauses.getOrDefault("FalseIsolated", 0);
 		long badHandledIsolatedNodes = totalIsolatedArtefacts - falseIsolated;
 		
 		out.println();

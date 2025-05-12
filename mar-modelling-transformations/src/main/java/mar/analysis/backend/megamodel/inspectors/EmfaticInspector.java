@@ -42,7 +42,7 @@ public class EmfaticInspector extends ProjectInspector {
 	}
 	
 	protected String extractURI(@Nonnull String text, int startIndex, EmfaticProgram p) throws SyntaxError {
-		final String uriTag = "uri=\"";
+		final String uriTag = "uri=";
 		final int uriNameStart = text.indexOf(uriTag, startIndex);
 		if (uriNameStart == -1) {
 			throw new InspectionErrorException.SyntaxError(p);
@@ -50,10 +50,17 @@ public class EmfaticInspector extends ProjectInspector {
 		int idx = uriNameStart + uriTag.length();
 		
 		
-		int last = text.indexOf("\"", idx);
-		Preconditions.checkState(last != -1);
+		int last = text.indexOf(",", idx);
+		Preconditions.checkState(last != -1);	
 		
-		return text.substring(idx, last);
+		String r = text.substring(idx, last);
+		if (r.startsWith("\"")) {
+			r = r.substring(1);
+		}
+		if (r.endsWith("\"")) {
+			r = r.substring(0, r.length() - 1);
+		}
+		return r;
 	}
 	
 	private List<String> getUris(File f, EmfaticProgram p) throws IOException, SyntaxError {

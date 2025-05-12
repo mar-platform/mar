@@ -226,7 +226,7 @@ public class BuildFileInspector extends XMLProjectInspector {
 	    		}
 	    		metamodel = Metamodel.fromFile(name, path);
 	    	} else {
-	    		metamodel = Metamodel.fromURI(name, metamodelURINode.getTextContent());
+	    		metamodel = toMetamodelFromURI(name, metamodelURINode.getTextContent());
 	    	}
 	    	
 	    	Node readAttr = attrs.getNamedItem("read");

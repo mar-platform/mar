@@ -23,6 +23,7 @@ import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 
 /**
  * Compares the arterfacts in the RawDb and the MegamodelDb.
@@ -34,6 +35,8 @@ public class ArtefactAnalysis {
 	private RawRepositoryDB rawDb;
 	private MegamodelDB megamodelDb;
 	private AnalyserConfiguration configuration;
+	
+	private static boolean DEBUG = false;
 
 	public ArtefactAnalysis(RawRepositoryDB raw, MegamodelDB mega, AnalyserConfiguration configuration) {
 		this.rawDb = raw;
@@ -45,9 +48,11 @@ public class ArtefactAnalysis {
 		Result notFoundInMegamodel = filesNotFoundInMegamodel(artefactTypes);
 		Result notFoundInRawDb = filesNotFoundInRawDb(artefactTypes);
 		
-		Preconditions.checkState(notFoundInRawDb.totalArtefacts == notFoundInMegamodel.totalArtefacts);
-		Preconditions.checkState(notFoundInRawDb.totalRawFiles == notFoundInMegamodel.totalRawFiles);
-		
+		if (DEBUG) {
+			// This doesn't hold if we analyse only a single project
+			Preconditions.checkState(notFoundInRawDb.totalArtefacts == notFoundInMegamodel.totalArtefacts);
+			Preconditions.checkState(notFoundInRawDb.totalRawFiles == notFoundInMegamodel.totalRawFiles);		
+		}
 		
 		return new Result(notFoundInRawDb.totalRawFiles, notFoundInRawDb.totalArtefacts, 
 				notFoundInMegamodel.notFoundInMegamodel, notFoundInRawDb.notFoundInRawDb,
@@ -118,11 +123,14 @@ public class ArtefactAnalysis {
 		
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
 		artefacts.forEach((id, artefact) -> {
-			if (! ignoredFiles.contains(id)) {
-				if (! files.containsKey(id) && !artefact.getFileStatus().equals(Artefact.MISSING_STATUS)) {
+			if (! ignoredFiles.contains(id) && 
+				!artefact.getFileStatus().equals(ArtefactStatus.GENERATED) && 
+				!artefact.getFileStatus().equals(ArtefactStatus.UNRESOLVED) && 
+				!artefact.getFileStatus().equals(ArtefactStatus.BUILTIN)) {
+				if (! files.containsKey(id) && !artefact.getFileStatus().equals(ArtefactStatus.MISSING)) {
 					byType.put(artefact.getType(), artefact);
 				} 
-				if (artefact.getFileStatus().equals(Artefact.MISSING_STATUS)) {
+				if (artefact.getFileStatus().equals(ArtefactStatus.MISSING)) {
 					missingArtefacts.put(artefact.getType(), artefact);
 				}
 			}

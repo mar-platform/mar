@@ -98,6 +98,10 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 		properties.load(new ByteArrayInputStream(node.getAttributes().getNamedItem("value").getTextContent().getBytes()));
 		
 		String metamodelDefinition = properties.getProperty("metamodelUri");
+		if (metamodelDefinition.isBlank()) {
+			metamodelDefinition = properties.getProperty("fileBasedMetamodelUri");
+		}
+		
 		if (metamodelDefinition == null) {
 			// This typically happen with excel, xml, etc. that are processed "dynamically" via Epsilon drivers
 			// Example:
@@ -106,8 +110,9 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 			// We just return an empty graph			
 			return graph;
 		}
+		
 		String[] uris = metamodelDefinition.split(",");
-		if (uris.length == 0)
+		if (uris.length == 0 || uris[0].isBlank())
 			return null;
 				
 		String program = programs.item(0).getAttributes().getNamedItem("value").getTextContent();
@@ -122,6 +127,9 @@ public class EpsilonLaunchInspector extends XMLProjectInspector {
 		EpsilonProgram epsilonProgram = new EpsilonProgram(programPath);		
 		graph.addProgram(epsilonProgram);
 		for (String uri : uris) {
+			if (uri.isBlank())
+				continue;
+			
 			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
 			
 			List<MetamodelReference.Kind> kinds = new ArrayList<>();

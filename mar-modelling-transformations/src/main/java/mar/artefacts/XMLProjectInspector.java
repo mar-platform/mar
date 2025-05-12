@@ -12,6 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 import mar.artefacts.db.RepositoryDB;
 import mar.validation.AnalysisDB;
 
@@ -40,7 +41,7 @@ public abstract class XMLProjectInspector extends ProjectInspector {
 			metamodel = Metamodel.fromFile(path.toFile().getName(), recovered);
 		} else {
 			// Assume it is a URI
-			metamodel = Metamodel.fromURI(ref, ref);
+			metamodel = Metamodel.fromURI(ref, ref, ArtefactStatus.UNRESOLVED);
 		}
 		return metamodel;
 	}

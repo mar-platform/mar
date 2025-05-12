@@ -3,6 +3,7 @@ package mar.analysis.backend.megamodel;
 import java.io.File;
 import java.nio.file.Path;
 
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
@@ -32,7 +33,8 @@ public class XtextInspector extends ProjectInspector {
 		graph.addProgram(p);
 		
 		for (String uri : info.getGeneratedURIs()) {
-			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
+			// Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
+			Metamodel mm = Metamodel.fromURI(uri, uri, ArtefactStatus.GENERATED);
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE, MetamodelReference.Kind.TYPED_BY);
 		}

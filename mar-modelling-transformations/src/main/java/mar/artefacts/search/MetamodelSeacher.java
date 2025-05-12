@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 import mar.analysis.ecore.FootprintComputation;
+import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
 import mar.artefacts.Metamodel;
 import mar.artefacts.RecoveredPath;
 import mar.validation.AnalysisDB;
@@ -43,8 +44,8 @@ public class MetamodelSeacher {
 		this.analysisDb = analysisDb;
 		this.toProjectPathNormalizer = toProjectPathNormalizer;
 		
-		builtinMetamodelsFootprints.put(Metamodel.fromURI(EcorePackage.eINSTANCE.getName(), EcorePackage.eINSTANCE.getNsURI()), toClassNames(EcorePackage.eINSTANCE.eResource()));
-		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI()), toClassNames(UMLPackage.eINSTANCE.eResource()));
+		builtinMetamodelsFootprints.put(Metamodel.fromURI(EcorePackage.eINSTANCE.getName(), EcorePackage.eINSTANCE.getNsURI(), ArtefactStatus.BUILTIN), toClassNames(EcorePackage.eINSTANCE.eResource()));
+		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI(), ArtefactStatus.BUILTIN), toClassNames(UMLPackage.eINSTANCE.eResource()));
 	}
 
 	public void setCache(SearchCache cache) {
