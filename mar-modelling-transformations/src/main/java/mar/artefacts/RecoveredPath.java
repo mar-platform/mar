@@ -164,7 +164,7 @@ public abstract class RecoveredPath {
 		
 		@Override
 		public Artefact.ArtefactStatus toPathStatus() {
-			return Artefact.ArtefactStatus.ERROR;
+			return Artefact.ArtefactStatus.UNEXPECTED;
 		}
 	}
 	

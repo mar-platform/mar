@@ -56,7 +56,9 @@ public class ArtefactAnalysis {
 		
 		return new Result(notFoundInRawDb.totalRawFiles, notFoundInRawDb.totalArtefacts, 
 				notFoundInMegamodel.notFoundInMegamodel, notFoundInRawDb.notFoundInRawDb,
-				notFoundInRawDb.missingArtefacts, notFoundInMegamodel.buildFiles, notFoundInMegamodel.filesWithError, notFoundInMegamodel.typesNotConsidered);
+				notFoundInRawDb.missingArtefacts, 
+				notFoundInRawDb.unexpectedArtefacts,
+				notFoundInMegamodel.buildFiles, notFoundInMegamodel.filesWithError, notFoundInMegamodel.typesNotConsidered);
 	}
 	
 	/**
@@ -106,7 +108,7 @@ public class ArtefactAnalysis {
 		}
 
 		System.out.println("Errors ==> " + allErrorsById.size());
-		return new Result(files.size(), artefacts.size(), byType, null, null, buildFiles, megamodelDb.getErrorsExplicit().keySet(), typesNotConsidered);
+		return new Result(files.size(), artefacts.size(), byType, null, null, null, buildFiles, megamodelDb.getErrorsExplicit().keySet(), typesNotConsidered);
 	}
 	
 	/**
@@ -120,23 +122,32 @@ public class ArtefactAnalysis {
 		
 		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();
 		Multimap<String, Artefact> missingArtefacts = MultimapBuilder.hashKeys().arrayListValues().build();
+		Multimap<String, Artefact> unexpectedArtefacts = MultimapBuilder.hashKeys().arrayListValues().build();
 		
 		Map<? extends String, ? extends Artefact> artefacts = megamodelDb.getAllArtefacts();
 		artefacts.forEach((id, artefact) -> {
-			if (! ignoredFiles.contains(id) && 
+			if (! ignoredFiles.contains(id) &&							
 				!artefact.getFileStatus().equals(ArtefactStatus.GENERATED) && 
 				!artefact.getFileStatus().equals(ArtefactStatus.UNRESOLVED) && 
 				!artefact.getFileStatus().equals(ArtefactStatus.BUILTIN)) {
-				if (! files.containsKey(id) && !artefact.getFileStatus().equals(ArtefactStatus.MISSING)) {
+				
+				if (! files.containsKey(id) &&
+					!artefact.getFileStatus().equals(ArtefactStatus.UNEXPECTED) &&
+					!artefact.getFileStatus().equals(ArtefactStatus.MISSING)) {
+					
 					byType.put(artefact.getType(), artefact);
 				} 
 				if (artefact.getFileStatus().equals(ArtefactStatus.MISSING)) {
 					missingArtefacts.put(artefact.getType(), artefact);
 				}
+				if (artefact.getFileStatus().equals(ArtefactStatus.UNEXPECTED)) {
+					unexpectedArtefacts.put(artefact.getType(), artefact);
+				}
+				
 			}
 		});
 		
-		return new Result(files.size(), artefacts.size(), null, byType, missingArtefacts, null, null, null);
+		return new Result(files.size(), artefacts.size(), null, byType, missingArtefacts, unexpectedArtefacts, null, null, null);
 	}
 
 	public static class Result {
@@ -147,6 +158,8 @@ public class ArtefactAnalysis {
 		private Multimap<String, RawFile> notFoundInMegamodel;
 		@JsonIgnore
 		private Multimap<String, Artefact> missingArtefacts;
+		@JsonIgnore
+		private Multimap<String, Artefact> unexpectedArtefacts;
 		
 		@JsonProperty
 		private int totalArtefacts;
@@ -162,12 +175,19 @@ public class ArtefactAnalysis {
 		private Multimap<String, String> typesNotConsidered;
 		
 
-		public Result(int totalRawFiles, int totalArtefacts, Multimap<String, RawFile> notFoundInMegamodel, Multimap<String, Artefact> notFoundInRawDb, Multimap<String, Artefact> missingArtefacts, Multimap<String, String> buildFiles, Collection<String> errors, Multimap<String, String> typesNotConsidered) {
+		public Result(int totalRawFiles, int totalArtefacts, 
+				Multimap<String, RawFile> notFoundInMegamodel, 
+				Multimap<String, Artefact> notFoundInRawDb, 
+				Multimap<String, Artefact> missingArtefacts,
+				Multimap<String, Artefact> unexpectedArtefacts, 
+				Multimap<String, String> buildFiles, 
+				Collection<String> errors, Multimap<String, String> typesNotConsidered) {
 			this.notFoundInMegamodel = notFoundInMegamodel;			
 			this.notFoundInRawDb = notFoundInRawDb;
 			this.totalArtefacts = totalArtefacts;
 			this.totalRawFiles = totalRawFiles;
 			this.missingArtefacts = missingArtefacts;
+			this.unexpectedArtefacts = unexpectedArtefacts;
 			this.buildFiles = buildFiles;
 			this.filesWithError = errors != null ? new ArrayList<>(errors) : null;
 			if (filesWithError != null)
@@ -214,6 +234,16 @@ public class ArtefactAnalysis {
 				list.add(entry.getValue().getId());
 			});
 			return missing;
+		}
+		
+		@JsonProperty
+		public Map<String, Collection<String>> getUnexpectedArtefacts() {
+			Map<String, Collection<String>> unexpected = new TreeMap<>();			
+			unexpectedArtefacts.entries().forEach(entry -> {
+				Collection<String> list = unexpected.computeIfAbsent(entry.getKey(), (k) -> new ArrayList<String>());
+				list.add(entry.getValue().getId());
+			});
+			return unexpected;
 		}
 		
 		@JsonProperty

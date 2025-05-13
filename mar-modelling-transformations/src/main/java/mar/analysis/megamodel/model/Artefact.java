@@ -65,6 +65,8 @@ public class Artefact {
 		GENERATED,
 		HEURISTIC,
 		BUILTIN,
+		/** A type of file we don't know about **/
+		UNEXPECTED,
 		ERROR /* no-path */, 
 	}
 }
