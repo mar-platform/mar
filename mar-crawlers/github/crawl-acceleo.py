@@ -8,6 +8,6 @@ if __name__ == "__main__":
     print("Generating in ", args.output)
     print("  with initial=", args.init)
     
-    with open(os.path.join(args.output, 'odesign_download.csv'), 'a+', newline='') as file:
+    with open(os.path.join(args.output, 'acceleo_download.csv'), 'a+', newline='') as file:
         writer = csv.writer(file)
-        gc.process('www.eclipse.org/sirius', 'odesign', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)
+        gc.process('module', 'mtl', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)
