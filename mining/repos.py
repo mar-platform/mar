@@ -7,27 +7,15 @@ from collections import defaultdict
 from git import Repo
 import git.exc
 
-def main(root, target):
-    repos = ['repo-github-ecore',
-             'repo-github-qvto',
-             'repo-github-atl',
-             'repo-github-epsilon-etl',
-             'repo-github-epsilon-eol',
-             'repo-github-epsilon-etl',
-             'repo-github-epsilon-egl',             
-             'repo-github-jet',
-             'repo-github-xtext',
-             'repo-github-odesign',
-             'repo-github-emfatic',
-             'repo-github-acceleo',
-             'repo-github-henshin',
-             'repo-github-ocl',
-             'repo-github-emftext']
+def main(root, target, type='emf'):            
+    from common import get_repos_by_type
+    repos = get_repos_by_type(type)
     
     repo_artifact = defaultdict(list)
 
     for r in repos:        
         db_file = os.path.join(root, r, 'crawler.db')
+        print("Opening ", db_file)
         conn = sqlite3.connect(db_file)
 
         for (model_id, url) in conn.execute('SELECT model_id, git_url FROM data, repo_info where data.repo_id = repo_info.id'):
@@ -41,6 +29,8 @@ def main(root, target):
         name = url.split('/')[-1]
         if name.endswith('.git'):
             name = name[:-len('.git')]
+
+        url = url.replace('git://', 'https://')    
             
         target_folder = os.path.join(target, user, name)
         if os.path.exists(target_folder):
@@ -54,5 +44,5 @@ def main(root, target):
         except git.exc.GitCommandError as err:
             print(err)
         
-main(sys.argv[1], sys.argv[2])
+main(sys.argv[1], sys.argv[2], sys.argv[3])
 

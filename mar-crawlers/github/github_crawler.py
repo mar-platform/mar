@@ -130,19 +130,30 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
 
     initial_step = step
     iterations_without_downloading = 0
+    passes_without_results = 0
     last_size = init
     for i in range(init, end, step):
         iterations_without_downloading = iterations_without_downloading + 1
         step = initial_step * iterations_without_downloading
-        finished_chunk = False        
+        finished_chunk = False
+        
         while not finished_chunk:
-            try:            
+            if passes_without_results >= 50:
+                size = 'size:' + str(i) + '..' + str(i + step - 1)
+                print("Finished because of no results with " + size)
+                return
+           
+            try:
+                passes_without_results = passes_without_results + 1
+
                 size = 'size:' + str(i) + '..' + str(i + step - 1)        
                 print("Processing with " + size)
                 files = g.search_code(query=hint + ' extension:' + extension + ' ' + size)
+                #files = g.search_code(query=hint + ' path:' + extension + ' ' + size)
                 print("   There are " , files.totalCount)
-            
+                
                 for f in files:
+                    passes_without_results = 0
                     # api_wait_search(g)
             
                     print("   Processing ", total, "... ", f.name)
@@ -183,7 +194,8 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
                     
             # This might be worth capturing as well, for internet errors
             # requests.exceptions.ConnectionError
-                
+        
+            
     c.close()
 
 def process_single_files(file_list, output_folder):

@@ -367,3 +367,5 @@ dist
 org.eclipse.jdt.apt.core.prefs
 .classpath
 .factorypath
+
+.uuid

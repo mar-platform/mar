@@ -10,4 +10,4 @@ if __name__ == "__main__":
     
     with open(os.path.join(args.output, 'acceleo_download.csv'), 'a+', newline='') as file:
         writer = csv.writer(file)
-        gc.process('module', 'mtl', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)
+        gc.process('[module', 'mtl', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)
