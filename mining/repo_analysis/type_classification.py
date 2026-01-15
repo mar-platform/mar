@@ -99,6 +99,9 @@ def get_prompt(readme_file, description, context_size = 32768):
         return prompt
 
 
+def is_openai(model: str):
+    return model in ['gpt-5-mini', 'gpt-5-nano']
+
 # To change Ollama context size: https://blog.driftingruby.com/ollama-context-window/
 def invoke_llm(readme_file, description, model, attempts = 0):
     prompt = get_prompt(readme_file, description)
@@ -106,26 +109,36 @@ def invoke_llm(readme_file, description, model, attempts = 0):
     #model = 'llama3.2'
     #model = 'gemma3:27b'
 
-    try:
-        response: ChatResponse = chat(model=model, messages=[
-            {
-                'role': 'user',
-                'content': prompt,
-            },
-        ])
-    except:
-        print("Error processing ", readme_file)
-        
-        if attempts < 2:
-            return invoke_llm(readme_file, description, model, attempts + 1)
-            
-        # TODO: Perhaps indicate this error somehow
-        return None
+    if is_openai(model):
+        import openai
+        response = openai.ChatCompletion.create(
+            model=model,  # cheaper and faster than GPT-4
+            messages=[ { 'role': 'user', 'content': prompt, } ],
+            # max_tokens=200,  # adjust based on how long you want the answer
+            temperature=0.0
+        )
+
+        content = response.choices[0].message.content
+    else:
+        # Assume Ollama
+        try:
+            response: ChatResponse = chat(model=model, messages=[{'role': 'user', 'content': prompt, }, ])
+        except:
+            print("Error processing ", readme_file)
+            if attempts < 2:
+                return invoke_llm(readme_file, description, model, attempts + 1)
+
+            # TODO: Perhaps indicate this error somehow
+            return None
     
     #print(response['message']['content'])
     # or access fields directly from the response object
 
     content = response.message.content
+    return process_response(content)
+
+
+def process_response(content):
     print(content)
     # print(colored(content, 'orange'))
     try:
@@ -145,7 +158,7 @@ def invoke_llm(readme_file, description, model, attempts = 0):
         if not "application-domain" in result:
             result["application-domain"] = None
         if not "rationale" in result:
-            result["rationale"] = None            
+            result["rationale"] = None
         if not "category" in result:
             if "classification" in result:
                 result["category"] = result["classification"]
@@ -155,6 +168,7 @@ def invoke_llm(readme_file, description, model, attempts = 0):
         return result
     except:
         return None
+
 
 def create_target_db(target_db_file):
     target_db_conn = sqlite3.connect(target_db_file)
