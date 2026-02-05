@@ -29,7 +29,7 @@ class RepoClasification:
 #- Xtext, EMFText, TCS: For creating textual DSLs
 #- Sirius, GMF, GEF, Graphitti, Eugenia: For creating graphical DSLs
 #- ATL, Epsilon, ETL, EOL, EVL, Henshin, Acceleo, Mofscript, Xtend: Model transformation languages
-    
+
 PROMPT = """
 Your task is to help me classify a Model-Driven Engineering (MDE) project into a category.
 I will give you a README.md file from a project. Tell me to which category the project belongs to:
@@ -91,7 +91,7 @@ def get_prompt(readme_file, description, context_size = 32768):
         #print("----------")
         #print(prompt)
         #print("----------")
-            
+
         if count_tokens(prompt) > context_size:
             print("Triming prompt")
             prompt = prompt[:context_size - 1]
@@ -110,19 +110,21 @@ def invoke_llm(readme_file, description, model, attempts = 0):
     #model = 'gemma3:27b'
 
     if is_openai(model):
-        import openai
-        response = openai.ChatCompletion.create(
-            model=model,  # cheaper and faster than GPT-4
-            messages=[ { 'role': 'user', 'content': prompt, } ],
-            # max_tokens=200,  # adjust based on how long you want the answer
-            temperature=0.0
+        from openai import OpenAI
+        
+        client = OpenAI()
+        resp = client.chat.completions.create(model=model,  # cheaper and faster than GPT-4
+        messages=[ { 'role': 'user', 'content': prompt, } ],
+        # max_tokens=200,  # adjust based on how long you want the answer
+        #temperature=0.0
         )
 
-        content = response.choices[0].message.content
+        content = resp.choices[0].message.content
     else:
         # Assume Ollama
         try:
             response: ChatResponse = chat(model=model, messages=[{'role': 'user', 'content': prompt, }, ])
+            content = response.message.content
         except:
             print("Error processing ", readme_file)
             if attempts < 2:
@@ -130,11 +132,7 @@ def invoke_llm(readme_file, description, model, attempts = 0):
 
             # TODO: Perhaps indicate this error somehow
             return None
-    
-    #print(response['message']['content'])
-    # or access fields directly from the response object
 
-    content = response.message.content
     return process_response(content)
 
 
@@ -228,14 +226,21 @@ def process(root, repo_db_file, target_db_file, model):
 
     repos = get_repos(repo_db)
     for repo_id, description in repos:
-        if already_processed(repo_id, target_db):
-            print("Already processed", repo_id)
-            continue
+        try:
+            # Main program code here
+            if already_processed(repo_id, target_db):
+                print("Already processed", repo_id)
+                continue
 
-        print("Processing ", repo_id)
-        classification = classify_repo(root, repo_id, description, model)
-        insert_data(target_db, classification)
-        print(" - Classified as ", classification.type, classification.application_domain, classification.suggestion, classification.error)
+            print("Processing ", repo_id)
+            classification = classify_repo(root, repo_id, description, model)
+            insert_data(target_db, classification)
+            print(" - Classified as ", classification.type, classification.application_domain, classification.suggestion, classification.error)
+        except KeyboardInterrupt:
+          print("Ctrl-C pressed!")
+          import sys
+          sys.exit(0)
+            
 
     repo_db.close()
     target_db.close()

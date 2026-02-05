@@ -68,7 +68,7 @@ def insert_dependency(filepath, depending_file, cursor):
                    [filepath, depending_file, extension])
 
 
-def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
+def process_folder(input_folder, extension_map, file_map, cursor, check_cause = False, conf = None):
     for (dirpath, dirnames, filenames) in os.walk(input_folder, topdown=True, followlinks=False):
         # See: https://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
         dirnames[:] = [d for d in dirnames if d != '.git']
@@ -108,15 +108,28 @@ def process_folder(input_folder, extension_map, file_map, cursor, conf = None):
                     insert_file(project_path, filepath, filename, ext, filetype, cursor)
                     inserted = True
 
-                if inserted and is_artefact_file_type(filetype):
-                    deps = cause.get_using_files(filepath, filetype, input_folder)
-                    for d in deps:
-                        insert_dependency(filepath, d, cursor)
+                if check_cause:
+                    if inserted and is_artefact_file_type(filetype):
+                        deps = cause.get_using_files(filepath, filetype, input_folder)
+                        for d in deps:
+                            insert_dependency(filepath, d, cursor)
 
             except UnicodeEncodeError:
                 print("Invalid file name")
 
-                    
+    # Create a view named project_with_files with the query:
+    cursor.execute("DROP VIEW IF EXISTS mde_projects;")
+    cursor.execute("""
+    CREATE VIEW mde_projects AS
+    SELECT project_path, name
+    FROM projects
+    WHERE project_path IN (
+        SELECT project_path FROM files
+    );
+    """)
+
+
+
 def open_db(output_file):
     import sqlite3
     conn   = sqlite3.connect(output_file)
@@ -140,6 +153,7 @@ def parse_args():
                     help='output database file')
     parser.add_argument('-c', '--configuration', dest='conf', metavar='CONFIGURATION_FOLDER', type=str, required=False,
                     help='configuration file')
+    parser.add_argument('-cause', '--cause', dest='cause', action='store_true')
 
     args = parser.parse_args()
 
@@ -204,6 +218,6 @@ if __name__ == "__main__":
     else:
         conf = None
     
-    process_folder(input_folder, extensions, filenames, cursor, conf)
+    process_folder(input_folder, extensions, filenames, cursor, args.cause, conf)
 
     connection.commit()

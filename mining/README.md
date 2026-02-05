@@ -93,7 +93,15 @@ python3 type_classification.py    \
   /data3/supergraph/repo_info_emf.db \
   /data3/supergraph/repo_classification_emf_qwen3.db --model qwen3:30b
 ```
- 
+
+To classify the repository we take into account the contents of the README.md file
+(We could also use the contents of MDE artefacts. This another line.)
+The result of the classification can be:
+
+- No readme file. This set `error = True` and `readme = False`
+- Readme too short. This set `error = True` and `readme = False`
+- Error with the LLM. This set `error = True` and `readme = True`
+- Successful classification. This set `error = False` and `readme = True`
 
 The extracted information is:
 

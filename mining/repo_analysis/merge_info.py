@@ -59,17 +59,28 @@ def process(db_root: str, crawler_root: str):
     cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_info_mps.db')}' AS mps")
     cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_info_spoofax.db')}' AS spoofax")
 
-    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_emf_qwen3.db')}' AS emfc")
-    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_mps_qwen3.db')}' AS mpsc")
-    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_spoofax_qwen3.db')}' AS spoofaxc")
+    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_emf_qwen3.db')}' AS emfc_qwen3")
+    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_mps_qwen3.db')}' AS mpsc_qwen3")
+    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_spoofax_qwen3.db')}' AS spoofaxc_qwen3")
+
+    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_emf_gpt5mini.db')}' AS emfc_gpt5mini")
+    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_mps_gpt5mini.db')}' AS mpsc_gpt5mini")
+    cursor.execute(f"ATTACH DATABASE '{os.path.join(db_root, 'repo_classification_spoofax_gpt5mini.db')}' AS spoofaxc_gpt5mini")
 
     cursor.execute("INSERT OR IGNORE INTO main.repo_info SELECT *, 'emf' as repo_type FROM emf.repo_info")
     cursor.execute("INSERT OR IGNORE INTO main.repo_info SELECT *, 'mps' as repo_type FROM mps.repo_info")
     cursor.execute("INSERT OR IGNORE INTO main.repo_info SELECT *, 'spoofax' as repo_type FROM spoofax.repo_info")
 
-    cursor.execute("INSERT OR IGNORE INTO main.repo_classification SELECT *, 'qwen3' as repo_type FROM emfc.repo_classification")
-    cursor.execute("INSERT OR IGNORE INTO main.repo_classification SELECT *, 'qwen3' as repo_type FROM mpsc.repo_classification")
-    cursor.execute("INSERT OR IGNORE INTO main.repo_classification SELECT *, 'qwen3' as repo_type FROM spoofaxc.repo_classification")
+    cursor.execute("INSERT OR IGNORE INTO main.repo_classification SELECT *, 'qwen3' as repo_type FROM emfc_qwen3.repo_classification")
+    cursor.execute("INSERT OR IGNORE INTO main.repo_classification SELECT *, 'qwen3' as repo_type FROM mpsc_qwen3.repo_classification")
+    cursor.execute("INSERT OR IGNORE INTO main.repo_classification SELECT *, 'qwen3' as repo_type FROM spoofaxc_qwen3.repo_classification")
+
+    cursor.execute(
+        "INSERT OR IGNORE INTO main.repo_classification SELECT *, 'gpt5mini' as repo_type FROM emfc_gpt5mini.repo_classification")
+    cursor.execute(
+        "INSERT OR IGNORE INTO main.repo_classification SELECT *, 'gpt5mini' as repo_type FROM mpsc_gpt5mini.repo_classification")
+    cursor.execute(
+        "INSERT OR IGNORE INTO main.repo_classification SELECT *, 'gpt5mini' as repo_type FROM spoofaxc_gpt5mini.repo_classification")
 
     cursor.execute("INSERT OR IGNORE INTO main.repo_git SELECT * FROM emf.repo_git")
     cursor.execute("INSERT OR IGNORE INTO main.repo_git SELECT * FROM mps.repo_git")
@@ -81,6 +92,13 @@ def process(db_root: str, crawler_root: str):
     cursor.execute("DETACH DATABASE emf")
     cursor.execute("DETACH DATABASE mps")
     cursor.execute("DETACH DATABASE spoofax")
+    cursor.execute("DETACH DATABASE emfc_qwen3")
+    cursor.execute("DETACH DATABASE mpsc_qwen3")
+    cursor.execute("DETACH DATABASE spoofaxc_qwen3")
+    cursor.execute("DETACH DATABASE emfc_gpt5mini")
+    cursor.execute("DETACH DATABASE mpsc_gpt5mini")
+    cursor.execute("DETACH DATABASE spoofaxc_gpt5mini")
+
 
     repos = get_repos_by_type("emf")
     for r in repos:
