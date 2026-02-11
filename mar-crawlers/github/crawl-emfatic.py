@@ -10,4 +10,5 @@ if __name__ == "__main__":
     
     with open(os.path.join(args.output, 'emfatic_download.csv'), 'a+', newline='') as file:
         writer = csv.writer(file)
+        # TODO: Include class
         gc.process('package', 'emf', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)

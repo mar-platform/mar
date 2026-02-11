@@ -16,12 +16,40 @@ class Configuration:
         else:
             self.content_filters = []
 
+        if 'must_contain_filters' in data:
+            filters = data['must_contain_filters']
+            self.must_contain_filters = {"." + filter['extension']: filter['contains'] for filter in filters}
+        else:
+            self.must_contain_filters = []
+
         if 'ignore' in data:
             self.ignored_filters = [i['pattern'] for i in data['ignore']]
         else:
             self.ignored_filters = []
 
+    def is_accepted(self, fullpath, filepath, ext):
+        if ext in self.must_contain_filters:
+            filter_ = self.must_contain_filters[ext]
+            #print("Checking filter", filter_)
+            try:
+                with open(fullpath, 'r') as fp:
+                    for l_no, line in enumerate(fp):
+                        if filter_ in line:
+                            print("It's accepted: ", filepath)
+                            return True
+                    # If the filter doesn't appear, return false
+                    #print("Not accepted: ", filepath)
+                    return False
+            except:
+                print("Can't process ", filepath)
+                return False
+        else:
+            return True
+
     def is_filtered_out(self, fullpath, filepath, ext):
+        if not self.is_accepted(fullpath, filepath, ext):
+            return True
+
         if ext in self.content_filters:
             filter_ = self.content_filters[ext]
             try:
@@ -32,6 +60,7 @@ class Configuration:
                             return True
             except:
                 print("Can't process ", filepath)
+                return True
 
         for p in self.ignored_filters:
             # To force match everything after the pattern when this is not a glob pattern
@@ -68,7 +97,7 @@ def insert_dependency(filepath, depending_file, cursor):
                    [filepath, depending_file, extension])
 
 
-def process_folder(input_folder, extension_map, file_map, cursor, check_cause = False, conf = None):
+def process_folder(input_folder, extension_map, file_map, cursor, processed_projects, check_cause = False, conf = None):
     for (dirpath, dirnames, filenames) in os.walk(input_folder, topdown=True, followlinks=False):
         # See: https://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
         dirnames[:] = [d for d in dirnames if d != '.git']
@@ -81,15 +110,31 @@ def process_folder(input_folder, extension_map, file_map, cursor, check_cause = 
         if length < 2:
             continue
         elif length == 2:
-            insert_project(dirpath, cursor)
             project_path = dirpath
+            # It may happen that when processing another repository folder, there is a clash
+            # because the project has been downloaded twice. In this case, it has already been processed
+            # so we skip it
+            if project_path in processed_projects:
+                continue
+
+            insert_project(dirpath, cursor)
+            processed_projects.add(project_path)
+
             #continue
         else:
             project_path = os.path.sep.join(parts[0:2])
 
+        #print("Processing: ", dirpath)
+
         for filename in filenames:
+
             try:
                 filepath = os.path.join(dirpath, filename)
+
+                if filepath in processed_projects:
+                    continue
+                processed_projects.add(filepath)
+
                 ext = os.path.splitext(filename)[1]
 
                 if conf is not None:
@@ -146,7 +191,7 @@ def open_db(output_file):
 def parse_args():
     parser = argparse.ArgumentParser(description='Analyse the files in the repository and generates a databaes containing references to the interesting files.')
     parser.add_argument("-d", "--dir", dest='input', metavar='INPUT_FOLDER', type=str, required=True,
-                    help='input folder for the test files')
+                    help='input folder(s) for the repositories')
     #parser.add_argument('-f', '--filelist', dest='filelist', metavar='FILE_LIST', type=str,
     #                help='List of files to be considered.')
     parser.add_argument('-o', '--output', dest='output', metavar='OUTPUT_FOLDER', type=str, required=True,
@@ -164,7 +209,7 @@ def is_artefact_file_type(file_type):
 
 if __name__ == "__main__":
     args = parse_args()
-    input_folder = args.input
+    input_folders = args.input
     output_db = args.output
 
     cursor, connection = open_db(output_db)
@@ -207,7 +252,10 @@ if __name__ == "__main__":
         '.henshin': 'henshin',
 
         '.jet': 'jet',
-        '.javajet': 'jet'
+        '.javajet': 'jet',
+
+        '.sdf3': 'spoofax',
+        '.mps': 'mps'
     }
 
     # TODO: A list of extensions which we need to inspect inside to know the content (e.g., xml files)
@@ -217,7 +265,10 @@ if __name__ == "__main__":
         conf = load_config(args.conf)
     else:
         conf = None
-    
-    process_folder(input_folder, extensions, filenames, cursor, args.cause, conf)
+
+    # Split input_folders using ":"
+    processed_projects = set()
+    for input_folder in input_folders.split(":"):
+        process_folder(input_folder, extensions, filenames, cursor, processed_projects, args.cause, conf)
 
     connection.commit()

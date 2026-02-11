@@ -1,0 +1,5 @@
+must_contain_filters:
+  - extension: cs
+    contains: "::="
+  - extension: emf
+    contains: "@namespace"
