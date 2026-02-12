@@ -23,6 +23,11 @@
 			<name>Eclipse ATL repository</name>
 			<url>https://repo.eclipse.org/content/repositories/atl-releases/</url>
 		</repository>
+		<!-- This repository is needed because QVT-bundle which used dependencies from Eclipse -->		
+		<repository>
+		    <id>eclipse-snapshots</id>
+		    <url>https://repo.eclipse.org/content/repositories/snapshots/</url>
+		</repository>		
 	</repositories>
 
 	<dependencies>
