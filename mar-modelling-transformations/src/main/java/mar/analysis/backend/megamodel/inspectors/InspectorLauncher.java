@@ -233,6 +233,13 @@ public class InspectorLauncher {
 		public List<Ignored> getIgnored() {
 			return ignored;
 		}
+
+		public void merge(InspectorResult r) {
+			this.graphs.addAll(r.graphs);
+			this.ignored.addAll(r.ignored);			
+			this.errors.addAll(r.errors);
+			this.internalErrors.addAll(r.internalErrors);			
+		}
 	}
 	
 	public static class InternalError {

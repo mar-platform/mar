@@ -64,15 +64,24 @@ import mar.validation.ResourceAnalyser.OptionMap;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 @Command(name = "analyser", mixinStandardHelpOptions = true, description = "Generates a mega-model from different sources")
 public class MegamodelAnalysis implements Callable<Integer> {
 
-	@Parameters(index = "0", description = "Repository folder.")
-	private File rootFolder;
-	@Parameters(index = "1", description = "Output file.")
+	@Option(required = true, names = { "--repository" }, description = "The root folder")
+	private File repositoryDataFolder;
+
+	@Option(required = true, names = { "--repoDB" }, description = "The database with the collected repository information")
+	private File repoDBFile;
+
+	@Option(required = true, names = { "--cache" }, description = "Cache folder")
+	private File cacheFolder;
+
+	@Option(required = true, names = { "--output" }, description = "The output file")
 	private File output;
+	
+	
+	
 	@Option(required = false, names = { "--configuration" }, description = "Configuration files")
 	private File configurationFile;
 	@Option(required = false, names = { "--analysis-ecore" }, description = "Force analysis of Ecore")
@@ -288,8 +297,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		new SingleEcoreFileAnalyser.Factory().configureEnvironment();
 		new UMLAnalyser.Factory().configureEnvironment();
 		
-		File repositoryDataFolder = Paths.get(rootFolder.getAbsolutePath(), "repos").toFile();
-		File ecoreAnalysisDbFile  = Paths.get(rootFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
+		File ecoreAnalysisDbFile  = Paths.get(cacheFolder.getAbsolutePath(), "analysis", "ecore" , "analysis.db").toFile();
 		
 		if (!analysisEcore && !ecoreAnalysisDbFile.exists()) {
 			System.out.println("No analysis file. Run with --analysis-ecore");
@@ -460,7 +468,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	private File getRepositoryDbFile() {
-		return Paths.get(rootFolder.getAbsolutePath(), "analysis", "repo.db").toFile();
+		return repoDBFile;
 	}
 
 	public static class RepositoryDBProvider implements IFileProvider {
