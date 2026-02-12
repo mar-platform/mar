@@ -39,11 +39,11 @@ utils/.ipynb_checkpoints/
 .test_docker_running
 external-resources
 
-thirdparty/archimate/com.archimatetool.jdom.jar
-thirdparty/archimate/com.archimatetool.model.jar
-thirdparty/archimate/jaxen-1.1.3.jar
-thirdparty/archimate/jdom-2.0.5.jar
-thirdparty/lilypond/
+#thirdparty/archimate/com.archimatetool.jdom.jar
+#thirdparty/archimate/com.archimatetool.model.jar
+#thirdparty/archimate/jaxen-1.1.3.jar
+#thirdparty/archimate/jdom-2.0.5.jar
+#thirdparty/lilypond/
 mar-restservice/lib/
 
 
