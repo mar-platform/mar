@@ -5,7 +5,10 @@ mvn install:install-file -Dfile="thirdparty/archimate/com.archimatetool.jdom.jar
 
 mvn install:install-file -Dfile="thirdparty/lilypond/org.elysium_0.6.0.201805301416.jar" -DgroupId=elysium -DartifactId=elysium -Dversion="0.6.0" -Dpackaging=jar
 
-mvn install:install-file -Dfile="thirdparty/anatlyzer/all.jar" -DgroupId=anatlyzer -DartifactId=anatlyzer-bundle -Dversion="0.8.0" -Dpackaging=jar
+mvn install:install-file -Dfile="thirdparty/qvto-lib/qvt-bundle-4.4-repackaged.jar" -DgroupId=at.ac.wu.nm -DartifactId=qvt-bundle -Dversion="4.4" -Dpackaging=jar
+
+#
+#mvn install:install-file -Dfile="thirdparty/anatlyzer/all.jar" -DgroupId=anatlyzer -DartifactId=anatlyzer-bundle -Dversion="0.8.0" -Dpackaging=jar
 
 #    jaxen-1.1.3.jar  jdom-2.0.5.jar
 
@@ -15,14 +18,14 @@ mvn install:install-file -Dfile="thirdparty/anatlyzer/all.jar" -DgroupId=anatlyz
 cp -r ./mar-modelling/lib/ mar-restservice/lib
 
 
-pushd .
-cd thirdparty
-git clone https://github.com/mrcalvin/qvto-cli.git
-cd qvto-cli/qvt-bundle
-# This is an old project and we need to update the versions
-sed -i 's/http:\/\/download.eclipse.org\/releases\/luna/http:\/\/download.eclipse.org\/releases\/2021-09/' pom.xml
-sed -i 's/0\.22\.0/2\.6\.0/g' pom.xml
+#pushd .
+#cd thirdparty
+#git clone https://github.com/mrcalvin/qvto-cli.git
+#cd qvto-cli/qvt-bundle
+## This is an old project and we need to update the versions
+#sed -i 's/http:\/\/download.eclipse.org\/releases\/luna/http:\/\/download.eclipse.org\/releases\/2021-09/' pom.xml
+#sed -i 's/0\.22\.0/2\.6\.0/g' pom.xml
 
-mvn clean install
-popd
->>>>>>> Ability to load QVTo transformations
+#mvn clean install
+#popd
+
