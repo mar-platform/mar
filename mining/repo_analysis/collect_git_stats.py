@@ -140,4 +140,6 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    process(args.root, args.target_db)
+    processed_projects = set()
+    for input_folder in args.root.split(":"):
+        process(input_folder, args.target_db)

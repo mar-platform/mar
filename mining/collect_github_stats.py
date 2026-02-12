@@ -2,6 +2,7 @@ import argparse
 import json
 import sqlite3
 import os
+from dataclasses import dataclass
 
 from github import Github
 from typing import Dict, Any
@@ -128,45 +129,69 @@ def repo_already_inserted(id, conn):
     c.close()
     return r
 
-def process(root, db, repo_type):
-    target_db_conn = sqlite3.connect(db)
-    create_table(target_db_conn)
+@dataclass
+class RepoInfo:
+   id: str
+   name: str
 
+
+def all_repos_from_crawler_db(root, repo_type):
+    result = []
     repos = get_repos_by_type(repo_type)
-    token = os.environ.get('GH_TOKEN')
-    if token is None:
-        print("GH_TOKEN variable required")
-        exit(-1)
-
-    repos_checked = set()
     for r in repos:
         db_file = os.path.join(root, r, 'crawler.db')
         print("Opening ", db_file)
         conn = sqlite3.connect(db_file)
 
         for (id, name) in conn.execute('SELECT full_name, name FROM repo_info group by full_name'):
-            if id in repos_checked:
-                print("Already checked ", id)
-                continue
-            
-            if repo_already_inserted(id, target_db_conn):
-                print("Already inserted ", id)
-                continue
-
-            print("Analysing ", name, " - ", id)
-            try:
-                data = get_repo_stats(id, token=token)
-            except Exception as e:
-                print("Error analysing ", id)
-
-            repos_checked.add(id)
-                
-            if data["private"]:
-                continue
-
-            insert_data(id, repo_type, data, target_db_conn)
+            result.append(RepoInfo(id, name))
 
         conn.close()
+    return result
+
+def all_repos_from_organize_db(db_file):
+    conn = sqlite3.connect(db_file)
+    result = []
+    for (id, name) in conn.execute('SELECT project_path, name FROM projects'):
+        result.append(RepoInfo(id, name))
+
+    conn.close()
+    return result
+
+def process(db, all_repos):
+    target_db_conn = sqlite3.connect(db)
+    create_table(target_db_conn)
+
+    token = os.environ.get('GH_TOKEN')
+    if token is None:
+        print("GH_TOKEN variable required")
+        exit(-1)
+
+    repos_checked = set()
+    for r in all_repos:
+        id = r.id
+        name = r.name
+
+        if id in repos_checked:
+            print("Already checked ", id)
+            continue
+
+        if repo_already_inserted(id, target_db_conn):
+            print("Already inserted ", id)
+            continue
+
+        print("Analysing ", name, " - ", id)
+        try:
+            data = get_repo_stats(id, token=token)
+        except Exception as e:
+            print("Error analysing ", id)
+
+        repos_checked.add(id)
+
+        if data["private"]:
+            continue
+
+        insert_data(id, 'any', data, target_db_conn)
 
     target_db_conn.close()
 
@@ -198,8 +223,8 @@ CREATE TABLE IF NOT EXISTS repo_info (
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Collect repository stats from GitHub.')
-    parser.add_argument('root', metavar='REPO_ROOT', type=str,
-                   help='folder with the repository databases')
+    parser.add_argument('root', metavar='REPO_ROOT_OR_ORGANIZEDB', type=str,
+                   help='folder with the repository databases (to use directly the crawlers) or an organize.db')
     parser.add_argument('target_db', metavar='TARGET_DB', type=str,
                    help='db with the recovered data')
     parser.add_argument('repo_type', metavar='repository_type', type=str,
@@ -211,4 +236,9 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    process(args.root, args.target_db, args.repo_type)
+    if os.path.isdir(args.root):
+        all_repos = all_repos_from_crawler_db(args.root, args.repo_type)
+    else:
+        all_repos = all_repos_from_organize_db(args.root)
+
+    process(args.target_db, all_repos)

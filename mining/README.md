@@ -27,7 +27,17 @@ python3 download_repos.py ../mar-crawlers/github/crawled-data/ /data3/supergraph
 
 The repositories are stored using the convention: `user/repo-name`.
 
-<!-- TODO: See if we are using organize.py now or not -->
+## Consolidating the information
+
+We read the information from the downloaded repositories in order do a post-processing step
+to rule out certain repositories or invalid files.
+
+```bash
+python3 organize.py \
+  -d /data3/supergraph/repos:/data3/supergraph/repos-mps:/data3/supergraph/repos-spoofax  \
+  -o /data3/supergraph/organize3.db \
+  -c configuration.yaml
+```
 
 ## Extracting repository information
 
@@ -38,19 +48,23 @@ We started with EMF only, and then we added MPS and Spoofax.*)
 
 This is done in two substeps:
 
-* `collect_repository_stats`: Connects to GitHub to extract information about each repository
-  ```bash
-  python3 collect_repository_stats.py ../mar-crawlers/github/crawled-data/ /data3/supergraph/repo_info_spoofax.db spoofax
-  ```
+* `collect_github_stats`: Connects to GitHub to extract information about each repository
+```bash
+python3 collect_github_stats.py /data3/supergraph/organize3.db /data3/supergraph/repo_info3.db any
+  
+# This was the old way
+#  python3 collect_github_stats.py ../mar-crawlers/github/crawled-data/ /data3/supergraph/repo_info_spoofax.db spoofax
+```
 
   This generates an "`info`" database. **TODO: FIND A BETTER NAME.** 
 
 * `collect_git_stats`: in a second step the database is completed with information extracted from the actual Git repository
 stored locally.
 
-  ```bash
-  python3 collect_git_stats.py /data3/supergraph/repos-spoofax/ /data3/supergraph/repo_info_spoofax.db
-  ```
+```bash
+python3 collect_git_stats.py /data3/supergraph/repos/ /data3/supergraph/repo_info3.db
+#  python3 collect_git_stats.py /data3/supergraph/repos-spoofax/ /data3/supergraph/repo_info_spoofax.db
+```
 
 The structure of the database is: 
 
