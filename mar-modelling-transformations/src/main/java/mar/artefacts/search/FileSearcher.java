@@ -79,6 +79,7 @@ public class FileSearcher {
 		try {
 			Optional<Path> match = Files.walk(projectRoot)
 								.filter(f -> ! f.startsWith("."))
+								.filter(f -> Files.isRegularFile(f))
 								.filter(f -> f.endsWith(filename))
 								.map(p -> repoRoot.relativize(p))
 								.sorted((f1, f2) -> Integer.compare(distance(loosyPath, f1), distance(loosyPath, f2)))
