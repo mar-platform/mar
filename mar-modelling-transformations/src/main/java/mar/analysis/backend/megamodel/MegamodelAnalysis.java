@@ -168,6 +168,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return computation.run();
 	}
 
+	// This is computing the project-level graph
 	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, DuplicationAnalysisResult duplicates, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();

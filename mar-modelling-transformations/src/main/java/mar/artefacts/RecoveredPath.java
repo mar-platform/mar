@@ -106,6 +106,10 @@ public abstract class RecoveredPath {
 
 	/**
 	 * A path that was found but we are not sure if this is the real file.
+	 * The important property is that the file do exists in the repository,
+	 * so a proper edge can be established. The semantics is thus that we have
+	 * picked this file but from a "loosy path" and we have obtained this file
+	 * matching just promising parts of the file.
 	 * 
 	 * @author jesus
 	 */
