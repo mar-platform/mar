@@ -69,12 +69,16 @@
 
       renderer = new Sigma(graph, container);
       renderer.on("clickNode", (e) => {
-        currentNode = graph.getNodeAttributes(e.node).impl;
+        selectNode(graph.getNodeAttributes(e.node).impl);
       });
       renderer.setSetting("nodeReducer", (nodeId, data) => {
         const res: Partial<NodeDisplayData> = { ...data };
         if (!checkedTypes[data.nodeType]) res.hidden = true;
         if (!showUnconnectedNodes && graph.degree(nodeId) == 0) res.hidden = true;
+        if (currentNode?.id === nodeId) {
+          res.highlighted = true;
+          res.size = (data.size ?? 5) * 2;
+        }
         return res;
       });
       renderer.setSetting("edgeReducer", (edge, data) => {
@@ -87,6 +91,11 @@
     }
 
     function refresh() { renderer?.refresh(); }
+
+    function selectNode(nodeImpl: any) {
+      currentNode = nodeImpl;
+      renderer?.refresh();
+    }
 
     function redoLayout() {
       const s = forceAtlas2.inferSettings(graph);
@@ -144,11 +153,11 @@
     {#if currentNode}
       <button
         class="text-xs text-muted-foreground hover:text-foreground self-start flex items-center gap-1 cursor-pointer"
-        onclick={() => currentNode = null}
+        onclick={() => { currentNode = null; renderer?.refresh(); }}
       >
         ← Back
       </button>
-      <ArtifactInfo graph={graph} node={currentNode} />
+      <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
     {:else if children}
       {@render children()}
     {/if}
@@ -158,7 +167,12 @@
         <AccordionItem header="All artefacts">
           <ul class="text-sm space-y-0.5">
             {#each getArtefactNodes(document.nodes) as node}
-              <li>{node.artefact.name}</li>
+              <li>
+                <button
+                  class="text-left hover:underline cursor-pointer {currentNode?.id === node.id ? 'font-semibold' : ''}"
+                  onclick={() => selectNode(node)}
+                >{node.artefact.name}</button>
+              </li>
             {/each}
           </ul>
         </AccordionItem>

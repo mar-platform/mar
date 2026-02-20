@@ -1,7 +1,11 @@
 <script lang="ts">
     import type Graph from 'graphology'
 
-    let { node, graph }: { node: any; graph: Graph } = $props();
+    let { node, graph, onNodeSelect }: {
+      node: any;
+      graph: Graph;
+      onNodeSelect?: (node: any) => void;
+    } = $props();
 
     interface Dependency {
         source: any;
@@ -61,7 +65,12 @@
     {:else}
       <ul class="space-y-0.5">
         {#each dependencies as dep}
-          <li>{dep.targetName}</li>
+          <li>
+            <button
+              class="text-left hover:underline cursor-pointer"
+              onclick={() => onNodeSelect?.(dep.target)}
+            >{dep.targetName}</button>
+          </li>
         {/each}
       </ul>
     {/if}
