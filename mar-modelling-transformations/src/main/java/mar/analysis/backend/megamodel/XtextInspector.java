@@ -9,6 +9,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.ExistingPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.models.xtext.XtextLoader;
@@ -33,8 +34,13 @@ public class XtextInspector extends ProjectInspector {
 		graph.addProgram(p);
 		
 		for (String uri : info.getGeneratedURIs()) {
-			// Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent());
-			Metamodel mm = Metamodel.fromURI(uri, uri, ArtefactStatus.GENERATED);
+			Metamodel foundMetamodel = tryFindURI(uri);
+			Metamodel mm;
+			if (foundMetamodel.getPath() instanceof ExistingPath) {
+				mm = foundMetamodel;
+			} else {
+				mm = Metamodel.fromURI(uri, uri, ArtefactStatus.GENERATED);
+			}
 			graph.addMetamodel(mm);
 			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE, MetamodelReference.Kind.TYPED_BY);
 		}

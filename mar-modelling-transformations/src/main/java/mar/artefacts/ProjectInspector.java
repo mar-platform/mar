@@ -151,7 +151,7 @@ public abstract class ProjectInspector {
 	}
 
 	@CheckForNull
-	private Metamodel tryFindURI(String uriOrFile) {
+	protected Metamodel tryFindURI(String uriOrFile) {
 		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s);
 		for(Model m : models) {
 			if (m.getRelativePath().startsWith(projectSubPath)) {

@@ -20,6 +20,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.emf.common.util.DelegatingResourceLocator;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import com.google.common.base.Preconditions;
