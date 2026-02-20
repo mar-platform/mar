@@ -19,6 +19,7 @@
       children?: import('svelte').Snippet;
     } = $props();
 
+    // ── Graph state ──────────────────────────────────────────
     let container: HTMLDivElement;
     let graph: Graph;
     let currentNode = $state<any>(null);
@@ -40,8 +41,7 @@
     $effect(() => {
       if (document != undefined && container != undefined) {
         currentNode = null;
-        if (renderer != null)
-          renderer.kill();
+        if (renderer != null) renderer.kill();
         createNetwork(document);
       }
     });
@@ -49,27 +49,16 @@
     function createNetwork(doc: any) {
       graph = new UndirectedGraph();
       doc.nodes.forEach((node: any) => {
-        let type: string;
-        let name: string;
+        let type: string, name: string;
         if (node._type == 'artefact') {
-            type = node.artefact.type;
-            name = node.artefact.name;
+            type = node.artefact.type; name = node.artefact.name;
         } else if (node._type == 'virtual') {
-            type = node.kind;
-            name = node.id;
+            type = node.kind; name = node.id;
         } else {
-            type = 'error';
-            name = 'unknown';
+            type = 'error'; name = 'unknown';
         }
-        graph.addNode(node.id, {
-          x: 0, y: 0,
-          impl: node,
-          nodeType: type,
-          label: name,
-          color: colorMap[type] || '#b34f47'
-        });
+        graph.addNode(node.id, { x: 0, y: 0, impl: node, nodeType: type, label: name, color: colorMap[type] || '#b34f47' });
       });
-
       doc.edges.forEach((edge: any) => {
         graph.addEdge(edge.source, edge.target, { edgeType: edge.type });
       });
@@ -82,14 +71,12 @@
       renderer.on("clickNode", (e) => {
         currentNode = graph.getNodeAttributes(e.node).impl;
       });
-
       renderer.setSetting("nodeReducer", (nodeId, data) => {
         const res: Partial<NodeDisplayData> = { ...data };
         if (!checkedTypes[data.nodeType]) res.hidden = true;
         if (!showUnconnectedNodes && graph.degree(nodeId) == 0) res.hidden = true;
         return res;
       });
-
       renderer.setSetting("edgeReducer", (edge, data) => {
         const res: Partial<EdgeDisplayData> = { ...data };
         const srcType = graph.getNodeAttribute(graph.source(edge), "nodeType");
@@ -99,13 +86,11 @@
       });
     }
 
-    function refresh() {
-      renderer?.refresh();
-    }
+    function refresh() { renderer?.refresh(); }
 
     function redoLayout() {
-      const sensibleSettings = forceAtlas2.inferSettings(graph);
-      forceAtlas2.assign(graph, { iterations: numberOfIterations, settings: sensibleSettings });
+      const s = forceAtlas2.inferSettings(graph);
+      forceAtlas2.assign(graph, { iterations: numberOfIterations, settings: s });
       refresh();
     }
 
@@ -113,21 +98,49 @@
       renderer?.setSetting("labelRenderedSizeThreshold", +(<HTMLInputElement>event.target).value);
     }
 
-    function applyNodeFilter(_event: Event) {
-      console.log(renderer);
-    }
+    function applyNodeFilter(_event: Event) { console.log(renderer); }
 
     function getArtefactNodes(nodes: any[]) {
       return nodes
         .filter((n: any) => n._type == 'artefact')
         .filter((n: any) => checkedTypes[n.artefact.type]);
     }
+
+    // ── Resize logic ─────────────────────────────────────────
+    let containerEl: HTMLDivElement;
+    let sidebarWidth = $state(256);
+    let dragging = $state(false);
+
+    $effect(() => {
+      if (!dragging) return;
+
+      const onMove = (e: MouseEvent) => {
+        const rect = containerEl.getBoundingClientRect();
+        sidebarWidth = Math.max(150, Math.min(600, e.clientX - rect.left));
+      };
+      const onUp = () => { dragging = false; };
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      window.document.body.style.cursor = 'col-resize';
+      window.document.body.style.userSelect = 'none';
+
+      return () => {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        window.document.body.style.cursor = '';
+        window.document.body.style.userSelect = '';
+      };
+    });
 </script>
 
-<div class="flex gap-4 items-start">
+<div class="flex items-start" bind:this={containerEl}>
 
   <!-- ── Left sidebar ── -->
-  <aside class="w-64 shrink-0 flex flex-col gap-2 overflow-y-auto max-h-[680px]">
+  <aside
+    class="shrink-0 flex flex-col gap-2 overflow-y-auto max-h-[680px]"
+    style="width: {sidebarWidth}px"
+  >
     {#if currentNode}
       <button
         class="text-xs text-muted-foreground hover:text-foreground self-start flex items-center gap-1 cursor-pointer"
@@ -153,8 +166,18 @@
     </div>
   </aside>
 
+  <!-- ── Drag handle ── -->
+  <div
+    class="w-2 shrink-0 self-stretch cursor-col-resize flex items-center justify-center group"
+    role="separator"
+    aria-orientation="vertical"
+    onmousedown={(e) => { e.preventDefault(); dragging = true; }}
+  >
+    <div class="w-px h-full bg-border group-hover:bg-primary/50 transition-colors"></div>
+  </div>
+
   <!-- ── Right: controls + canvas ── -->
-  <div class="flex-1 min-w-0 flex flex-col gap-2">
+  <div class="flex-1 min-w-0 flex flex-col gap-2 pl-2">
 
     <!-- Type filter -->
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -173,18 +196,15 @@
         <input type="checkbox" bind:checked={showUnconnectedNodes} onchange={() => refresh()}>
         Show unconnected
       </label>
-
       <div class="flex items-center gap-1">
         <span>Iterations:</span>
         <Input class="w-16 h-7 text-xs px-2 py-0" type="number" bind:value={numberOfIterations} />
         <Button size="sm" class="h-7 text-xs" onclick={redoLayout}>Layout</Button>
       </div>
-
       <div class="flex items-center gap-1">
         <span>Label size:</span>
         <input class="w-24" type="range" min="0" max="15" step="0.5" oninput={onLabelThreshold} />
       </div>
-
       <div class="flex items-center gap-1">
         <Input class="w-32 h-7 text-xs px-2 py-0" type="text" placeholder="Filter nodes…" bind:value={nodeNameFilter} />
         <Button size="sm" class="h-7 text-xs" onclick={applyNodeFilter}>Filter</Button>
