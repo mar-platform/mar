@@ -9,55 +9,42 @@
     let document = $state<any>(undefined);
 
     function submitQuery(query: string) {
-        console.log(query);
-        if (query == undefined)
-            return;
+        if (!query) return;
         fetch(API.graphFromSql(query))
             .then(apiResponse => apiResponse.json())
             .then(doc => document = doc);
     }
-
-    $effect(() => {
-        console.log(document);
-    });
 </script>
 
-<div class="mb-4">
-    <Label for="query">SQL Query</Label>
-    <textarea
-      id="query"
-      name="text"
-      class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      bind:value={sqlQuery}
-    ></textarea>
-    <Button class="mt-2" onclick={() => submitQuery(sqlQuery)}>Submit</Button>
+<!-- Query form (always visible above the graph) -->
+<div class="mb-3 flex gap-2 items-end">
+    <div class="flex-1">
+        <Label for="query">SQL Query</Label>
+        <textarea
+          id="query"
+          name="text"
+          class="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          bind:value={sqlQuery}
+        ></textarea>
+    </div>
+    <Button onclick={() => submitQuery(sqlQuery)}>Submit</Button>
 </div>
 
-<div class="flex gap-5">
-    <div>
-        <pre class="text-xs bg-muted p-3 rounded-md">
-CREATE TABLE projects (
-    id            varchar(255) PRIMARY KEY,
-    url           text NOT NULL);
+{#if document}
+  <!-- SQL schema lives in the sidebar; replaced by artefact info on node click -->
+  <GraphVisualizer {document} types={artefactTypes}>
+    <pre class="text-xs bg-muted p-3 rounded-md overflow-x-auto">CREATE TABLE projects (
+    id   varchar(255) PRIMARY KEY,
+    url  text NOT NULL);
 CREATE TABLE artefacts (
-    id            varchar(255) PRIMARY KEY,
-    type          varchar(255) NOT NULL,
-    category      varchar(255) NOT NULL,
-    name          varchar(255) NOT NULL,
-    project_id    varchar(255)
-);
-CREATE TABLE virtual_nodes (
-    id            varchar(255) PRIMARY KEY,
-    kind          varchar(255) NOT NULL);
+    id        varchar(255) PRIMARY KEY,
+    type      varchar(255) NOT NULL,
+    category  varchar(255) NOT NULL,
+    name      varchar(255) NOT NULL,
+    project_id varchar(255));
 CREATE TABLE relationships (
-    source    varchar(255) NOT NULL,
-    target    varchar(255) NOT NULL,
-    type  varchar (255) NOT NULL);
-        </pre>
-    </div>
-    <div class="h-[600px] w-[400px] flex-grow">
-        {#if document}
-          <GraphVisualizer document={document} types={artefactTypes} />
-        {/if}
-    </div>
-</div>
+    source  varchar(255) NOT NULL,
+    target  varchar(255) NOT NULL,
+    type    varchar(255) NOT NULL);</pre>
+  </GraphVisualizer>
+{/if}
