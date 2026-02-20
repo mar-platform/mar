@@ -9,22 +9,25 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
-    "@tsconfig/svelte": "^2.0.1",
-    "svelte": "^3.44.0",
-    "svelte-check": "^2.2.7",
-    "svelte-preprocess": "^4.9.8",
-    "tslib": "^2.3.1",
-    "typescript": "^4.4.4",
-    "vite": "^2.7.2"
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.5.0",
+    "vite": "^6.0.0"
   },
   "dependencies": {
-    "bootstrap": "^5.1.3",
+    "bits-ui": "^1.0.0",
+    "clsx": "^2.1.0",
     "d3": "^7.3.0",
     "graphology": "^0.24.0",
     "graphology-layout": "^0.5.0",
     "graphology-layout-forceatlas2": "^0.8.1",
+    "lucide-svelte": "^0.469.0",
     "sigma": "^2.2.0",
-    "sveltestrap": "^5.9.0"
+    "tailwind-merge": "^2.6.0",
+    "tailwind-variants": "^0.3.0",
+    "tw-animate-css": "^1.2.0"
   }
 }

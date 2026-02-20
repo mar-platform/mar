@@ -1,19 +1,20 @@
 <script lang="ts">
-  import { Form, FormGroup, FormText, Input, Label } from 'sveltestrap';
+  import { Input } from "$lib/components/ui/input";
+  import { Label } from "$lib/components/ui/label";
   import API from './API';
   import { artefactTypes } from './GraphNodeTypes';
-  import GraphVisualizer from './GraphVisualizer.svelte';  
+  import GraphVisualizer from './GraphVisualizer.svelte';
   import { onMount } from 'svelte';
 
-  let allProjects = [];
-  let projects = [];
-  let document;
+  let allProjects: any[] = [];
+  let projects = $state<any[]>([]);
+  let document = $state<any>(undefined);
 
   onMount(() => {
       fetch(API.getProjects()).
         then(res => res.json()).
         then(doc => {
-          projects = doc
+          projects = doc;
           allProjects = doc;
         });
   });
@@ -30,7 +31,7 @@
       }
   };
 
-  const selectProject = (p : string) => {
+  const selectProject = (p: string) => {
       fetch(API.projectGraph(p)).
         then(res => res.json()).
         then(res => document = res);
@@ -38,31 +39,31 @@
 </script>
 
 <main>
-    <div style="width: 100%; overflow: hidden;">
-      <div style="width: 600px; float: left;">       
-        <Form autocomplete="off">  
-            <FormGroup>
+    <div class="flex w-full overflow-hidden">
+      <div class="w-[600px] shrink-0">
+        <form autocomplete="off">
+            <div class="mb-4">
               <Label for="name">Project name</Label>
               <Input
                 type="text"
                 name="name"
                 id="name"
                 placeholder="Write a project name"
-                on:input={searchOnChange}
-            />
-            </FormGroup>
-        </Form>
+                oninput={searchOnChange}
+              />
+            </div>
+        </form>
 
-        <ul>
+        <ul class="list-disc pl-5">
         {#each projects as project (project.id)}
-            <li><a href="#/" on:click={e => selectProject(project.id)}>{project.id}</a></li>    
+            <li><a href="#/" class="text-primary underline" onclick={(e) => selectProject(project.id)}>{project.id}</a></li>
         {/each}
         </ul>
       </div>
-      <div id="container" style="margin-left: 620px; width: calc(100wh - 600px)"> 
-        <GraphVisualizer document={document} types={artefactTypes} /> 
+      <div class="ml-5 flex-1">
+        {#if document}
+          <GraphVisualizer document={document} types={artefactTypes} />
+        {/if}
       </div>
-    </div>  
-
-  </main>
-
+    </div>
+</main>

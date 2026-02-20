@@ -1,53 +1,41 @@
-<script>
-    import { Button, FormGroup, Input, Label } from "sveltestrap";
+<script lang="ts">
+    import { Button } from "$lib/components/ui/button";
+    import { Label } from "$lib/components/ui/label";
     import API from "./API";
     import { artefactTypes } from "./GraphNodeTypes";
     import GraphVisualizer from "./GraphVisualizer.svelte";
 
-    let sqlQuery = "select source, target, r.type from relationships r join artefacts a on r.source = a.id where r.type = 'typed-by' and a.category = 'transformation'";
-    let document;
+    let sqlQuery = $state("select source, target, r.type from relationships r join artefacts a on r.source = a.id where r.type = 'typed-by' and a.category = 'transformation'");
+    let document = $state<any>(undefined);
 
-    function submitQuery(sqlQuery) {
-        console.log(sqlQuery);
-        if (sqlQuery == undefined)
+    function submitQuery(query: string) {
+        console.log(query);
+        if (query == undefined)
             return;
-        fetch(API.graphFromSql(sqlQuery))
+        fetch(API.graphFromSql(query))
             .then(apiResponse => apiResponse.json())
             .then(doc => document = doc);
     }
 
-    $: console.log(document);
-
-    // select source, target, r.type from relationships r join artefacts a on r.source = a.id where r.type = 'typed-by' and a.category = 'transformation'
-
-    // No graph:
-    // Identify projects with different types of artefacts
-    // select project_id, count(distinct type) as c from artefacts group by project_id order by c;
-
+    $effect(() => {
+        console.log(document);
+    });
 </script>
 
-<style>
-#container {
-    display: flex;
-    gap: 20px;
-}
-
-#graph {
-    height: 600px;
-    width: 400px;
-    flex-grow: 1;
-}
-</style>
-
-<FormGroup>
+<div class="mb-4">
     <Label for="query">SQL Query</Label>
-    <Input type="textarea" name="text" id="query" bind:value={sqlQuery} />
-    <Button on:click={e => submitQuery(sqlQuery)}>Submit</Button>
-</FormGroup>
+    <textarea
+      id="query"
+      name="text"
+      class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      bind:value={sqlQuery}
+    ></textarea>
+    <Button class="mt-2" onclick={() => submitQuery(sqlQuery)}>Submit</Button>
+</div>
 
-<div id="container"> 
+<div class="flex gap-5">
     <div>
-        <pre>
+        <pre class="text-xs bg-muted p-3 rounded-md">
 CREATE TABLE projects (
     id            varchar(255) PRIMARY KEY,
     url           text NOT NULL);
@@ -64,11 +52,12 @@ CREATE TABLE virtual_nodes (
 CREATE TABLE relationships (
     source    varchar(255) NOT NULL,
     target    varchar(255) NOT NULL,
-    type  varchar (255) NOT NULL);    
+    type  varchar (255) NOT NULL);
         </pre>
     </div>
-    <div id="graph">
-        <GraphVisualizer  document={document} types={artefactTypes} /> 
+    <div class="h-[600px] w-[400px] flex-grow">
+        {#if document}
+          <GraphVisualizer document={document} types={artefactTypes} />
+        {/if}
     </div>
 </div>
-
