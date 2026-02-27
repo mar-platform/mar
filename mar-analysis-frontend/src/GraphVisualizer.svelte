@@ -65,7 +65,7 @@
         graph.addNode(node.id, { x: 0, y: 0, impl: node, nodeType: type, label: name, color: colorMap[type] || '#b34f47' });
       });
       doc.edges.forEach((edge: any) => {
-        graph.addEdge(edge.source, edge.target, { edgeType: edge.type });
+        graph.addEdge(edge.source, edge.target, { edgeType: edge.type, size: 2 });
       });
 
       random.assign(graph);
