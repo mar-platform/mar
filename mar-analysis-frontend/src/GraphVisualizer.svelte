@@ -9,6 +9,7 @@
     import random from 'graphology-layout/random';
 
     import ArtifactInfo from './ArtefactInfo.svelte'
+    import EdgeInfo from './EdgeInfo.svelte'
     import { Accordion, AccordionItem } from "$lib/components/ui/accordion";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
@@ -23,6 +24,8 @@
     let container: HTMLDivElement;
     let graph: Graph;
     let currentNode = $state<any>(null);
+    let currentEdge = $state<{ key: string; type: string; sourceId: string; targetId: string } | null>(null);
+    let hoveredEdge: string | null = null;
     let renderer: Sigma | null = null;
     let numberOfIterations = $state(20);
     let nodeNameFilter = $state('');
@@ -42,6 +45,7 @@
     $effect(() => {
       if (document != undefined && container != undefined) {
         currentNode = null;
+        currentEdge = null;
         if (renderer != null) renderer.kill();
         createNetwork(document);
       }
@@ -68,9 +72,25 @@
       const sensibleSettings = forceAtlas2.inferSettings(graph);
       forceAtlas2.assign(graph, { iterations: numberOfIterations, settings: sensibleSettings });
 
-      renderer = new Sigma(graph, container);
+      renderer = new Sigma(graph, container, { enableEdgeClickEvents: true, enableEdgeHoverEvents: true });
       renderer.on("clickNode", (e) => {
         selectNode(graph.getNodeAttributes(e.node).impl);
+      });
+      renderer.on("clickEdge", (e) => {
+        selectEdge(e.edge);
+      });
+      renderer.on("enterEdge", (e) => {
+        hoveredEdge = e.edge;
+        container.style.cursor = 'pointer';
+        renderer?.refresh();
+      });
+      renderer.on("leaveEdge", () => {
+        hoveredEdge = null;
+        container.style.cursor = '';
+        renderer?.refresh();
+      });
+      renderer.on("doubleClickStage", (e) => {
+        e.preventSigmaDefault();
       });
       renderer.setSetting("nodeReducer", (nodeId, data) => {
         const res: Partial<NodeDisplayData> = { ...data };
@@ -87,6 +107,16 @@
         const srcType = graph.getNodeAttribute(graph.source(edge), "nodeType");
         const tgtType = graph.getNodeAttribute(graph.target(edge), "nodeType");
         if (!(checkedTypes[srcType] && checkedTypes[tgtType])) res.hidden = true;
+        if (hoveredEdge === edge) {
+          res.color = '#94a3b8';
+          res.size = 3;
+          res.zIndex = 1;
+        }
+        if (currentEdge?.key === edge) {
+          res.color = '#f97316';
+          res.size = 4;
+          res.zIndex = 2;
+        }
         return res;
       });
     }
@@ -95,6 +125,18 @@
 
     function selectNode(nodeImpl: any) {
       currentNode = nodeImpl;
+      currentEdge = null;
+      renderer?.refresh();
+    }
+
+    function selectEdge(edgeKey: string) {
+      currentEdge = {
+        key: edgeKey,
+        type: graph.getEdgeAttribute(edgeKey, 'edgeType'),
+        sourceId: graph.source(edgeKey),
+        targetId: graph.target(edgeKey),
+      };
+      currentNode = null;
       renderer?.refresh();
     }
 
@@ -267,7 +309,7 @@
     ></div>
   </div>
 
-  {#if currentNode}
+  {#if currentNode || currentEdge}
     <!-- ── Right drag handle ── -->
     <div
       class="w-2 shrink-0 self-stretch cursor-col-resize flex items-center justify-center group"
@@ -278,18 +320,22 @@
       <div class="w-px h-full bg-border group-hover:bg-primary/50 transition-colors"></div>
     </div>
 
-    <!-- ── Right panel: artefact info ── -->
+    <!-- ── Right panel: artefact or edge info ── -->
     <aside
       class="shrink-0 overflow-y-auto max-h-[680px] pl-2"
       style="width: {rightPanelWidth}px"
     >
       <button
         class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer mb-2"
-        onclick={() => { currentNode = null; renderer?.refresh(); }}
+        onclick={() => { currentNode = null; currentEdge = null; renderer?.refresh(); }}
       >
         ✕ Close
       </button>
-      <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
+      {#if currentNode}
+        <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
+      {:else if currentEdge}
+        <EdgeInfo graph={graph} edge={currentEdge} onNodeSelect={selectNode} />
+      {/if}
     </aside>
   {/if}
 
