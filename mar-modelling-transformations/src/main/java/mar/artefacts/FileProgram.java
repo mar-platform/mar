@@ -10,6 +10,8 @@ import javax.annotation.Nonnull;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Attribute;
 import mar.analysis.megamodel.model.RelationshipsGraph.IsInBuildFolderAttribute;
+import mar.artefacts.MetamodelReference.Kind;
+import mar.artefacts.MetamodelReference.RecoveryMethod;
 
 public abstract class FileProgram {
 
@@ -35,7 +37,12 @@ public abstract class FileProgram {
 
 	
 	public void addMetamodel(@Nonnull Metamodel metamodel, MetamodelReference.Kind... kind) {
-		this.metamodels.add(new MetamodelReference(metamodel, kind));
+		addMetamodel(metamodel, RecoveryMethod.DEFAULT, kind);
+	}
+	
+
+	public void addMetamodel(Metamodel metamodel, RecoveryMethod method, Kind[] kind) {
+		this.metamodels.add(new MetamodelReference(metamodel, kind).withRecoveryMethod(method));
 	}
 	
 	public Collection<? extends MetamodelReference> getMetamodels() {

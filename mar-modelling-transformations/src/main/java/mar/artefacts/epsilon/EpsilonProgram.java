@@ -5,6 +5,9 @@ import javax.annotation.Nonnull;
 import com.google.common.io.Files;
 
 import mar.artefacts.FileProgram;
+import mar.artefacts.Metamodel;
+import mar.artefacts.MetamodelReference.Kind;
+import mar.artefacts.MetamodelReference.RecoveryMethod;
 import mar.artefacts.RecoveredPath;
 
 public class EpsilonProgram extends FileProgram {
@@ -81,4 +84,5 @@ public class EpsilonProgram extends FileProgram {
 		}
 		throw new IllegalStateException();
 	}
+
 }
