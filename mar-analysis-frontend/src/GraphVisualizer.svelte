@@ -122,6 +122,8 @@
     let containerEl: HTMLDivElement;
     let sidebarWidth = $state(256);
     let dragging = $state(false);
+    let rightPanelWidth = $state(280);
+    let draggingRight = $state(false);
 
     $effect(() => {
       if (!dragging) return;
@@ -144,6 +146,28 @@
         window.document.body.style.userSelect = '';
       };
     });
+
+    $effect(() => {
+      if (!draggingRight) return;
+
+      const onMove = (e: MouseEvent) => {
+        const rect = containerEl.getBoundingClientRect();
+        rightPanelWidth = Math.max(150, Math.min(600, rect.right - e.clientX));
+      };
+      const onUp = () => { draggingRight = false; };
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      window.document.body.style.cursor = 'col-resize';
+      window.document.body.style.userSelect = 'none';
+
+      return () => {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        window.document.body.style.cursor = '';
+        window.document.body.style.userSelect = '';
+      };
+    });
 </script>
 
 <div class="flex items-start" bind:this={containerEl}>
@@ -153,15 +177,7 @@
     class="shrink-0 flex flex-col gap-2 overflow-y-auto max-h-[680px]"
     style="width: {sidebarWidth}px"
   >
-    {#if currentNode}
-      <button
-        class="text-xs text-muted-foreground hover:text-foreground self-start flex items-center gap-1 cursor-pointer"
-        onclick={() => { currentNode = null; renderer?.refresh(); }}
-      >
-        ← Back
-      </button>
-      <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
-    {:else if children}
+    {#if children}
       {@render children()}
     {/if}
 
@@ -238,5 +254,31 @@
       bind:this={container}
     ></div>
   </div>
+
+  {#if currentNode}
+    <!-- ── Right drag handle ── -->
+    <div
+      class="w-2 shrink-0 self-stretch cursor-col-resize flex items-center justify-center group"
+      role="separator"
+      aria-orientation="vertical"
+      onmousedown={(e) => { e.preventDefault(); draggingRight = true; }}
+    >
+      <div class="w-px h-full bg-border group-hover:bg-primary/50 transition-colors"></div>
+    </div>
+
+    <!-- ── Right panel: artefact info ── -->
+    <aside
+      class="shrink-0 overflow-y-auto max-h-[680px] pl-2"
+      style="width: {rightPanelWidth}px"
+    >
+      <button
+        class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer mb-2"
+        onclick={() => { currentNode = null; renderer?.refresh(); }}
+      >
+        ✕ Close
+      </button>
+      <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
+    </aside>
+  {/if}
 
 </div>
