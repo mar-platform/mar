@@ -112,10 +112,22 @@
 
     function getArtefactNodes(nodes: any[]) {
       const q = artefactSearch.trim().toLowerCase();
+      let matches: (name: string) => boolean;
+      if (!q) {
+        matches = () => true;
+      } else if (q.includes('*') || q.includes('?')) {
+        const pattern = q.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+                         .replace(/\*/g, '.*')
+                         .replace(/\?/g, '.');
+        const re = new RegExp(`^${pattern}$`);
+        matches = (name: string) => re.test(name.toLowerCase());
+      } else {
+        matches = (name: string) => name.toLowerCase().includes(q);
+      }
       return nodes
         .filter((n: any) => n._type == 'artefact')
         .filter((n: any) => checkedTypes[n.artefact.type])
-        .filter((n: any) => !q || n.artefact.name.toLowerCase().includes(q));
+        .filter((n: any) => matches(n.artefact.name));
     }
 
     // ── Resize logic ─────────────────────────────────────────
