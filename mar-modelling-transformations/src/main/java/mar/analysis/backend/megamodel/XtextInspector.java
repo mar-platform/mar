@@ -36,7 +36,7 @@ public class XtextInspector extends ProjectInspector {
 		for (String uri : info.getGeneratedURIs()) {
 			Metamodel foundMetamodel = tryFindURI(uri);
 			Metamodel mm;
-			if (foundMetamodel.getPath() instanceof ExistingPath) {
+			if (foundMetamodel != null && foundMetamodel.getPath() instanceof ExistingPath) {
 				mm = foundMetamodel;
 			} else {
 				mm = Metamodel.fromURI(uri, uri, ArtefactStatus.GENERATED);
