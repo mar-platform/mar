@@ -27,6 +27,7 @@
     let numberOfIterations = $state(20);
     let nodeNameFilter = $state('');
     let showUnconnectedNodes = $state(false);
+    let artefactSearch = $state('');
 
     const colorMap = types.reduce(function(map: any, obj: any) {
         map[obj.type] = obj.color;
@@ -110,9 +111,11 @@
     function applyNodeFilter(_event: Event) { console.log(renderer); }
 
     function getArtefactNodes(nodes: any[]) {
+      const q = artefactSearch.trim().toLowerCase();
       return nodes
         .filter((n: any) => n._type == 'artefact')
-        .filter((n: any) => checkedTypes[n.artefact.type]);
+        .filter((n: any) => checkedTypes[n.artefact.type])
+        .filter((n: any) => !q || n.artefact.name.toLowerCase().includes(q));
     }
 
     // ── Resize logic ─────────────────────────────────────────
@@ -165,6 +168,9 @@
     <div class="mt-auto pt-2 border-t">
       <Accordion>
         <AccordionItem header="All artefacts">
+          <div class="pb-1">
+            <input class="h-6 text-xs px-2 py-0 w-full rounded-md border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" type="text" placeholder="Search…" bind:value={artefactSearch} />
+          </div>
           <ul class="text-sm space-y-0.5">
             {#each getArtefactNodes(document.nodes) as node}
               <li>
