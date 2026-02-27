@@ -26,6 +26,7 @@ import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
+import mar.artefacts.MetamodelReference.RecoveryMethod;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
 import mar.artefacts.RecoveredPath.MissingPath;
@@ -90,7 +91,7 @@ public class EpsilonInspector extends ProjectInspector {
 			Metamodel mm = mmFile.getBestMetamodel();
 			graph.addMetamodel(mm);
 			List<Kind> kinds = toKinds(mi);
-			program.addMetamodel(mm, kinds.toArray(MetamodelReference.EMPTY_KIND));
+			program.addMetamodel(mm, RecoveryMethod.FOOTPRINT, kinds.toArray(MetamodelReference.EMPTY_KIND));
 		});
 
 		return graph;

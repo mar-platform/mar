@@ -14,8 +14,14 @@ public class MetamodelReference {
 		OUTPUT_OF
 	}
 
+	public static enum RecoveryMethod {
+		DEFAULT,
+		FOOTPRINT
+	}
+	
 	private final Metamodel metamodel;
 	private final EnumSet<Kind> kind;
+	private RecoveryMethod recoveryMethod = RecoveryMethod.DEFAULT;
 
 	public MetamodelReference(Metamodel metamodel, Kind... kind) {
 		this.metamodel = metamodel;
@@ -24,8 +30,17 @@ public class MetamodelReference {
 			this.kind.add(kind[i]);	
 	}
 	
+	public MetamodelReference withRecoveryMethod(RecoveryMethod method) {
+		this.recoveryMethod = method;
+		return this;
+	}
+	
 	public Metamodel getMetamodel() {
 		return metamodel;
+	}
+	
+	public RecoveryMethod getRecoveryMethod() {
+		return recoveryMethod;
 	}
 	
 	public Kind[] getKind() {
