@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Relationship {
 	
 	TYPED_BY("typed-by"), 
@@ -25,10 +28,12 @@ public enum Relationship {
 		this.kind = kind;
 	}
 	
+	@JsonValue
 	public String getKind() {
 		return kind;
 	}
 	
+	@JsonCreator
 	public static Relationship getByKind(String kind) {
 		return byKind.get(kind);
 	}

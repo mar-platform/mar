@@ -10,6 +10,7 @@
 
     import ArtifactInfo from './ArtefactInfo.svelte'
     import EdgeInfo from './EdgeInfo.svelte'
+    import { edgeTypes } from './GraphEdgeTypes.js'
     import { Accordion, AccordionItem } from "$lib/components/ui/accordion";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
@@ -37,9 +38,19 @@
         return map;
     }, {} as Record<string, string>);
 
+    const edgeColorMap = edgeTypes.reduce(function(map: any, obj: any) {
+        map[obj.type] = obj.color;
+        return map;
+    }, {} as Record<string, string>);
+
     let checkedTypes = $state<Record<string, boolean>>({});
     for (let i = 0; i < types.length; i++) {
       checkedTypes[types[i].type] = true;
+    }
+
+    let checkedEdgeTypes = $state<Record<string, boolean>>({});
+    for (const et of edgeTypes) {
+      checkedEdgeTypes[et.type] = true;
     }
 
     $effect(() => {
@@ -65,7 +76,7 @@
         graph.addNode(node.id, { x: 0, y: 0, impl: node, nodeType: type, label: name, color: colorMap[type] || '#b34f47' });
       });
       doc.edges.forEach((edge: any) => {
-        graph.addEdge(edge.source, edge.target, { edgeType: edge.type, size: 2 });
+        graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
       });
 
       random.assign(graph);
@@ -107,8 +118,16 @@
         const srcType = graph.getNodeAttribute(graph.source(edge), "nodeType");
         const tgtType = graph.getNodeAttribute(graph.target(edge), "nodeType");
         if (!(checkedTypes[srcType] && checkedTypes[tgtType])) res.hidden = true;
+        const edgeTypes = graph.getEdgeAttribute(edge, 'edgeTypes');
+        
+        
+        const selectedEdgeType = selectEdgeType(checkedEdgeTypes, edgeTypes)
+        //console.log(edge, checkedEdgeTypes, edgeTypes, selectedEdgeType);
+        if (!selectedEdgeType)
+          res.hidden = true;
+        
+        res.color = edgeColorMap[selectedEdgeType] ?? '#94a3b8';
         if (hoveredEdge === edge) {
-          res.color = '#94a3b8';
           res.size = 3;
           res.zIndex = 1;
         }
@@ -222,6 +241,11 @@
         window.document.body.style.userSelect = '';
       };
     });
+
+
+    function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]) : string | null {      
+      return e.find(type => checkedEdgeTypes[type]) || null;
+    }
 </script>
 
 <div class="flex items-start" bind:this={containerEl}>
@@ -269,13 +293,27 @@
   <!-- ── Right: controls + canvas ── -->
   <div class="flex-1 min-w-0 flex flex-col gap-2 pl-2">
 
-    <!-- Type filter -->
+    <!-- Node type filter -->
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <strong class="text-sm">Types:</strong>
       {#each types as {type}}
         <label style="color: {colorMap[type]}" class="flex items-center gap-1 text-sm cursor-pointer">
           <input type="checkbox" bind:checked={checkedTypes[type]} onchange={() => refresh()}>
           {type}
+        </label>
+      {/each}
+    </div>
+
+    <!-- Edge type legend / filter -->
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <strong class="text-sm">Edges:</strong>
+      {#each edgeTypes as et}
+        <label class="flex items-center gap-1 text-sm cursor-pointer" style="color: {et.color}">
+          <input type="checkbox" bind:checked={checkedEdgeTypes[et.type]} onchange={() => refresh()}>
+          <svg width="18" height="8" aria-hidden="true">
+            <line x1="0" y1="4" x2="18" y2="4" stroke={et.color} stroke-width="2.5" />
+          </svg>
+          {et.label}
         </label>
       {/each}
     </div>
