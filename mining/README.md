@@ -22,7 +22,7 @@ We have a set of files of different type but *we need the repositories* that lik
 The script `download_repos.py` is in charge of computing the set of unique repositories and downloading them.
 
 ```
-python3 download_repos.py ../mar-crawlers/github/crawled-data/ /data3/supergraph/repos 
+python3 -u download_repos.py crawler://../mar-crawlers/github/crawled-data/:crawler://../mar-crawlers/github/data2:mar:///data2/mde-datasets/download /data3/supergraph/repos2  | tee git_download.log
 ```
 
 The repositories are stored using the convention: `user/repo-name`.
@@ -35,7 +35,7 @@ to rule out certain repositories or invalid files.
 ```bash
 python3 organize.py \
   -d /data3/supergraph/repos:/data3/supergraph/repos-mps:/data3/supergraph/repos-spoofax  \
-  -o /data3/supergraph/organize3.db \
+  -o /data3/supergraph/organize5.db \
   -c configuration.yaml
 ```
 

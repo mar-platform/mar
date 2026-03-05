@@ -3,3 +3,5 @@ must_contain_filters:
     contains: "::="
   - extension: emf
     contains: "@namespace"
+  - extension: mtl
+    contains: "[template"    

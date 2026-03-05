@@ -151,8 +151,10 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
                 files = g.search_code(query=hint + ' extension:' + extension + ' ' + size)
                 #files = g.search_code(query=hint + ' path:' + extension + ' ' + size)
                 print("   There are " , files.totalCount)
-                
+
+                file_count = 0
                 for f in files:
+                    file_count = file_count + 1
                     passes_without_results = 0
                     # api_wait_search(g)
             
@@ -174,6 +176,18 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
                     last_size = f.size
                     total = total + 1
 
+                    # Chances are that we may miss some file
+                    if file_count > 1000:
+                        if step == 1:
+                            print("ERROR: Too many files, we are missing files. There are: ", file_count)
+                        else:
+                            print("WARNING: Halved step because of too many results", files.totalCount)
+                            passes_without_results = 0
+                            step = step // 2
+                            step = max(1, step)
+                            continue
+
+                    
                 if not save_file_contents:
                     # Wait between calls
                     seconds = random.randint(1, 2)

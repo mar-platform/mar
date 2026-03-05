@@ -18,15 +18,18 @@ repos_emf = ['acceleo',
          'atl',
          'ecore',
          'emfatic',
-         'emf-projects',
+#         'emf-projects',
          'emftext',
-         'epsilon',
+         'epsilon', # Sometimes in Epsilon folder with everything, sometimes separated
+         'eol', 'etl', 'evl',
          'henshin',
          'ocl',
          'qvto',
          'sirius',
-         'uml',
+#         'uml',
+         'vql',
          'xtend',
+         'xcore',
          'xtext']
 
 repos_mps = ['mps']
