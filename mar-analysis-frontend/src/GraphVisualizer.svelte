@@ -34,6 +34,7 @@
     let nodeNameFilter = $state('');
     let showUnconnectedNodes = $state(false);
     let artefactSearch = $state('');
+    let projectSearch = $state('');
 
     const colorMap = types.reduce(function(map: any, obj: any) {
         map[obj.type] = obj.color;
@@ -203,8 +204,7 @@
 
     function applyNodeFilter(_event: Event) { console.log(renderer); }
 
-    function getArtefactNodes(nodes: any[]) {
-      const q = artefactSearch.trim().toLowerCase();
+    function getMatcher(q : string) {
       let matches: (name: string) => boolean;
       if (!q) {
         matches = () => true;
@@ -217,10 +217,26 @@
       } else {
         matches = (name: string) => name.toLowerCase().includes(q);
       }
+      return matches;
+    }
+
+    function getArtefactNodes(nodes: any[]) {
+      const q = artefactSearch.trim().toLowerCase();
+      const matches = getMatcher(q);
       return nodes
         .filter((n: any) => n._type == 'artefact')
         .filter((n: any) => checkedTypes[n.artefact.type])
         .filter((n: any) => matches(n.artefact.name));
+    }
+
+    function getProjectNodes(nodes: any[]) {
+      const q = projectSearch.trim().toLowerCase();
+      const matches = getMatcher(q);  
+      console.log("project nodes");
+      console.log(nodes);
+      return nodes
+        .filter((n: any) => n.kind == 'project')
+        .filter((n: any) => matches(n.id));
     }
 
     // ── Resize logic ─────────────────────────────────────────
@@ -308,6 +324,24 @@
             {/each}
           </ul>
         </AccordionItem>
+        {#if document.type === 'inter-project'}
+          <AccordionItem header="All projects">
+            <div class="pb-1">
+              <input class="h-6 text-xs px-2 py-0 w-full rounded-md border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" type="text" placeholder="Search…" bind:value={projectSearch} />
+            </div>
+            <ul class="text-sm space-y-0.5">
+              {#each getProjectNodes(document.nodes) as node}
+                <li>
+                  <button
+                    class="text-left hover:underline cursor-pointer {currentNode?.id === node.id ? 'font-semibold' : ''}"
+                    onclick={() => selectNode(node)}
+                  >{node.id}</button>
+                </li>
+              {/each}
+            </ul>
+          </AccordionItem>
+        {/if}
+
       </Accordion>
     </div>
   </aside>

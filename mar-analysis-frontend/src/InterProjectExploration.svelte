@@ -13,7 +13,10 @@
     });
 
     $effect(() => {
-      if (document) console.log(document);
+      if (document) {
+        document.type = 'inter-project';
+        console.log(document);
+      }
     });
 </script>
 
