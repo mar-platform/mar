@@ -48,6 +48,41 @@ public class TransformationRelationshipsAnalysis {
 		return graph;
 	}
 
+	@Nonnull
+	public RelationshipsGraph getMegamodelGraph() {
+		DuplicationGraph graph = new DuplicationGraph();
+		
+		Map<String, String> nodeToGroup = new HashMap<String, String>();
+		
+		DuplicationRelationships dup = db.getDuplicates();
+		dup.forEachGroup((groupId, nodeIds) -> {
+			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+			node.addArtefacts(nodeIds);
+			graph.addNode(node);			
+			
+			nodeIds.forEach(id -> nodeToGroup.put(id, groupId));
+		});
+		
+		db.getAllArtefacts().forEach((key, artefact) -> {
+			if (! nodeToGroup.containsKey(key)) {
+				graph.addNode(new RelationshipsGraph.ArtefactNode(key, artefact));
+			}
+		});
+		
+		db.getRelationshipsByType((src, tgt, type) -> {
+			String srcGroup = dup.getGroupOf(src);
+			String tgtGroup = dup.getGroupOf(tgt);
+			
+			String sourceId = srcGroup != null ? srcGroup : src;
+			String targetId = tgtGroup != null ? tgtGroup : tgt;;
+			
+			
+			graph.addEdge(sourceId, targetId, type);
+		}, MAIN_RELATIONSHIP_TYPES);
+		
+		return graph;
+	}
+	
 	/**
 	 * The duplication graph aggregates all nodes in the same duplication group into the same
 	 * node, and the relationships are redirected.
