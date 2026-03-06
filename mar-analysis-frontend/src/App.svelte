@@ -5,6 +5,7 @@
   import DuplicationGraphExploration from "./DuplicationGraphExploration.svelte";
   import GraphExploration from './GraphExploration.svelte';
   import InterProjectExploration from "./InterProjectExploration.svelte";
+    import MegamodelGraphExploration from "./MegamodelGraphExploration.svelte";
   import ProjectExploration from "./ProjectExploration.svelte";
   import SqlExplorer from "./SqlExplorer.svelte";
   import Stats from "./Stats.svelte";
@@ -28,6 +29,7 @@
       <TabsList>
         <TabsTrigger active={graphSelection === 'all_graph'} onclick={() => graphSelection = 'all_graph'}>All</TabsTrigger>
         <TabsTrigger active={graphSelection === 'duplication-graph'} onclick={() => graphSelection = 'duplication-graph'}>Duplication</TabsTrigger>
+        <TabsTrigger active={graphSelection === 'megamodel-graph'} onclick={() => graphSelection = 'megamodel-graph'}>Megamodel</TabsTrigger>
         <TabsTrigger active={graphSelection === 'inter_project'} onclick={() => graphSelection = 'inter_project'}>Inter-project</TabsTrigger>
         <TabsTrigger active={graphSelection === 'project'} onclick={() => graphSelection = 'project'}>Project</TabsTrigger>
       </TabsList>
@@ -41,6 +43,8 @@
         <InterProjectExploration />
       {:else if graphSelection === 'project'}
         <ProjectExploration />
+      {:else if graphSelection === 'megamodel-graph'}
+        <MegamodelGraphExploration />
       {/if}
     </div>
   {:else if selection === 'stats'}

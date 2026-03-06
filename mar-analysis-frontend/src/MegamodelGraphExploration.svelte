@@ -7,7 +7,7 @@
   let document = $state<any>(undefined);
 
   onMount(async () => {
-    fetch(API.duplicationGraph()).
+    fetch(API.megamodelGraph()).
           then(res => res.json()).
           then(json => {console.log(json); return json;}).
           then(doc => document = doc);

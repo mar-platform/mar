@@ -58,6 +58,12 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getDuplicationGraph());
     }
 
+	@GetMapping(value = "/megamodel-graph", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:5173")
+    public String megamodelGraph() throws JsonProcessingException {
+        return objectMapper.writeValueAsString(analysis.getMegamodelGraph());
+    }
+	
 	@GetMapping(value = "/interproject-graph", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:5173")
     public String interProjectGraph() throws JsonProcessingException {

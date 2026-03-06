@@ -1,5 +1,6 @@
 package mar.analysis.duplicates;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
@@ -76,6 +77,28 @@ public class DuplicateConfiguration {
 				return toName.apply(p);
 			}
 		});		
+		
+		computation.addType(ArtefactType.XTEXT, new DuplicateFinderConfiguration<FileProgram, File>() {
+			@Override
+			public File toResource(FileProgram p) throws Exception {
+				return p.getFilePath().getPath().toFile();
+			}
+
+			@Override
+			public DuplicateFinder<FileProgram, File> toFinder() {
+				return new XtextDuplicateFinder<FileProgram>();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return toId.apply(p);
+			}			
+			
+			@Override
+			public String toName(FileProgram p) {
+				return toName.apply(p);
+			}
+		});
 		
 		return computation;
 	}
