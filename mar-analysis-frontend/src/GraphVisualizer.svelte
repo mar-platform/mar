@@ -28,7 +28,9 @@
     let currentEdge = $state<{ key: string; type: string; sourceId: string; targetId: string } | null>(null);
     let hoveredEdge: string | null = null;
     let renderer: Sigma | null = null;
-    let numberOfIterations = $state(20);
+    let fa2: InstanceType<typeof FA2Layout> | null = null;
+    let fa2Running = $state(false);
+    let numberOfIterations = $state(10);
     let nodeNameFilter = $state('');
     let showUnconnectedNodes = $state(false);
     let artefactSearch = $state('');
@@ -57,6 +59,7 @@
       if (document != undefined && container != undefined) {
         currentNode = null;
         currentEdge = null;
+        if (fa2) { fa2.kill(); fa2 = null; fa2Running = false; }
         if (renderer != null) renderer.kill();
         createNetwork(document);
       }
@@ -80,10 +83,14 @@
       });
 
       random.assign(graph);
-      const sensibleSettings = forceAtlas2.inferSettings(graph);
-      forceAtlas2.assign(graph, { iterations: numberOfIterations, settings: sensibleSettings });
 
-      renderer = new Sigma(graph, container, { enableEdgeClickEvents: true, enableEdgeHoverEvents: true });
+      renderer = new Sigma(graph, container, {
+        enableEdgeClickEvents: true,
+        enableEdgeHoverEvents: true,
+        hideEdgesOnMove: true,
+        renderEdgeLabels: false,
+        labelRenderedSizeThreshold: 6,
+      });
       renderer.on("clickNode", (e) => {
         selectNode(graph.getNodeAttributes(e.node).impl);
       });
@@ -113,6 +120,8 @@
         }
         return res;
       });
+      startLayout();
+
       renderer.setSetting("edgeReducer", (edge, data) => {
         const res: Partial<EdgeDisplayData> = { ...data };
         const srcType = graph.getNodeAttribute(graph.source(edge), "nodeType");
@@ -140,7 +149,32 @@
       });
     }
 
-    function refresh() { renderer?.refresh(); }
+    let pendingRefresh = false;
+    function refresh() {
+      if (pendingRefresh) return;
+      pendingRefresh = true;
+      requestAnimationFrame(() => { renderer?.refresh(); pendingRefresh = false; });
+    }
+
+    function startLayout() {
+      if (fa2) { fa2.kill(); fa2 = null; }
+      const s = forceAtlas2.inferSettings(graph);
+      
+      //let iterationOptions = {}
+      //if (numberOfIterations > 0) 
+      //  iterationOptions = { iterations: numberOfIterations }
+      //fa2 = new FA2Layout(graph, { settings: s, ...iterationOptions });
+      fa2 = new FA2Layout(graph, { settings: s});
+      fa2.start();
+      fa2Running = true;
+      setTimeout(() => stopLayout(), numberOfIterations * 1000);
+    }
+
+    function stopLayout() {
+      if (fa2) { fa2.stop(); fa2.kill(); fa2 = null; }
+      fa2Running = false;
+      renderer?.refresh();
+    }
 
     function selectNode(nodeImpl: any) {
       currentNode = nodeImpl;
@@ -160,9 +194,7 @@
     }
 
     function redoLayout() {
-      const s = forceAtlas2.inferSettings(graph);
-      forceAtlas2.assign(graph, { iterations: numberOfIterations, settings: s });
-      refresh();
+      if (fa2Running) stopLayout(); else startLayout();
     }
 
     function onLabelThreshold(event: Event) {
@@ -325,9 +357,9 @@
         Show unconnected
       </label>
       <div class="flex items-center gap-1">
-        <span>Iterations:</span>
+        <span>Layout timeout:</span>
         <Input class="w-16 h-7 text-xs px-2 py-0" type="number" bind:value={numberOfIterations} />
-        <Button size="sm" class="h-7 text-xs" onclick={redoLayout}>Layout</Button>
+        <Button size="sm" class="h-7 text-xs" onclick={redoLayout}>{fa2Running ? 'Stop' : 'Layout'}</Button>
       </div>
       <div class="flex items-center gap-1">
         <span>Label size:</span>
