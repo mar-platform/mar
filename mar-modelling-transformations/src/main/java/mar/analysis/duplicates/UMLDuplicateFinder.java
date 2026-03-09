@@ -33,10 +33,5 @@ public class UMLDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
 			return tokens;
 		}		
 	}
-	
-	private static void addToken(List<String> tokens, String string) {
-		if (string != null)
-			tokens.add(string);
-	}	
 
 }

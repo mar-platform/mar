@@ -100,6 +100,50 @@ public class DuplicateConfiguration {
 			}
 		});
 		
+		computation.addType(ArtefactType.EPSILON, new DuplicateFinderConfiguration<FileProgram, File>() {
+			@Override
+			public File toResource(FileProgram p) throws Exception {
+				return p.getFilePath().getPath().toFile();
+			}
+
+			@Override
+			public DuplicateFinder<FileProgram, File> toFinder() {
+				return new EpsilonDuplicateFinder<FileProgram>();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return toId.apply(p);
+			}			
+			
+			@Override
+			public String toName(FileProgram p) {
+				return toName.apply(p);
+			}
+		});
+		
+		computation.addType(ArtefactType.OCL, new DuplicateFinderConfiguration<FileProgram, File>() {
+			@Override
+			public File toResource(FileProgram p) throws Exception {
+				return p.getFilePath().getPath().toFile();
+			}
+
+			@Override
+			public DuplicateFinder<FileProgram, File> toFinder() {
+				return new OclDuplicateFinder<FileProgram>();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return toId.apply(p);
+			}			
+			
+			@Override
+			public String toName(FileProgram p) {
+				return toName.apply(p);
+			}
+		});
+		
 		return computation;
 	}
 

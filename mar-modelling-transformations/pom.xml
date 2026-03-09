@@ -23,11 +23,18 @@
 			<name>Eclipse ATL repository</name>
 			<url>https://repo.eclipse.org/content/repositories/atl-releases/</url>
 		</repository>
-		<!-- This repository is needed because QVT-bundle which used dependencies from Eclipse -->		
+		<!-- This repository is needed because QVT-bundle which used
+		dependencies from Eclipse -->
 		<repository>
-		    <id>eclipse-snapshots</id>
-		    <url>https://repo.eclipse.org/content/repositories/snapshots/</url>
-		</repository>		
+			<id>eclipse-snapshots</id>
+			<url>https://repo.eclipse.org/content/repositories/snapshots/</url>
+		</repository>
+		<!-- Acceleo (also for OCL)-->
+		<repository>
+			<id>Acceleo</id>
+			<name>Eclipse Acceleo repository</name>
+			<url>https://repo.eclipse.org/content/repositories/acceleo-releases/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -53,53 +60,54 @@
 			<classifier>repackaged</classifier>
 			-->
 		</dependency>
-        <dependency>
-                <groupId>io.github.anatlyzer</groupId>
-                <artifactId>anatlyzer.atl.typing</artifactId>
-                <version>0.8.0</version>
-        </dependency>
-  
-        <dependency>
-                <groupId>io.github.anatlyzer</groupId>
-                <artifactId>anatlyzer.atl.standalone.api</artifactId>
-                <version>0.8.0</version>
-        </dependency>
-        
-        <dependency>
-                <groupId>io.github.anatlyzer</groupId>
-                <artifactId>anatlyzer.use.witness</artifactId>
-                <version>0.8.0</version>
-        </dependency>
-        
-        <!-- Begin-of AnATLyzer dependencies -->
-        <dependency>
-            <groupId>org.eclipse.emf</groupId>
-            <artifactId>org.eclipse.emf.ecore</artifactId>
-            <version>2.40.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.m2m.atl</groupId>
-            <artifactId>org.eclipse.m2m.atl.common</artifactId>
-            <version>4.12.0</version>
-        </dependency>   
-        <dependency>
-            <groupId>org.eclipse.m2m.atl</groupId>
-            <artifactId>org.eclipse.m2m.atl.core.emf</artifactId>
-            <version>4.12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.m2m.atl</groupId>
-            <artifactId>org.eclipse.m2m.atl.dsls</artifactId>
-            <version>4.12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.m2m.atl</groupId>
-            <artifactId>org.eclipse.m2m.atl.engine</artifactId>
-            <version>4.12.0</version>
-        </dependency>  
-        <!-- End-of AnATLyzer dependencies -->
+		<dependency>
+			<groupId>io.github.anatlyzer</groupId>
+			<artifactId>anatlyzer.atl.typing</artifactId>
+			<version>0.8.0</version>
+		</dependency>
 
-		<!-- Needed for the analyser, but why this isn't inherited from mar-modelling -->
+		<dependency>
+			<groupId>io.github.anatlyzer</groupId>
+			<artifactId>anatlyzer.atl.standalone.api</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.github.anatlyzer</groupId>
+			<artifactId>anatlyzer.use.witness</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+
+		<!-- Begin-of AnATLyzer dependencies -->
+		<dependency>
+			<groupId>org.eclipse.emf</groupId>
+			<artifactId>org.eclipse.emf.ecore</artifactId>
+			<version>2.40.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.common</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.core.emf</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.dsls</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.m2m.atl</groupId>
+			<artifactId>org.eclipse.m2m.atl.engine</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+		<!-- End-of AnATLyzer dependencies -->
+
+		<!-- Needed for the analyser, but why this isn't inherited from
+		mar-modelling -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
@@ -156,6 +164,39 @@
 			<artifactId>org.eclipse.epsilon.etl.engine</artifactId>
 			<version>2.4.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.evl.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.epl.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+
+		<!-- OCL -->
+		<dependency>
+			<groupId>org.eclipse.ocl</groupId>
+			<artifactId>org.eclipse.ocl</artifactId>
+			<version>3.4.2.v20140725-2242</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- Source:
+		https://mvnrepository.com/artifact/org.eclipse.acceleo/org.eclipse.acceleo.parser -->
+		<dependency>
+			<groupId>org.eclipse.acceleo</groupId>
+			<artifactId>org.eclipse.acceleo.parser</artifactId>
+			<version>3.5.1.201409021433</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.acceleo</groupId>
+			<artifactId>org.eclipse.acceleo.common</artifactId>
+			<version>3.5.1.201409021433</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -185,53 +226,63 @@
 				</executions>
 				<configuration>
 					<generateGitPropertiesFile>true</generateGitPropertiesFile>
-					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-					<!-- <includeOnlyProperties> <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty> 
+					<generateGitPropertiesFilename>
+						${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<!-- <includeOnlyProperties>
+					<includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty> 
 						<includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty> 
-						<includeOnlyProperty>^git.branch$</includeOnlyProperty> <includeOnlyProperty>^git.commit.message.full$</includeOnlyProperty> 
+						<includeOnlyProperty>^git.branch$</includeOnlyProperty>
+					<includeOnlyProperty>^git.commit.message.full$</includeOnlyProperty> 
 						</includeOnlyProperties> -->
 					<commitIdGenerationMode>full</commitIdGenerationMode>
 				</configuration>
 			</plugin>
 
 			<plugin>
-			  <groupId>org.apache.maven.plugins</groupId>
-			  <artifactId>maven-shade-plugin</artifactId>
-			  <version>3.5.0</version>
-			  <executions>
-			    <execution>
-			      <phase>package</phase>
-			      <goals>
-				<goal>shade</goal>
-			      </goals>
-			      <configuration>
-				<!-- Esto genera el "fat jar" con el sufijo -shaded o reemplaza el original -->
-				<shadedArtifactAttached>true</shadedArtifactAttached>
-				<shadedClassifierName>all</shadedClassifierName>
-				<transformers>
-				  <!-- SOLUCIÓN AL ERROR: Une todos los plugin.properties -->
-				  <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-				    <resource>plugin.properties</resource>
-				  </transformer>
-				  <!-- CONFIGURACIÓN DEL MAIN: Reemplaza al manifest del assembly -->
-				  <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-				    <mainClass>mar.analysis.backend.megamodel.MegamodelAnalysis</mainClass>
-				  </transformer>
-				</transformers>
-				<!-- Evita errores de seguridad al mezclar librerías firmadas -->
-				<filters>
-				  <filter>
-				    <artifact>*:*</artifact>
-				    <excludes>
-				      <exclude>META-INF/*.SF</exclude>
-				      <exclude>META-INF/*.DSA</exclude>
-				      <exclude>META-INF/*.RSA</exclude>
-				    </excludes>
-				  </filter>
-				</filters>
-			      </configuration>
-			    </execution>
-			  </executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<!-- Esto genera el "fat jar" con el sufijo -shaded
+							o reemplaza el original -->
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>all</shadedClassifierName>
+							<transformers>
+								<!-- SOLUCIÓN AL ERROR: Une todos los
+								plugin.properties -->
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>plugin.properties</resource>
+								</transformer>
+								<!-- CONFIGURACIÓN DEL MAIN: Reemplaza al
+								manifest del assembly -->
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>
+										mar.analysis.backend.megamodel.MegamodelAnalysis</mainClass>
+								</transformer>
+							</transformers>
+							<!-- Evita errores de seguridad al mezclar librerías
+							firmadas -->
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<!--
 			<plugin>

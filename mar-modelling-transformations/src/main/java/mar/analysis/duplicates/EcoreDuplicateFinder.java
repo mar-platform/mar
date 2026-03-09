@@ -34,9 +34,5 @@ public class EcoreDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
 		}		
 	}
 	
-	private static void addToken(List<String> tokens, String string) {
-		if (string != null)
-			tokens.add(string);
-	}	
 
 }

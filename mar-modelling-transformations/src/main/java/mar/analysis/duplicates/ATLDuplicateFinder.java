@@ -70,10 +70,6 @@ public class ATLDuplicateFinder<T> extends DuplicateFinder<T, ATLModel> {
 			return tokens;
 		}
 
-		private void addToken(List<String> tokens, String string) {
-			if (string != null)
-				tokens.add(string);
-		}
 		
 	}
 }

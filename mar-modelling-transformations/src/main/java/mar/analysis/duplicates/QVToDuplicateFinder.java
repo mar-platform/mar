@@ -44,9 +44,5 @@ public class QVToDuplicateFinder<T> extends DuplicateFinder<T, UnitCS> {
 		}
 		
 	}
-	
-	private static void addToken(List<String> tokens, String string) {
-		if (string != null)
-			tokens.add(string);
-	}	
+
 }
