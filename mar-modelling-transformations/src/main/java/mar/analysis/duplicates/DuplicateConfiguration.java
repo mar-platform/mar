@@ -144,6 +144,50 @@ public class DuplicateConfiguration {
 			}
 		});
 		
+		computation.addType(ArtefactType.HENSHIN, new DuplicateFinderConfiguration<FileProgram, File>() {
+			@Override
+			public File toResource(FileProgram p) throws Exception {
+				return p.getFilePath().getPath().toFile();
+			}
+
+			@Override
+			public DuplicateFinder<FileProgram, File> toFinder() {
+				return new HenshinDuplicateFinder<FileProgram>();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return toId.apply(p);
+			}			
+			
+			@Override
+			public String toName(FileProgram p) {
+				return toName.apply(p);
+			}
+		});
+		
+		computation.addType(ArtefactType.SIRIUS, new DuplicateFinderConfiguration<FileProgram, File>() {
+			@Override
+			public File toResource(FileProgram p) throws Exception {
+				return p.getFilePath().getPath().toFile();
+			}
+
+			@Override
+			public DuplicateFinder<FileProgram, File> toFinder() {
+				return new SiriusDuplicateFinder<FileProgram>();
+			}
+
+			@Override
+			public String toId(FileProgram p) {
+				return toId.apply(p);
+			}			
+			
+			@Override
+			public String toName(FileProgram p) {
+				return toName.apply(p);
+			}
+		});
+		
 		return computation;
 	}
 
