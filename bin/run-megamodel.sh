@@ -38,4 +38,4 @@ time java --add-opens java.base/java.lang=ALL-UNNAMED -jar mar-modelling-transfo
      --repoDB "$DB_PATH" \
      --cache /data3/supergraph/ \
      --output "$MEGAMODELDB" \
-     --analysis-ecore
+     --analysis-ecore | tee /tmp/megamodel.log
