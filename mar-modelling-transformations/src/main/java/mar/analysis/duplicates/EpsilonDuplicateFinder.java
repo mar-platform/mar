@@ -35,6 +35,7 @@ public class EpsilonDuplicateFinder<T> extends DuplicateFinder<T, File> {
 					return extractEgl(resource);
 				}
 			} catch (IOException e) {
+				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
 			}
 			
@@ -74,7 +75,7 @@ public class EpsilonDuplicateFinder<T> extends DuplicateFinder<T, File> {
 					tokens.add(token.getText());
 				}
 			} catch (EglRecognitionException e) {
-				e.printStackTrace();
+				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
 			}
 	    	return null;

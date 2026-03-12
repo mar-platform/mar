@@ -30,7 +30,7 @@
     let renderer: Sigma | null = null;
     let fa2: InstanceType<typeof FA2Layout> | null = null;
     let fa2Running = $state(false);
-    let numberOfIterations = $state(10);
+    let numberOfIterations = $state(20);
     let nodeNameFilter = $state('');
     let showUnconnectedNodes = $state(false);
     let artefactSearch = $state('');
@@ -158,6 +158,7 @@
     }
 
     function startLayout() {
+      console.log("startLayout");
       if (fa2) { fa2.kill(); fa2 = null; }
       const s = forceAtlas2.inferSettings(graph);
       
@@ -168,6 +169,7 @@
       fa2 = new FA2Layout(graph, { settings: s});
       fa2.start();
       fa2Running = true;
+      console.log(numberOfIterations)
       setTimeout(() => stopLayout(), numberOfIterations * 1000);
     }
 
@@ -181,6 +183,12 @@
       currentNode = nodeImpl;
       currentEdge = null;
       renderer?.refresh();
+    }
+
+    export function selectNodeById(id: string) {
+      if (graph?.hasNode(id)) {
+        selectNode(graph.getNodeAttributes(id).impl);
+      }
     }
 
     function selectEdge(edgeKey: string) {
@@ -392,7 +400,7 @@
       </label>
       <div class="flex items-center gap-1">
         <span>Layout timeout:</span>
-        <Input class="w-16 h-7 text-xs px-2 py-0" type="number" bind:value={numberOfIterations} />
+        <input class="w-16 h-7 text-xs px-2 py-0 border rounded" type="number" bind:value={numberOfIterations} />
         <Button size="sm" class="h-7 text-xs" onclick={redoLayout}>{fa2Running ? 'Stop' : 'Layout'}</Button>
       </div>
       <div class="flex items-center gap-1">
@@ -400,7 +408,7 @@
         <input class="w-24" type="range" min="0" max="15" step="0.5" oninput={onLabelThreshold} />
       </div>
       <div class="flex items-center gap-1">
-        <Input class="w-32 h-7 text-xs px-2 py-0" type="text" placeholder="Filter nodes…" bind:value={nodeNameFilter} />
+        <input class="w-32 h-7 text-xs px-2 py-0 border rounded" type="text" placeholder="Filter nodes…" bind:value={nodeNameFilter} />
         <Button size="sm" class="h-7 text-xs" onclick={applyNodeFilter}>Filter</Button>
       </div>
     </div>

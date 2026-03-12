@@ -42,6 +42,7 @@ public class SiriusDuplicateFinder<T> extends DuplicateFinder<T, File> {
 		        traverse(doc.getDocumentElement(), tokens);
 				return tokens;
 			} catch (IOException | SAXException | ParserConfigurationException e) {
+				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
 			}
 		}		

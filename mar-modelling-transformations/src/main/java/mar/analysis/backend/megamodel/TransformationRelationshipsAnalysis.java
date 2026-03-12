@@ -1,8 +1,10 @@
 package mar.analysis.backend.megamodel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,8 +76,7 @@ public class TransformationRelationshipsAnalysis {
 			String tgtGroup = dup.getGroupOf(tgt);
 			
 			String sourceId = srcGroup != null ? srcGroup : src;
-			String targetId = tgtGroup != null ? tgtGroup : tgt;;
-			
+			String targetId = tgtGroup != null ? tgtGroup : tgt;			
 			
 			graph.addEdge(sourceId, targetId, type);
 		}, MAIN_RELATIONSHIP_TYPES);
@@ -83,12 +84,39 @@ public class TransformationRelationshipsAnalysis {
 		return graph;
 	}
 	
+	@Nonnull
+	public RelationshipsGraph getDuplicationGraph() {
+		DuplicationGraph graph = new DuplicationGraph();
+
+		List<ArtefactGroup> groups = new ArrayList<>();
+		DuplicationRelationships dup = db.getDuplicates();
+		dup.forEachGroup((groupId, nodeIds) -> {
+			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+			node.addArtefacts(nodeIds);
+			graph.addNode(node);			
+			groups.add(node);
+		});
+		
+		for (ArtefactGroup artefactGroup : groups) {
+			for (String id : artefactGroup.getArtefacts()) {
+				Artefact artefact = db.getArtefactById(id);
+				Node node = new RelationshipsGraph.ArtefactNode(id, artefact);				
+				graph.addNode(node);
+				graph.addEdge(artefactGroup.getId(), node.getId(), Relationship.DUPLICATE);				
+			}
+		}
+		
+		return graph;
+	}
+	
+	
 	/**
 	 * The duplication graph aggregates all nodes in the same duplication group into the same
 	 * node, and the relationships are redirected.
 	 */
+	// I don't think this is very useful
 	@Nonnull
-	public RelationshipsGraph getDuplicationGraph() {
+	public RelationshipsGraph getDuplicationGraphOld() {
 		DuplicationGraph graph = new DuplicationGraph();
 		
 		DuplicationRelationships dup = db.getDuplicates();

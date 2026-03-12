@@ -22,6 +22,7 @@ public class XtextDuplicateFinder<T> extends DuplicateFinder<T, File> {
 				List<String> tokens = tokenizer.getTokens(resource.getAbsolutePath());
 				return tokens;
 			} catch (IOException e) {
+				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
 			}
 		}		

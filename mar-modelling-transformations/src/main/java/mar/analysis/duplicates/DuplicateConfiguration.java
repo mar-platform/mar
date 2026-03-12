@@ -81,7 +81,7 @@ public class DuplicateConfiguration {
 		computation.addType(ArtefactType.XTEXT, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
-				return p.getFilePath().getPath().toFile();
+				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
 			}
 
 			@Override
@@ -103,7 +103,7 @@ public class DuplicateConfiguration {
 		computation.addType(ArtefactType.EPSILON, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
-				return p.getFilePath().getPath().toFile();
+				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
 			}
 
 			@Override
@@ -125,7 +125,7 @@ public class DuplicateConfiguration {
 		computation.addType(ArtefactType.OCL, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
-				return p.getFilePath().getPath().toFile();
+				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
 			}
 
 			@Override
@@ -147,7 +147,7 @@ public class DuplicateConfiguration {
 		computation.addType(ArtefactType.HENSHIN, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
-				return p.getFilePath().getPath().toFile();
+				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
 			}
 
 			@Override
@@ -169,7 +169,7 @@ public class DuplicateConfiguration {
 		computation.addType(ArtefactType.SIRIUS, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
-				return p.getFilePath().getPath().toFile();
+				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
 			}
 
 			@Override

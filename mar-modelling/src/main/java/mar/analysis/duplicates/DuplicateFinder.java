@@ -19,7 +19,7 @@ import com.google.common.base.Preconditions;
  * 
  * @author jesus
  */
-public class DuplicateFinder<I, T> {
+public abstract class DuplicateFinder<I, T> {
 
 	private final ITokenExtractor<T> extractor;
 	private final Map<I, Object2IntHashMap<String>> fingerprints = new HashMap<>();

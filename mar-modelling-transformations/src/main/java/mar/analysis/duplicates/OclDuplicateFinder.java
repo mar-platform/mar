@@ -46,7 +46,7 @@ public class OclDuplicateFinder<T> extends DuplicateFinder<T, File> {
 				}
 				return tokens;				
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
 			}
 		}		

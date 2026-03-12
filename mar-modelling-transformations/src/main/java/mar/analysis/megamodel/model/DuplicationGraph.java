@@ -24,6 +24,10 @@ public class DuplicationGraph extends RelationshipsGraph {
 			artefacts.addAll(group);
 		}
 		
+		public List<? extends String> getArtefacts() {
+			return artefacts;
+		}
+		
 	}
 	
 	

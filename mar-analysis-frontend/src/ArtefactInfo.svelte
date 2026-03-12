@@ -50,12 +50,35 @@
           <dd class="break-all">{node.artefact.name}</dd>
         </div>
       {:else if node._type == 'virtual'}
-        {#each node.artefacts as node_id}
-          <div>{node_id}</div>
-        {/each}
+        <div class="flex gap-2">
+          <dt class="text-muted-foreground shrink-0">Kind:</dt>
+          <dd>{node.kind}</dd>
+        </div>
       {/if}
     </dl>
   </div>
+
+  {#if node._type == 'virtual' && node.artefacts?.length > 0}
+  <!-- Artefact members of this group -->
+  <div>
+    <p class="font-medium mb-1">Members ({node.artefacts.length})</p>
+    <ul class="space-y-0.5">
+      {#each node.artefacts as node_id}
+        {@const attrs = graph.hasNode(node_id) ? graph.getNodeAttributes(node_id) : null}
+        <li>
+          {#if attrs}
+            <button
+              class="text-left hover:underline cursor-pointer"
+              onclick={() => onNodeSelect?.(attrs.impl)}
+            >{attrs.label}</button>
+          {:else}
+            <span class="text-muted-foreground">{node_id}</span>
+          {/if}
+        </li>
+      {/each}
+    </ul>
+  </div>
+  {/if}
 
   <!-- Dependencies -->
   <div>
