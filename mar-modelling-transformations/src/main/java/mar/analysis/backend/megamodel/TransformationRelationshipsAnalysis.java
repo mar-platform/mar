@@ -76,13 +76,13 @@ public class TransformationRelationshipsAnalysis {
 		});
 		
 		db.getRelationshipsByType((src, tgt, type) -> {
-			if (filter.isAccepted(src) && filter.isAccepted(tgt)) {
-				String srcGroup = dup.getGroupOf(src);
-				String tgtGroup = dup.getGroupOf(tgt);
+			String srcGroup = dup.getGroupOf(src);
+			String tgtGroup = dup.getGroupOf(tgt);
+			
+			String sourceId = srcGroup != null ? srcGroup : src;
+			String targetId = tgtGroup != null ? tgtGroup : tgt;			
 				
-				String sourceId = srcGroup != null ? srcGroup : src;
-				String targetId = tgtGroup != null ? tgtGroup : tgt;			
-				
+			if (filter.isAccepted(sourceId) && filter.isAccepted(targetId)) {
 				graph.addEdge(sourceId, targetId, type);
 			}
 		}, MAIN_RELATIONSHIP_TYPES);
