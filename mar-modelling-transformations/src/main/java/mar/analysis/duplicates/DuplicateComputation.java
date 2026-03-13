@@ -84,7 +84,7 @@ public class DuplicateComputation {
 			}
 		}		
 		
-		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(0.8, 0.7);
+		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(conf.default_t0(), conf.default_t1());
 		return duplicates;
 	}
 
@@ -93,6 +93,13 @@ public class DuplicateComputation {
 		public String toName(I p);
 		public DuplicateFinder<I, T> toFinder();
 		public String toId(I p);
+		public default double default_t0() {
+			return 0.8;
+		}
+		public default double default_t1() {
+			return 0.7;
+		}
+		
 	}
 	
 }

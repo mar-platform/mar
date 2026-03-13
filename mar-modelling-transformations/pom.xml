@@ -174,7 +174,16 @@
 			<artifactId>org.eclipse.epsilon.epl.engine</artifactId>
 			<version>2.4.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.ewl.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.epsilon</groupId>
+			<artifactId>org.eclipse.epsilon.eml.engine</artifactId>
+			<version>2.4.0</version>
+		</dependency>
 		<!-- OCL -->
 		<dependency>
 			<groupId>org.eclipse.ocl</groupId>

@@ -28,9 +28,11 @@ public class TransformationRelationshipsAnalysis {
 	private static Relationship[] MAIN_RELATIONSHIP_TYPES = { Relationship.TYPED_BY, Relationship.IMPORT };
 	
 	private MegamodelDB db;
+	private Filter filter;
 
-	public TransformationRelationshipsAnalysis(@Nonnull MegamodelDB db) {
+	public TransformationRelationshipsAnalysis(@Nonnull MegamodelDB db, Filter filter) {
 		this.db = db;		
+		this.filter = filter;
 	}
 	
 	@Nonnull
@@ -58,27 +60,31 @@ public class TransformationRelationshipsAnalysis {
 		
 		DuplicationRelationships dup = db.getDuplicates();
 		dup.forEachGroup((groupId, nodeIds) -> {
-			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
-			node.addArtefacts(nodeIds);
-			graph.addNode(node);			
-			
-			nodeIds.forEach(id -> nodeToGroup.put(id, groupId));
+			if (filter.isAccepted(groupId)) {
+				ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+				node.addArtefacts(nodeIds);
+				graph.addNode(node);			
+				
+				nodeIds.forEach(id -> nodeToGroup.put(id, groupId));
+			}
 		});
 		
 		db.getAllArtefacts().forEach((key, artefact) -> {
-			if (! nodeToGroup.containsKey(key)) {
+			if (! nodeToGroup.containsKey(key) && filter.isAccepted(key)) {
 				graph.addNode(new RelationshipsGraph.ArtefactNode(key, artefact));
 			}
 		});
 		
 		db.getRelationshipsByType((src, tgt, type) -> {
-			String srcGroup = dup.getGroupOf(src);
-			String tgtGroup = dup.getGroupOf(tgt);
-			
-			String sourceId = srcGroup != null ? srcGroup : src;
-			String targetId = tgtGroup != null ? tgtGroup : tgt;			
-			
-			graph.addEdge(sourceId, targetId, type);
+			if (filter.isAccepted(src) && filter.isAccepted(tgt)) {
+				String srcGroup = dup.getGroupOf(src);
+				String tgtGroup = dup.getGroupOf(tgt);
+				
+				String sourceId = srcGroup != null ? srcGroup : src;
+				String targetId = tgtGroup != null ? tgtGroup : tgt;			
+				
+				graph.addEdge(sourceId, targetId, type);
+			}
 		}, MAIN_RELATIONSHIP_TYPES);
 		
 		return graph;
@@ -298,5 +304,17 @@ public class TransformationRelationshipsAnalysis {
 		
 		return graph;
 	}	
+
+	public static interface Filter {
+		boolean isAccepted(String id);		
+	}
 	
+	public static Filter ALL_ACCEPTED = new Filter() {
+
+		@Override
+		public boolean isAccepted(String id) {
+			return true;
+		}
+		
+	};
 }

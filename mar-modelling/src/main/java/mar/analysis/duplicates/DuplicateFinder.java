@@ -28,6 +28,8 @@ public abstract class DuplicateFinder<I, T> {
 		this.extractor = extractor;
 	}
 	
+	
+	
 	public void addResource(I artefact, T resource) {
 		List<String> elements = extractor.extract(resource);
 		Object2IntHashMap<String> identifierMultiset = new Object2IntHashMap<String>(0);

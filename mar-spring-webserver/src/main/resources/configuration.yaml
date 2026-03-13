@@ -1,0 +1,8 @@
+filter-projects:
+  - name: dstrueber/multicda
+    cause: mutants
+  - name: dstrueber/bigtrafo
+    cause: mutants
+  - name: hub-se/MoFuzz
+    cause: mutants
+# TODO: Filter only those in /generated/	

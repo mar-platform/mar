@@ -164,6 +164,16 @@ public class DuplicateConfiguration {
 			public String toName(FileProgram p) {
 				return toName.apply(p);
 			}
+			
+			@Override
+			public double default_t0() {
+				return 0.7;
+			}
+			
+			@Override
+			public double default_t1() {
+				return 0.6;
+			}
 		});
 		
 		computation.addType(ArtefactType.SIRIUS, new DuplicateFinderConfiguration<FileProgram, File>() {

@@ -1,6 +1,9 @@
 package ml2.mar.webserver;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -8,10 +11,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
+import org.springframework.util.ResourceUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
+import ml2.mar.webserver.configuration.AnalysisConfiguration;
+import ml2.mar.webserver.configuration.AnalysisFilterImpl;
 
 @SpringBootApplication
 public class WebserverApplication {
@@ -41,12 +50,32 @@ public class WebserverApplication {
 	}
 	
 	@Bean
+	public ObjectMapper getMapper() {
+		return new ObjectMapper();
+	}
+	
+	@Bean
 	@Scope("application")
-	public TransformationRelationshipsAnalysis getRelationshipAnalysis(@Autowired ApplicationArguments args) {
+	public AnalysisConfiguration getConfiguration(@Autowired ApplicationArguments args) throws IOException {
+		String configuration;
+		if (args.getNonOptionArgs().size() <= 2) {
+		    File file = ResourceUtils.getFile("classpath:configuration.yaml");
+		    configuration = new String(Files.readAllBytes(file.toPath()));		    
+		} else {		
+			String fileName = args.getNonOptionArgs().get(2);
+			configuration = Files.readString(Path.of(fileName));
+		}
+	    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+		return mapper.readValue(configuration, AnalysisConfiguration.class);
+	}
+	
+	@Bean
+	@Scope("application")
+	public TransformationRelationshipsAnalysis getRelationshipAnalysis(@Autowired ApplicationArguments args, AnalysisConfiguration configuration) {
 		String fileName = args.getNonOptionArgs().get(0);
     	MegamodelDB db = new MegamodelDB(new File(fileName));
     	
-		return new TransformationRelationshipsAnalysis(db);
+		return new TransformationRelationshipsAnalysis(db, new AnalysisFilterImpl(configuration));
 	}
 	
 	@Bean

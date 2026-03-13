@@ -183,7 +183,7 @@ public class ResultAnalyser implements Callable<Integer> {
 		
 		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();		
 		
-		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb);
+		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb, TransformationRelationshipsAnalysis.ALL_ACCEPTED);
 		RelationshipsGraph graph = analysis.getRelationships();
 		for (Node node : graph.getNodes()) {
 			if (node instanceof ArtefactNode) {

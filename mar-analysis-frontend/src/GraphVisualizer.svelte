@@ -30,7 +30,7 @@
     let renderer: Sigma | null = null;
     let fa2: InstanceType<typeof FA2Layout> | null = null;
     let fa2Running = $state(false);
-    let numberOfIterations = $state(20);
+    let numberOfIterations = 20; //$state(20);
     let nodeNameFilter = $state('');
     let showUnconnectedNodes = $state(false);
     let artefactSearch = $state('');
