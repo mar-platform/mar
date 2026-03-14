@@ -69,7 +69,7 @@ public class TransformationRelationshipsAnalysis {
 			}
 		});
 		
-		db.getAllArtefacts().forEach((key, artefact) -> {
+		db.getAllArtefacts().forEach((key, artefact) -> {	
 			if (! nodeToGroup.containsKey(key) && filter.isAccepted(key)) {
 				graph.addNode(new RelationshipsGraph.ArtefactNode(key, artefact));
 			}

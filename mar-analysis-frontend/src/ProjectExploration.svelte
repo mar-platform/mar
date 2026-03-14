@@ -16,6 +16,10 @@
         .then(doc => { projects = doc; allProjects = doc; });
   });
 
+  $effect(() => {
+    console.log(projects);
+  });
+
   const searchOnChange = (e: Event) => {
       const value = (e.target as HTMLInputElement).value;
       if (value === '') {

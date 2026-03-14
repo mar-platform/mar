@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import com.google.common.base.Preconditions;
@@ -24,7 +23,7 @@ public class DuplicationRelationships {
 	private final Multimap<String, String> groups = ArrayListMultimap.create();		
 	private final Map<String, String> nodeToGroup = new HashMap<String, String>();
 	
-	public void addToGroup(String groupId, String nodeId) {
+	public void addToGroup(String groupId, String nodeId, String type) {
 		groups.put(groupId, nodeId);
 		nodeToGroup.put(nodeId, groupId);
 	}

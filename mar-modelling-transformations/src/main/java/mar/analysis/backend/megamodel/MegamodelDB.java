@@ -72,7 +72,8 @@ public class MegamodelDB implements Closeable {
 
                 String virtualNodes = "CREATE TABLE IF NOT EXISTS duplication (\n"
                         + "    group_id      varchar(255) NOT NULL,\n"
-                        + "    node_id       varchar(255) NOT NULL,"
+                        + "    node_id       varchar(255) NOT NULL,\n"
+                        + "    type          varchar(255) NOT NULL,\n"                        
                         + "    PRIMARY KEY (group_id, node_id)"                        
                         + ");";
                 
@@ -347,13 +348,14 @@ public class MegamodelDB implements Closeable {
 		}
 	}
 
-	public void addDuplicate(String groupId, String nodeId) {
+	public void addDuplicate(String groupId, String nodeId, ArtefactType artefactType) {
 		Preconditions.checkState(allArtefacts.containsKey(nodeId));
 
 		try {
-			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO duplication(group_id, node_id) VALUES (?, ?)");
+			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO duplication(group_id, node_id, type) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, groupId);
 			preparedStatement.setString(2, nodeId);
+			preparedStatement.setString(3, artefactType.name());
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
 		} catch (SQLException e) {
@@ -364,12 +366,13 @@ public class MegamodelDB implements Closeable {
 	public DuplicationRelationships getDuplicates() {
 		try {
 			DuplicationRelationships dup = new DuplicationRelationships();
-			PreparedStatement query = connection.prepareStatement("SELECT group_id, node_id FROM duplication");
+			PreparedStatement query = connection.prepareStatement("SELECT group_id, node_id, type FROM duplication");
 			ResultSet rs = query.executeQuery();
 			while (rs.next()) {
 				String groupId = rs.getString(1);
 				String nodeId = rs.getString(2);
-				dup.addToGroup(groupId, nodeId);
+				String type = rs.getString(3);
+				dup.addToGroup(groupId, nodeId, type);
 			}
 			return dup;
 		} catch (SQLException e) {

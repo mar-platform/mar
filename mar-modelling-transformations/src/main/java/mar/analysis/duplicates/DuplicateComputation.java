@@ -100,6 +100,8 @@ public class DuplicateComputation {
 			return 0.7;
 		}
 		
+		public ArtefactType getType();	
+
 	}
 	
 }

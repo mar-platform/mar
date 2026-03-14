@@ -9,7 +9,6 @@
   onMount(async () => {
     fetch(API.megamodelGraph()).
           then(res => res.json()).
-          then(json => {console.log(json); return json;}).
           then(doc => document = doc);
   });
 </script>

@@ -72,19 +72,19 @@ public class MegamodelController {
 
 	@GetMapping(value = "/project-graph", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:5173")
-	public RelationshipsGraph getProjectGraph(@RequestParam String projectId) {
+	public RelationshipsGraph getProjectGraph(@RequestParam("projectId") String projectId) {
 		return analysis.getProjectRelationship(projectId);
 	}
 
 	@GetMapping(value = "/graph-from-sql", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:5173")
-	public RelationshipsGraph getGraphFromSQL(@RequestParam String sql) {
+	public RelationshipsGraph getGraphFromSQL(@RequestParam("sql") String sql) {
 		return analysis.getRelationshipsFromSQL(sql);
 	}
 	
 	@GetMapping(value = "/search-project", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:5173")
-    public List<Project> searchProject(@RequestParam String value) throws JsonProcessingException {
+    public List<Project> searchProject(@RequestParam("value") String value) throws JsonProcessingException {
 		if (value.length() < 3)
 			return Collections.emptyList();
 		return db.searchProjects(value);

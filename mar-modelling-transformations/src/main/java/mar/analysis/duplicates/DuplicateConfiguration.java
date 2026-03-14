@@ -41,6 +41,11 @@ public class DuplicateConfiguration {
 			}
 
 			@Override
+			public ArtefactType getType() {
+				return ArtefactType.ATL;
+			}
+			
+			@Override
 			public DuplicateFinder<FileProgram, ATLModel> toFinder() {
 				return new ATLDuplicateFinder<FileProgram>();
 			}
@@ -62,6 +67,11 @@ public class DuplicateConfiguration {
 				return QvtoLoader.INSTANCE.parse(p.getFilePath().getCompletePath(repositoryDataFolder).toString());
 			}
 
+			@Override
+			public ArtefactType getType() {
+				return ArtefactType.QVTO;
+			}
+			
 			@Override
 			public DuplicateFinder<FileProgram, UnitCS> toFinder() {
 				return new QVToDuplicateFinder<FileProgram>();
@@ -85,6 +95,11 @@ public class DuplicateConfiguration {
 			}
 
 			@Override
+			public ArtefactType getType() {
+				return ArtefactType.XTEXT;
+			}
+			
+			@Override
 			public DuplicateFinder<FileProgram, File> toFinder() {
 				return new XtextDuplicateFinder<FileProgram>();
 			}
@@ -104,6 +119,11 @@ public class DuplicateConfiguration {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
 				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
+			}
+			
+			@Override
+			public ArtefactType getType() {
+				return ArtefactType.EPSILON;
 			}
 
 			@Override
@@ -129,6 +149,11 @@ public class DuplicateConfiguration {
 			}
 
 			@Override
+			public ArtefactType getType() {
+				return ArtefactType.OCL;
+			}
+			
+			@Override
 			public DuplicateFinder<FileProgram, File> toFinder() {
 				return new OclDuplicateFinder<FileProgram>();
 			}
@@ -148,6 +173,11 @@ public class DuplicateConfiguration {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
 				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
+			}
+			
+			@Override
+			public ArtefactType getType() {
+				return ArtefactType.HENSHIN;
 			}
 
 			@Override
@@ -180,6 +210,11 @@ public class DuplicateConfiguration {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
 				return p.getFilePath().getCompletePath(repositoryDataFolder).toFile();
+			}
+			
+			@Override
+			public ArtefactType getType() {
+				return ArtefactType.SIRIUS;
 			}
 
 			@Override

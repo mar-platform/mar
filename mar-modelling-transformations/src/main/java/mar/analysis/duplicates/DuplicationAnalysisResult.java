@@ -64,7 +64,7 @@ public class DuplicationAnalysisResult {
 			for (T p1  : duplicationGroup) {
 				String id = conf.toId(p1);
 				if (alreadyAdded.add(id)) {
-					db.addDuplicate(groupId, id);
+					db.addDuplicate(groupId, id, conf.getType());
 				} else {
 					System.out.println("Duplication: attempt to add an existing duplicate: " + id);
 				}
