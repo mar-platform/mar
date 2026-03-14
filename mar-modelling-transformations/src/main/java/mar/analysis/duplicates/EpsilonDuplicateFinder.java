@@ -43,8 +43,7 @@ public class EpsilonDuplicateFinder<T> extends DuplicateFinder<T, File> {
 			} catch (IOException e) {
 				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
-			}
-			
+			}			
 			
 			ANTLRStringStream input = new ANTLRStringStream(code);
 	        org.antlr.runtime.Lexer lexer = createLexer(resource.getName(), input);
@@ -102,7 +101,7 @@ public class EpsilonDuplicateFinder<T> extends DuplicateFinder<T, File> {
 				System.out.println("Can't check duplicate file " + resource.getPath() + " - " + e.getMessage());
 				return Collections.emptyList();
 			}
-	    	return null;
+	    	return tokens;
 		}
 
 

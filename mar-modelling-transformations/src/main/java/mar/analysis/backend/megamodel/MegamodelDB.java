@@ -355,7 +355,7 @@ public class MegamodelDB implements Closeable {
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO duplication(group_id, node_id, type) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, groupId);
 			preparedStatement.setString(2, nodeId);
-			preparedStatement.setString(3, artefactType.name());
+			preparedStatement.setString(3, artefactType.id);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
 		} catch (SQLException e) {
