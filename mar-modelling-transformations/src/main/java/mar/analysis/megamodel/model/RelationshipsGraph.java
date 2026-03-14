@@ -55,16 +55,21 @@ public class RelationshipsGraph {
 	}
 	
 	public void addEdge(String src, String tgt, Relationship type) {
+		addEdge(src, tgt, Collections.singletonList(type));
+	}	
+	
+	public void addEdge(String src, String tgt, Collection<? extends Relationship> types) {
 		Node srcNode = getNode(src);
 		Node tgtNode = getNode(tgt);
 		Edge edge = impl.getEdge(srcNode, tgtNode);
 		if (edge != null) {
-			edge.addType(type);
+			for (Relationship type : types) {
+				edge.addType(type);				
+			}
 		} else {
-			impl.addEdge(srcNode, tgtNode, new Edge(type));
-		}
-		
-	}	
+			impl.addEdge(srcNode, tgtNode, new Edge(types));
+		}				
+	}
 	
 	@JsonProperty(value = "nodes")
 	public Collection<? extends Node> getNodes() {
@@ -160,6 +165,11 @@ public class RelationshipsGraph {
 		public Edge(Relationship type) {
 			this.types.add(type);
 		}
+
+		public Edge(Collection<? extends Relationship> types) {
+			this.types.addAll(types);
+		}
+
 		
 		public void addType(Relationship type) {
 			this.types.add(type);
@@ -200,4 +210,6 @@ public class RelationshipsGraph {
 	public Graph<Node, Edge> getGraph() {
 		return impl;
 	}
+
+
 }

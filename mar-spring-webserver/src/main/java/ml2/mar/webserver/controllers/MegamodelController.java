@@ -70,6 +70,12 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getInterProjectGraph());
     }
 
+	@GetMapping(value = "/component-graph", produces="application/json")
+	@CrossOrigin(origins = "http://localhost:5173")
+    public String componentGraph() throws JsonProcessingException {
+        return objectMapper.writeValueAsString(analysis.getComponentGraph());
+    }
+	
 	@GetMapping(value = "/project-graph", produces="application/json")
 	@CrossOrigin(origins = "http://localhost:5173")
 	public RelationshipsGraph getProjectGraph(@RequestParam("projectId") String projectId) {

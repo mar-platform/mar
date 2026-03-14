@@ -10,10 +10,13 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.ComponentGraph;
 import mar.analysis.megamodel.model.DuplicationGraph;
 import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
 import mar.analysis.megamodel.model.DuplicationRelationships;
@@ -21,6 +24,7 @@ import mar.analysis.megamodel.model.InterProjectGraph;
 import mar.analysis.megamodel.model.InterProjectGraph.ProjectGroup;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
 public class TransformationRelationshipsAnalysis {
@@ -272,6 +276,11 @@ public class TransformationRelationshipsAnalysis {
 		}, MAIN_RELATIONSHIP_TYPES);
 		
 		return graph;
+	}
+	
+	public ComponentGraph getComponentGraph() {
+		RelationshipsGraph megamodelGraph = getMegamodelGraph();
+		return new ComponentGraph(megamodelGraph);
 	}
 	
 	@Nonnull
