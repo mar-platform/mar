@@ -61,7 +61,8 @@ public class TransformationRelationshipsAnalysis {
 		DuplicationRelationships dup = db.getDuplicates();
 		dup.forEachGroup((groupId, nodeIds) -> {
 			if (filter.isAccepted(groupId)) {
-				ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+				String type = dup.getTypeOfGroup(groupId).toLowerCase(); //Hack
+				ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication", type);
 				node.addArtefacts(nodeIds);
 				graph.addNode(node);			
 				
@@ -69,9 +70,12 @@ public class TransformationRelationshipsAnalysis {
 			}
 		});
 		
-		db.getAllArtefacts().forEach((key, artefact) -> {	
-			if (! nodeToGroup.containsKey(key) && filter.isAccepted(key)) {
-				graph.addNode(new RelationshipsGraph.ArtefactNode(key, artefact));
+		db.getAllArtefacts().forEach((key, artefact) -> {
+			if (filter.isAccepted(key)) {
+				graph.addArtefact(artefact);
+				if (! nodeToGroup.containsKey(key)) {
+					graph.addNode(new RelationshipsGraph.ArtefactNode(key, artefact));
+				}
 			}
 		});
 		
@@ -97,7 +101,8 @@ public class TransformationRelationshipsAnalysis {
 		List<ArtefactGroup> groups = new ArrayList<>();
 		DuplicationRelationships dup = db.getDuplicates();
 		dup.forEachGroup((groupId, nodeIds) -> {
-			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+			String artefactType = dup.getTypeOfGroup(groupId);
+			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication", artefactType);
 			node.addArtefacts(nodeIds);
 			graph.addNode(node);			
 			groups.add(node);
@@ -127,7 +132,8 @@ public class TransformationRelationshipsAnalysis {
 		
 		DuplicationRelationships dup = db.getDuplicates();
 		dup.forEachGroup((groupId, nodeIds) -> {
-			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication");
+			String artefactType = dup.getTypeOfGroup(groupId);
+			ArtefactGroup node = new DuplicationGraph.ArtefactGroup(groupId, "duplication", artefactType);
 			node.addArtefacts(nodeIds);
 			graph.addNode(node);			
 		});

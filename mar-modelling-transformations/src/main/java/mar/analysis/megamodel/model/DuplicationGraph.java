@@ -8,15 +8,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DuplicationGraph extends RelationshipsGraph {
 	// extends RelationshipsGraph
+	private List<Artefact> artefacts = new ArrayList<Artefact>();
+	
+	public void addArtefact(Artefact artefact) {
+		artefacts.add(artefact);
+	}
 	
 	public static class ArtefactGroup extends RelationshipsGraph.VirtualNode {
 
 		@JsonProperty
 		private List<String> artefacts;
+		@JsonProperty
+		private final String artefactType;
 		
-		public ArtefactGroup(String id, String type) {
+		public ArtefactGroup(String id, String type, String artefactType) {
 			super(id, type);
 			this.artefacts = new ArrayList<>();
+			this.artefactType = artefactType;
 			// Perhaps the type?
 		}
 

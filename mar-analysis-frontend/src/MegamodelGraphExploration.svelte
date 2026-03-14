@@ -11,8 +11,15 @@
           then(res => res.json()).
           then(doc => document = doc);
   });
+
+  $effect(() => {
+    if (document != undefined) {
+      console.log("Megamodel graph document:");
+      console.log(document);
+    }
+  });
 </script>
 
 {#if document}
-  <GraphVisualizer document={document} types={[...artefactTypes, duplicationTypes]}/>
+  <GraphVisualizer document={document} types={[...artefactTypes, ...duplicationTypes]}/>
 {/if}

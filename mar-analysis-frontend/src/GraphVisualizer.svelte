@@ -71,9 +71,12 @@
       doc.nodes.forEach((node: any) => {
         let type: string, name: string;
         if (node._type == 'artefact') {
-            type = node.artefact.type; name = node.artefact.name;
+            type = node.artefact.type; 
+            name = node.artefact.name;
         } else if (node._type == 'virtual') {
-            type = node.kind; name = node.id;
+            type = node.kind == 'duplication' ? node.artefactType : node.kind;
+            console.log("Type for virtual: ", type);
+            name = node.id;
         } else {
             type = 'error'; name = 'unknown';
         }
