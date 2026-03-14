@@ -21,6 +21,9 @@ const API = {
     projectGraph : function(id) {
         return `http://localhost:8080/project-graph?projectId=${id}`;        
     },
+    componentGraph : function() {
+        return `http://localhost:8080/component-graph`;
+    },
     graphFromSql : function(sql) {
         return `http://localhost:8080/graph-from-sql?sql=${sql}`;        
     },

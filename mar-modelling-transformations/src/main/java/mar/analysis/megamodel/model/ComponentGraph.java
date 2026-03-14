@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
@@ -13,6 +14,7 @@ import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
 public class ComponentGraph {
 
+	@JsonProperty
 	private List<SingleComponentGraph> subgraphs = new ArrayList<SingleComponentGraph>();
 	
 	public ComponentGraph(RelationshipsGraph graph) {
@@ -22,7 +24,7 @@ public class ComponentGraph {
 		for (Set<Node> set : connectedSets) {
 			String proposedName = set.iterator().next().getId();
 			
-			SingleComponentGraph subgraph = new SingleComponentGraph(proposedName);			
+			SingleComponentGraph subgraph = new SingleComponentGraph(proposedName, set.size());			
 			List<Edge> toBeAdded = new ArrayList<RelationshipsGraph.Edge>();
 			for (Node node : set) {
 				subgraph.addNode(node);
@@ -36,15 +38,21 @@ public class ComponentGraph {
 			subgraphs.add(subgraph);
 		}			
 
+		subgraphs.sort((c1, c2) -> -1 * Integer.compare(c1.nodeCount, c2.nodeCount));;
 	}
+	
+	
 	
 	public static class SingleComponentGraph extends RelationshipsGraph {
 
 		@JsonProperty("name")
 		private String name;
+		@JsonProperty("nodeCount")
+		private int nodeCount;
 
-		public SingleComponentGraph(String proposedName) {
+		public SingleComponentGraph(String proposedName, int nodeCount) {
 			this.name = proposedName;
+			this.nodeCount = nodeCount;
 		}
 		
 	}

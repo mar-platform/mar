@@ -15,10 +15,11 @@
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
 
-    let { types, document, children }: {
+    let { types, document, children, rightPanel }: {
       types: any;
       document: any;
       children?: import('svelte').Snippet;
+      rightPanel?: import('svelte').Snippet;
     } = $props();
 
     // ── Graph state ──────────────────────────────────────────
@@ -424,7 +425,7 @@
     ></div>
   </div>
 
-  {#if currentNode || currentEdge}
+  {#if currentNode || currentEdge || rightPanel}
     <!-- ── Right drag handle ── -->
     <div
       class="w-2 shrink-0 self-stretch cursor-col-resize flex items-center justify-center group"
@@ -435,21 +436,26 @@
       <div class="w-px h-full bg-border group-hover:bg-primary/50 transition-colors"></div>
     </div>
 
-    <!-- ── Right panel: artefact or edge info ── -->
+    <!-- ── Right panel: optional slot + artefact or edge info ── -->
     <aside
       class="shrink-0 overflow-y-auto max-h-[680px] pl-2"
       style="width: {rightPanelWidth}px"
     >
-      <button
-        class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer mb-2"
-        onclick={() => { currentNode = null; currentEdge = null; renderer?.refresh(); }}
-      >
-        ✕ Close
-      </button>
-      {#if currentNode}
-        <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
-      {:else if currentEdge}
-        <EdgeInfo graph={graph} edge={currentEdge} onNodeSelect={selectNode} />
+      {#if rightPanel}
+        {@render rightPanel()}
+      {/if}
+      {#if currentNode || currentEdge}
+        <button
+          class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer mb-2 {rightPanel ? 'mt-4 border-t pt-2' : ''}"
+          onclick={() => { currentNode = null; currentEdge = null; renderer?.refresh(); }}
+        >
+          ✕ Close
+        </button>
+        {#if currentNode}
+          <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
+        {:else if currentEdge}
+          <EdgeInfo graph={graph} edge={currentEdge} onNodeSelect={selectNode} />
+        {/if}
       {/if}
     </aside>
   {/if}

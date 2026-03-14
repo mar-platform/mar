@@ -2,6 +2,7 @@
   import { Tabs, TabsList, TabsTrigger, TabsContent } from "$lib/components/ui/tabs";
 
   import ClusterExploration from "./ClusterExploration.svelte";
+  import ComponentGraphExploration from "./ComponentGraphExploration.svelte";
   import DuplicationGraphExploration from "./DuplicationGraphExploration.svelte";
   import GraphExploration from './GraphExploration.svelte';
   import InterProjectExploration from "./InterProjectExploration.svelte";
@@ -32,6 +33,7 @@
         <TabsTrigger active={graphSelection === 'megamodel-graph'} onclick={() => graphSelection = 'megamodel-graph'}>Megamodel</TabsTrigger>
         <TabsTrigger active={graphSelection === 'inter_project'} onclick={() => graphSelection = 'inter_project'}>Inter-project</TabsTrigger>
         <TabsTrigger active={graphSelection === 'project'} onclick={() => graphSelection = 'project'}>Project</TabsTrigger>
+        <TabsTrigger active={graphSelection === 'component-graph'} onclick={() => graphSelection = 'component-graph'}>Component graph</TabsTrigger>
       </TabsList>
     </Tabs>
     <div class="mt-2 ml-5">
@@ -45,6 +47,8 @@
         <ProjectExploration />
       {:else if graphSelection === 'megamodel-graph'}
         <MegamodelGraphExploration />
+      {:else if graphSelection === 'component-graph'}
+        <ComponentGraphExploration />
       {/if}
     </div>
   {:else if selection === 'stats'}
