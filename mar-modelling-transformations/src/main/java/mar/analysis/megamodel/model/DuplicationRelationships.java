@@ -22,10 +22,19 @@ public class DuplicationRelationships {
 	// GroupId -> List[NodeId]
 	private final Multimap<String, String> groups = ArrayListMultimap.create();		
 	private final Map<String, String> nodeToGroup = new HashMap<String, String>();
+	private final Map<String, String> groupToType = new HashMap<String, String>();
 	
 	public void addToGroup(String groupId, String nodeId, String type) {
+		String originalType = groupToType.get(groupId);
+		if (originalType != null) {
+			Preconditions.checkState(originalType.equals(type));
+		} else {
+			groupToType.put(groupId, type);
+		}	
+		
 		groups.put(groupId, nodeId);
 		nodeToGroup.put(nodeId, groupId);
+		
 	}
 
 	public void forEachGroup(BiConsumer<String, Collection<? extends String>> consumer) {
@@ -42,6 +51,10 @@ public class DuplicationRelationships {
 
 	public String getGroupOf(String nodeId) {
 		return nodeToGroup.get(nodeId);
+	}
+	
+	public String getTypeOfGroup(String groupId) {
+		return Preconditions.checkNotNull(groupToType.get(groupId));
 	}
 	
 }

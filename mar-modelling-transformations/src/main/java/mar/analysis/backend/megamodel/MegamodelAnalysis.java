@@ -164,6 +164,11 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			public String toName(Metamodel p) {
 				return MegamodelAnalysis.this.toName(p);
 			}
+			
+			@Override
+			public ArtefactType getType() {
+				return ArtefactType.ECORE;
+			}
 		});				
 		
 		return computation.run();
