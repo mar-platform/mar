@@ -6,6 +6,7 @@ public enum ArtefactType {
 	QVTO("qvto"),
 	OCL("ocl"),
 	XTEXT("xtext"),
+	XTEND("xtend"),	
 	EMFTEXT("emftext"),	
 	EMFATIC("emfatic"),
 	ECORE("ecore"),

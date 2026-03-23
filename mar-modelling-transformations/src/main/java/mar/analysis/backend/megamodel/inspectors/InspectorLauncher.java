@@ -79,6 +79,10 @@ public class InspectorLauncher {
 	public InspectorResult fromXtextFiles() throws SQLException {
 		return doInspect("xtext", (projectPath) -> new XtextInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
+	
+	//public InspectorResult fromXtendFiles() throws SQLException {
+	//	return doInspect("xtend", (projectPath) -> new XtendInspector(repositoryDataFolder, projectPath, analysisDb, db));
+	//}
 
 	public InspectorResult fromEmftextFiles() throws SQLException {
 		return doInspect("emftext", (projectPath) -> new EmftextInspector(repositoryDataFolder, projectPath, analysisDb, db));
@@ -169,6 +173,7 @@ public class InspectorLauncher {
 		tasks.put(ArtefactType.QVTO, inspector::fromQvtoFiles);
 		tasks.put(ArtefactType.OCL, inspector::fromOclFiles);
 		tasks.put(ArtefactType.XTEXT, inspector::fromXtextFiles);
+		//tasks.put(ArtefactType.XTEND, inspector::fromXtendFiles);		
 		tasks.put(ArtefactType.EMFTEXT, inspector::fromEmftextFiles);		
 		tasks.put(ArtefactType.EMFATIC, inspector::fromEmfaticFiles);
 		tasks.put(ArtefactType.ACCELEO, inspector::fromAcceleoFiles);

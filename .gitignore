@@ -44,8 +44,7 @@ external-resources
 #thirdparty/archimate/jaxen-1.1.3.jar
 #thirdparty/archimate/jdom-2.0.5.jar
 #thirdparty/lilypond/
-mar-restservice/lib/
-
+#mar-restservice/lib/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -369,3 +368,5 @@ org.eclipse.jdt.apt.core.prefs
 .factorypath
 
 .uuid
+
+!mar-modelling/lib
