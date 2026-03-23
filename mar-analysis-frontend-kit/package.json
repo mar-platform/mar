@@ -23,6 +23,7 @@
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/vite": "^4.1.18",
+		"@types/d3-scale": "^4.0.9",
 		"@types/node": "^22",
 		"bits-ui": "^2.16.3",
 		"clsx": "^2.1.1",
@@ -30,6 +31,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",
 		"globals": "^17.3.0",
+		"layerchart": "^2.0.0-next.43",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
@@ -45,10 +47,12 @@
 	},
 	"dependencies": {
 		"d3": "^7.9.0",
+		"d3-scale": "^4.0.2",
 		"graphology": "^0.26.0",
 		"graphology-layout": "^0.6.1",
 		"graphology-layout-forceatlas2": "^0.10.1",
 		"mode-watcher": "^1.1.0",
-		"sigma": "^3.0.2"
+		"sigma": "^3.0.2",
+		"svelte-sonner": "^1.1.0"
 	}
 }

@@ -157,7 +157,7 @@
         </NavigationMenu.Root>
     </div>
 
-    <div class="mt-30 px-5">
+    <div class="mt-30 px-10">
         <Breadcrumb.Root>
             <Breadcrumb.List>
                 {#each breadcrumbs as crumb, i (crumb.title)}
