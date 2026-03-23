@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mar-indexer-spark" />
+        <module name="mar-modelling-eclipse" />
+        <module name="mar-modelling-transformations" />
+        <module name="mar.restservice" />
+        <module name="mar-indexer-lucene" />
+        <module name="mar-ml" />
+        <module name="mar-modelling-xtext" />
+        <module name="mar-spark-merge" />
+        <module name="mar-modelling-pnml" />
+        <module name="mar-common" />
+        <module name="mar-spring-webserver" />
+        <module name="mar-modelling" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

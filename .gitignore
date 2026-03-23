@@ -370,3 +370,5 @@ org.eclipse.jdt.apt.core.prefs
 .uuid
 
 !mar-modelling/lib
+
+supergraph
