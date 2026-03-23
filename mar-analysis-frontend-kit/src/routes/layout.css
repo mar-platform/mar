@@ -37,6 +37,20 @@
 	--sidebar-accent-foreground: oklch(0.205 0 0);
 	--sidebar-border: oklch(0.922 0 0);
 	--sidebar-ring: oklch(0.708 0 0);
+
+	--page-background: #EFEFEF;
+  	--page-foreground: #FFFFFF;
+
+	--text-primary: #050505;
+	--text-secondary: #9C9C9C;
+	--text-tertiary: #EFEFEF;
+	--text-placeholder: #636363;
+
+	--input-text: #050505;
+	--input-background: #FFFFFF;
+	--input-border: #E3E3E3;
+	--input-error-border: #E61F1F;
+	--input-error: #FFE0E0;
 }
 
 .dark {
@@ -71,6 +85,20 @@
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.556 0 0);
+
+	--page-background: #050505;
+	--page-foreground: #181818;
+
+	--text-primary: #FFFFFF;
+	--text-secondary: #B2AFB2;
+	--text-tertiary: #050505;
+	--text-placeholder: #B2AFB2;
+
+	--input-text: #DEDEDE;
+	--input-background: #313131;
+	--input-border: #575757;
+	--input-error-border: #E53935;
+	--input-error: #311414;
 }
 
 @theme inline {
@@ -113,6 +141,22 @@
 	--radius-2xl: calc(var(--radius) * 1.8);
 	--radius-3xl: calc(var(--radius) * 2.2);
 	--radius-4xl: calc(var(--radius) * 2.6);
+
+	--color-page-background:  var(--page-background);
+	--color-page-foreground: var(--page-foreground);
+
+	--color-background-flow: var(--background-flow);
+
+	--color-text-primary: var(--text-primary);
+	--color-text-secondary: var(--text-secondary);
+	--color-text-tertiary: var(--text-tertiary);
+	--color-text-placeholder: var(--text-placeholder);
+
+	--color-input-text: var(--input-text);
+	--color-input-background: var(--input-background);
+	--color-input-border: var(--input-border);
+	--color-input-error-border: var(--input-error-border);
+	--color-input-error: var(--input-error);
 }
 
 @layer base {
