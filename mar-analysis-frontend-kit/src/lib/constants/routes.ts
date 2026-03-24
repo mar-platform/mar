@@ -1,3 +1,5 @@
+export const GITHUB_PATH = 'https://github.com/mar-platform/mar';
+
 export const STATS_PATH = '/stats';
 export const GRAPH_EXPLORATION_PATH = '/graphs';
 export const DUPLICATION_GRAPHS_EXPLORATION_PATH = '/graphs/duplication';
