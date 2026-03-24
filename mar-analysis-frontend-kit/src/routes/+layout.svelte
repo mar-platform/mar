@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/favicon.png';
 	import Navbar from '$lib/components/basic/Navbar.svelte';
 	import { ModeWatcher } from "mode-watcher";
 	import { Toaster } from 'svelte-sonner';
@@ -43,7 +43,7 @@
 	{/snippet}
 </Toaster>
 
-<div class="bg-page-background text-text-primary min-h-svh w-full flex flex-col">
+<div class="min-h-svh w-full flex flex-col">
 	<Navbar />
 	<div class="m-5 mx-10 flex-1">
 		{@render children()}

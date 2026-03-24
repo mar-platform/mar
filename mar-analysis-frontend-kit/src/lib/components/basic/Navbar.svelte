@@ -2,8 +2,8 @@
     /* eslint-disable svelte/no-navigation-without-resolve */
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
 	import { navigationMenuTriggerStyle } from '$lib/components/ui/navigation-menu/navigation-menu-trigger.svelte';
-	import { CLUSTERS_PATH, COMPONENT_GRAPHS_EXPLORATION_PATH, DATABASE_EXPLORATION_PATH, DUPLICATION_GRAPHS_EXPLORATION_PATH, GRAPH_EXPLORATION_PATH, INTERPROJECT_GRAPHS_EXPLORATION_PATH, MEGAMODEL_GRAPHS_EXPLORATION_PATH, PROJECT_GRAPHS_EXPLORATION_PATH, STATS_PATH } from '$lib/constants/routes';
-
+	import { CLUSTERS_PATH, COMPONENT_GRAPHS_EXPLORATION_PATH, DATABASE_EXPLORATION_PATH, DUPLICATION_GRAPHS_EXPLORATION_PATH, GITHUB_PATH, GRAPH_EXPLORATION_PATH, INTERPROJECT_GRAPHS_EXPLORATION_PATH, MEGAMODEL_GRAPHS_EXPLORATION_PATH, PROJECT_GRAPHS_EXPLORATION_PATH, STATS_PATH } from '$lib/constants/routes';
+    import Logo from '$lib/assets/logo.png';
 	import { Button } from "$lib/components/ui/button/index.js";
     import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
 
@@ -11,6 +11,7 @@
     import LucideX from '@lucide/svelte/icons/x';
     import LucideSun from '@lucide/svelte/icons/sun';
     import LucideMoon from '@lucide/svelte/icons/moon';
+    import LucideGithub from '@lucide/svelte/icons/github';
 	import { toggleMode } from 'mode-watcher';
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
@@ -69,7 +70,10 @@
 <header>
     <div class="absolute top-0 left-0 right-0 flex flex-col items-center m-5 p-5 bg-page-foreground rounded-xl shadow-sm">
         <div class="flex gap-10 items-center justify-between w-full">
-            <span class="font-semibold">MDE Artefact Inspector</span>
+            <a href={STATS_PATH} class="flex items-center gap-3">
+                <img src={Logo} alt="Logo" class="h-10 w-auto" />
+                <span class="font-semibold">MDE Artefact Inspector</span>
+            </a>
             <NavigationMenu.Root viewport={false} class="min-[920px]:block hidden">
                 <NavigationMenu.List class="flex-wrap w-full">
                     {#each routes as route(route.title)}
@@ -112,6 +116,15 @@
                     />
                     <LucideMoon
                         class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all! dark:rotate-0 dark:scale-100"
+                    />
+                </Button>
+                <Button
+                    size="icon"
+                    variant="ghost"
+                    href={GITHUB_PATH}
+                >
+                    <LucideGithub
+                        class="h-[1.2rem] w-[1.2rem]"
                     />
                 </Button>
                 <Button
