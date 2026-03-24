@@ -5,6 +5,7 @@
     import { Button } from '$lib/components/ui/button/index.js';
     import LucideX from '@lucide/svelte/icons/x';
 	import { fade } from "svelte/transition";
+	import { tick } from "svelte";
     
     interface SearchbarProps {
         onSearch: (query: string) => Promise<void> | void;
@@ -53,8 +54,9 @@
         }
     }
 
-    function clearSearch() {
+    async function clearSearch() {
         query = '';
+        await tick()
         onSearch('');
     }
 </script>
@@ -72,7 +74,7 @@
     {#if query !== ''}
         <div in:fade out:fade class="absolute right-2 top-1.5">
             <Button variant="ghost" class="rounded-full" size="icon-xs" onclick={clearSearch} aria-label="Clear search">
-                <LucideX />
+                <LucideX class="text-text-placeholder" />
             </Button>
         </div>
     {/if}

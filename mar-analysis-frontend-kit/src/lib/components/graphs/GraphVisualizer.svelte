@@ -2,26 +2,25 @@
     import Sigma from "sigma";
     import type { EdgeDisplayData, NodeDisplayData } from "sigma/types";
     import type Graph from "graphology";
+    import type GraphDTO from "$lib/dto/Graph";
     import UndirectedGraph from "graphology";
 
     import FA2Layout from "graphology-layout-forceatlas2/worker";
     import forceAtlas2 from "graphology-layout-forceatlas2";
     import random from 'graphology-layout/random';
 
-    import ArtifactInfo from './ArtefactInfo.svelte'
-    import EdgeInfo from './EdgeInfo.svelte'
-    import { Accordion, AccordionItem } from "$lib/components/ui/accordion";
     import { Button } from "$lib/components/ui/button";
-    import { Input } from "$lib/components/ui/input";
 
     import { untrack } from 'svelte';
+	  import { edgeTypes } from "$lib/constants/edgeTypes";
+	import type ArtefactType from "$lib/dto/ArtefactType";
 
-    let { types, document, children, rightPanel }: {
-      types: any;
-      document: any;
-      children?: import('svelte').Snippet;
-      rightPanel?: import('svelte').Snippet;
-    } = $props();
+    interface GraphVisualizerProps {
+      types: ArtefactType[];
+      document: GraphDTO;
+    }
+
+    let { types, document }: GraphVisualizerProps = $props();
 
     // ── Graph state ──────────────────────────────────────────
     let container: HTMLDivElement;
@@ -222,159 +221,13 @@
 
     function applyNodeFilter(_event: Event) { console.log(renderer); }
 
-    function getMatcher(q : string) {
-      let matches: (name: string) => boolean;
-      if (!q) {
-        matches = () => true;
-      } else if (q.includes('*') || q.includes('?')) {
-        const pattern = q.replace(/[.+^${}()|[\]\\]/g, '\\$&')
-                         .replace(/\*/g, '.*')
-                         .replace(/\?/g, '.');
-        const re = new RegExp(`^${pattern}$`);
-        matches = (name: string) => re.test(name.toLowerCase());
-      } else {
-        matches = (name: string) => name.toLowerCase().includes(q);
-      }
-      return matches;
-    }
-
-    function getArtefactNodes(nodes: any[]) {
-      const q = artefactSearch.trim().toLowerCase();
-      const matches = getMatcher(q);
-      return nodes
-        .filter((n: any) => n._type == 'artefact')
-        .filter((n: any) => checkedTypes[n.artefact.type])
-        .filter((n: any) => matches(n.artefact.name));
-    }
-
-    function getProjectNodes(nodes: any[]) {
-      const q = projectSearch.trim().toLowerCase();
-      const matches = getMatcher(q);  
-      console.log("project nodes");
-      console.log(nodes);
-      return nodes
-        .filter((n: any) => n.kind == 'project')
-        .filter((n: any) => matches(n.id));
-    }
-
-    // ── Resize logic ─────────────────────────────────────────
-    let containerEl: HTMLDivElement;
-    let sidebarWidth = $state(256);
-    let dragging = $state(false);
-    let rightPanelWidth = $state(280);
-    let draggingRight = $state(false);
-
-    $effect(() => {
-      if (!dragging) return;
-
-      const onMove = (e: MouseEvent) => {
-        const rect = containerEl.getBoundingClientRect();
-        sidebarWidth = Math.max(150, Math.min(600, e.clientX - rect.left));
-      };
-      const onUp = () => { dragging = false; };
-
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-      window.document.body.style.cursor = 'col-resize';
-      window.document.body.style.userSelect = 'none';
-
-      return () => {
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onUp);
-        window.document.body.style.cursor = '';
-        window.document.body.style.userSelect = '';
-      };
-    });
-
-    $effect(() => {
-      if (!draggingRight) return;
-
-      const onMove = (e: MouseEvent) => {
-        const rect = containerEl.getBoundingClientRect();
-        rightPanelWidth = Math.max(150, Math.min(600, rect.right - e.clientX));
-      };
-      const onUp = () => { draggingRight = false; };
-
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-      window.document.body.style.cursor = 'col-resize';
-      window.document.body.style.userSelect = 'none';
-
-      return () => {
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onUp);
-        window.document.body.style.cursor = '';
-        window.document.body.style.userSelect = '';
-      };
-    });
-
 
     function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]) : string | null {      
       return e.find(type => checkedEdgeTypes[type]) || null;
     }
 </script>
 
-<div class="flex items-start" bind:this={containerEl}>
-
-  <!-- ── Left sidebar ── -->
-  <aside
-    class="shrink-0 flex flex-col gap-2 overflow-y-auto max-h-[680px]"
-    style="width: {sidebarWidth}px"
-  >
-    {#if children}
-      {@render children()}
-    {/if}
-
-    <div class="mt-auto pt-2 border-t">
-      <Accordion>
-        <AccordionItem header="All artefacts">
-          <div class="pb-1">
-            <input class="h-6 text-xs px-2 py-0 w-full rounded-md border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" type="text" placeholder="Search…" bind:value={artefactSearch} />
-          </div>
-          <ul class="text-sm space-y-0.5">
-            {#each getArtefactNodes(document.nodes) as node}
-              <li>
-                <button
-                  class="text-left hover:underline cursor-pointer {currentNode?.id === node.id ? 'font-semibold' : ''}"
-                  onclick={() => selectNode(node)}
-                >{node.artefact.name}</button>
-              </li>
-            {/each}
-          </ul>
-        </AccordionItem>
-        {#if document.type === 'inter-project'}
-          <AccordionItem header="All projects">
-            <div class="pb-1">
-              <input class="h-6 text-xs px-2 py-0 w-full rounded-md border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" type="text" placeholder="Search…" bind:value={projectSearch} />
-            </div>
-            <ul class="text-sm space-y-0.5">
-              {#each getProjectNodes(document.nodes) as node}
-                <li>
-                  <button
-                    class="text-left hover:underline cursor-pointer {currentNode?.id === node.id ? 'font-semibold' : ''}"
-                    onclick={() => selectNode(node)}
-                  >{node.id}</button>
-                </li>
-              {/each}
-            </ul>
-          </AccordionItem>
-        {/if}
-
-      </Accordion>
-    </div>
-  </aside>
-
-  <!-- ── Drag handle ── -->
-  <div
-    class="w-2 shrink-0 self-stretch cursor-col-resize flex items-center justify-center group"
-    role="separator"
-    aria-orientation="vertical"
-    onmousedown={(e) => { e.preventDefault(); dragging = true; }}
-  >
-    <div class="w-px h-full bg-border group-hover:bg-primary/50 transition-colors"></div>
-  </div>
-
-  <!-- ── Right: controls + canvas ── -->
+<div class="flex items-start">
   <div class="flex-1 min-w-0 flex flex-col gap-2 pl-2">
 
     <!-- Node type filter -->
@@ -430,40 +283,5 @@
       bind:this={container}
     ></div>
   </div>
-
-  {#if currentNode || currentEdge || rightPanel}
-    <!-- ── Right drag handle ── -->
-    <div
-      class="w-2 shrink-0 self-stretch cursor-col-resize flex items-center justify-center group"
-      role="separator"
-      aria-orientation="vertical"
-      onmousedown={(e) => { e.preventDefault(); draggingRight = true; }}
-    >
-      <div class="w-px h-full bg-border group-hover:bg-primary/50 transition-colors"></div>
-    </div>
-
-    <!-- ── Right panel: optional slot + artefact or edge info ── -->
-    <aside
-      class="shrink-0 overflow-y-auto min-w-50 max-h-[680px] pl-2"
-      style="width: {rightPanelWidth}px"
-    >
-      {#if rightPanel}
-        {@render rightPanel()}
-      {/if}
-      {#if currentNode || currentEdge}
-        <button
-          class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer mb-2 {rightPanel ? 'mt-4 border-t pt-2' : ''}"
-          onclick={() => { currentNode = null; currentEdge = null; renderer?.refresh(); }}
-        >
-          ✕ Close
-        </button>
-        {#if currentNode}
-          <ArtifactInfo graph={graph} node={currentNode} onNodeSelect={selectNode} />
-        {:else if currentEdge}
-          <EdgeInfo graph={graph} edge={currentEdge} onNodeSelect={selectNode} />
-        {/if}
-      {/if}
-    </aside>
-  {/if}
 
 </div>

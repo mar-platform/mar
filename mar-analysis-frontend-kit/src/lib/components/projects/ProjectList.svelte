@@ -31,8 +31,8 @@
             {/each}
         {:else}
             {#each globalState.searchProjects as project(project.id)}
-                <Button size="sm" variant="ghost" class="justify-start w-full" onclick={() => onClickProject(project)}>
-                    <span title={project.id} class={cn("whitespace-nowrap overflow-hidden text-ellipsis", globalState.selectedProject?.id === project.id ? "font-semibold underline" : "")}>
+                <Button size="sm" variant={globalState.selectedProject?.id === project.id ? "secondary" : "ghost"} class="rounded-full justify-start w-full" onclick={() => onClickProject(project)}>
+                    <span title={project.id} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedProject?.id === project.id ? "font-semibold" : "")}>
                         {project.id}
                     </span>
                 </Button>
