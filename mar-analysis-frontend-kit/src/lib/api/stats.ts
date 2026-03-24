@@ -2,8 +2,8 @@ import { STATS_ENDPOINT } from "$lib/constants/api-routes";
 import type ApiResponse from "$lib/dto/ApiResponse";
 import type Stats from "$lib/dto/Stats";
 
-export const statsApi = async (fetch: typeof window.fetch): Promise<ApiResponse<Stats>> => {
-    const request = await fetch(STATS_ENDPOINT, {
+export const statsApi = async (fetch?: typeof window.fetch): Promise<ApiResponse<Stats>> => {
+    const request = await (fetch || window.fetch)(STATS_ENDPOINT, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
