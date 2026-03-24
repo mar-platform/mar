@@ -1,0 +1,1 @@
+export const SEARCHBAR_DEBOUNCE_MS = 300;
