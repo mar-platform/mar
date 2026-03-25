@@ -10,6 +10,7 @@ public enum ArtefactType {
 	EMFTEXT("emftext"),	
 	EMFATIC("emfatic"),
 	ECORE("ecore"),
+	XCORE("xcore"),
 	EPSILON("epsilon"),
 	ACCELEO("acceleo"),
 	ATL("atl"),

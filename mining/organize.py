@@ -245,6 +245,8 @@ if __name__ == "__main__":
         '.launch': 'eclipse-launcher',        
 
         '.ecore': 'ecore',
+        '.xcore': 'xcore',
+        
         '.emf': 'emfatic',
 
         '.odesign': 'sirius',

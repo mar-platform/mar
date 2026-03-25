@@ -206,6 +206,18 @@
 			<version>3.5.1.201409021433</version>
 			<scope>compile</scope>
 		</dependency>
+
+		<!-- Source:
+		     https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.ecore.xcore -->
+		<!-- For the moment, manually -->
+		<!--
+		<dependency>
+			<groupId>org.eclipse.emf</groupId>
+			<artifactId>org.eclipse.emf.ecore.xcore</artifactId>
+			<version>1.36.0</version>
+			<scope>compile</scope>
+		</dependency>
+		-->
 	</dependencies>
 
 	<build>

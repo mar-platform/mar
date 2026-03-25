@@ -58,6 +58,10 @@ public class InspectorLauncher {
 	public InspectorResult fromEcoreFiles() throws SQLException {
 		return doInspect("ecore", (projectPath) -> new EcoreInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
+
+	public InspectorResult fromXcoreFiles() throws SQLException {
+		return doInspect("xcore", (projectPath) -> new XcoreInspector(repositoryDataFolder, projectPath, analysisDb, db));
+	}
 	
 	public InspectorResult fromBuildFiles() throws SQLException {
 		return doInspect("ant", (projectPath) -> new BuildFileInspector(repositoryDataFolder, projectPath, analysisDb, db));
@@ -167,6 +171,7 @@ public class InspectorLauncher {
 
 		Map<ArtefactType, Callable<InspectorResult>> tasks = new LinkedHashMap<>();
 		tasks.put(ArtefactType.ECORE, inspector::fromEcoreFiles);
+		tasks.put(ArtefactType.XCORE, inspector::fromXcoreFiles);
 		tasks.put(ArtefactType.EPSILON, inspector::fromEpsilonFiles);
 		tasks.put(ArtefactType.ANT, inspector::fromBuildFiles);
 		tasks.put(ArtefactType.LAUNCH, inspector::fromLaunchFiles);
