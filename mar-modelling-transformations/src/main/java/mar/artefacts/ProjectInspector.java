@@ -182,10 +182,14 @@ public abstract class ProjectInspector {
 	}
 	
 	private String sanitize(String uriOrFile) {
-		if (uriOrFile.endsWith("/#") || uriOrFile.endsWith("#/"))
+		if (uriOrFile.endsWith("/#") || uriOrFile.endsWith("#/")) {
 			return uriOrFile.substring(0, uriOrFile.length() - 2);
-		if (uriOrFile.endsWith("#"))
-			return uriOrFile.substring(0, uriOrFile.length() - 1);		
+		} else if (uriOrFile.endsWith("#")) {
+			return uriOrFile.substring(0, uriOrFile.length() - 1);
+		} else if (uriOrFile.contains("#/")) {
+		    int idx = uriOrFile.lastIndexOf("#/");
+		    return (idx != -1) ? uriOrFile.substring(0, idx) : uriOrFile;
+		}
 		return uriOrFile;
 	}
 
