@@ -7,6 +7,7 @@
     import FA2Layout from "graphology-layout-forceatlas2/worker";
     import forceAtlas2 from "graphology-layout-forceatlas2";
     import random from 'graphology-layout/random';
+    import { edgeTypes } from './GraphEdgeTypes.js'
 
     import ArtifactInfo from './ArtefactInfo.svelte'
     import EdgeInfo from './EdgeInfo.svelte'
