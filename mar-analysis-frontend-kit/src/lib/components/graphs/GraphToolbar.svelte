@@ -11,9 +11,14 @@
     interface GraphToolbarProps {
         selectedNodeTypes: Record<keyof typeof nodeTypes, boolean>;
         selectedEdgeTypes: Record<keyof typeof edgeTypes, boolean>;
-        onLabelSizeChange: (size: number) => void;
+        labelThreshold: number;
         onLabelThresholdChange: (threshold: number) => void;
-        handleNodesChange: (nodeSize: number, showConnectedNodes: boolean) => void;
+        nodeSize: number;
+        onNodeSizeChange: (nodeSize: number) => void;
+        showUnconnectedNodes: boolean;
+        onShowUnconnectedNodesChange: (show: boolean) => void;
+        labelSize: number;
+        onLabelSizeChange: (size: number) => void;
     }
 
     let {
@@ -21,13 +26,13 @@
         selectedEdgeTypes = $bindable(),
         onLabelSizeChange,
         onLabelThresholdChange,
-        handleNodesChange,
+        nodeSize = $bindable(INITIAL_NODE_SIZE),
+        onNodeSizeChange,
+        showUnconnectedNodes = $bindable(INITIAL_SHOW_UNCONNECTED_NODES),
+        onShowUnconnectedNodesChange,
+        labelSize = $bindable(INITIAL_LABEL_SIZE),
+        labelThreshold = $bindable(INITIAL_LABEL_THRESHOLD),
     }: GraphToolbarProps = $props();
-
-    let showUnconnectedNodes = $state(INITIAL_SHOW_UNCONNECTED_NODES);
-    let labelSize = $state(INITIAL_LABEL_SIZE);
-    let labelThreshold = $state(INITIAL_LABEL_THRESHOLD);
-    let nodeSize = $state(INITIAL_NODE_SIZE);
 
     function toggleVisibility(type: 'node' | 'edge', name: string) {
         if (type === 'node') {
@@ -93,13 +98,13 @@
         <span class="text-text-secondary text-sm font-medium">Advanced Options</span>
         <div class="flex flex-wrap gap-10">
             <div class="flex items-center gap-3">
-                <Checkbox id="unconnected-nodes" bind:checked={showUnconnectedNodes} onCheckedChange={(checked) => handleNodesChange(nodeSize, checked)} />
+                <Checkbox id="unconnected-nodes" bind:checked={showUnconnectedNodes} onCheckedChange={(checked) => onShowUnconnectedNodesChange(checked)} />
                 <Label for="unconnected-nodes">Unconnected nodes</Label>
             </div>
 
             <div class="flex flex-col gap-3">
                 <Label for="node-size">Node size</Label>
-                <Slider id="node-size" type="single" onValueCommit={(value) => handleNodesChange(value, showUnconnectedNodes)} bind:value={nodeSize} min={1} max={30} step={1} class="w-50" />
+                <Slider id="node-size" type="single" onValueCommit={(value) => onNodeSizeChange(value)} bind:value={nodeSize} min={1} max={30} step={1} class="w-50" />
             </div>
             
             <div class="flex flex-col gap-3">

@@ -9,18 +9,27 @@
 
 	import type { EdgeType, Node } from '$lib/dto/Graph';
 	import { onMount } from 'svelte';
-	import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
+
+	export interface GraphVisualizerInitial {
+		nodeFilter: string;
+		nodeSize: number;
+		showUnconnectedNodes: boolean;
+		labelSize: number;
+		labelThreshold: number;
+		numberOfIterations: number;
+	}
 
 	interface GraphVisualizerProps {
 		graph: UndirectedGraph;
 		selectedNodeTypes: Record<string, boolean>;
 		selectedEdgeTypes: Record<string, boolean>;
 		fa2Running: boolean;
+		initialProps: GraphVisualizerInitial;
 	}
 
-	let { graph, selectedNodeTypes, selectedEdgeTypes, fa2Running = $bindable(false) }: GraphVisualizerProps = $props();
+	let { graph, selectedNodeTypes, selectedEdgeTypes, fa2Running = $bindable(false), initialProps }: GraphVisualizerProps = $props();
 
 	// ── Graph state ──────────────────────────────────────────
 	let container: HTMLDivElement = $state(null!);
@@ -58,17 +67,15 @@
 		renderer?.setSetting("labelRenderedSizeThreshold", threshold);
 	}
 
-	export function setNodeConfig(nodeSize: number, showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
+	export function setNodeConfig(nodeFilter: string, nodeSize: number, showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
 		renderer?.setSetting('nodeReducer', (nodeId, data) => {
 			const res: Partial<NodeDisplayData> = { ...data };
-			
-			// Hide nodes if not selected
-			if (!selectedNodeTypes[data.nodeType]) {
+			// Node visibility logic
+			if (nodeFilter !== '' && nodeId.toLowerCase()?.includes(nodeFilter.toLowerCase()) === false) {
 				res.hidden = true;
-			}
-
-			// Hide unconnected nodes if the option is disabled
-			if (!showUnconnectedNodes && graph.degree(nodeId) == 0) {
+			} else if (!selectedNodeTypes[data.nodeType]) {
+				res.hidden = true;
+			} else if (!showUnconnectedNodes && graph.degree(nodeId) == 0) {
 				res.hidden = true;
 			}
 
@@ -125,13 +132,13 @@
 
 	function initGraph() {
 		const renderer = startRenderer(graph);
-
-		setLabelSize(INITIAL_LABEL_SIZE);
-		setLabelThreshold(INITIAL_LABEL_THRESHOLD);
-		setNodeConfig(INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES, selectedNodeTypes);
+		console.log(initialProps)
+		setLabelSize(initialProps.labelSize);
+		setLabelThreshold(initialProps.labelThreshold);
+		setNodeConfig(initialProps.nodeFilter, initialProps.nodeSize, initialProps.showUnconnectedNodes, selectedNodeTypes);
 		setEdgeConfig(selectedEdgeTypes);
 
-		startLayout(DEFAULT_NUMBER_OF_ITERATIONS);
+		startLayout(initialProps.numberOfIterations);
 
 		return renderer;
 	}

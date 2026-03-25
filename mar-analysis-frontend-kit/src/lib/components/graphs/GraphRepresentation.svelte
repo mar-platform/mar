@@ -3,7 +3,7 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { fade } from 'svelte/transition';
 	import Searchbar from '../basic/Searchbar.svelte';
-	import GraphVisualizer from './GraphVisualizer.svelte';
+	import GraphVisualizer, { type GraphVisualizerInitial } from './GraphVisualizer.svelte';
     import LucideLoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
 	import { random } from 'graphology-layout';
@@ -18,13 +18,28 @@
     import LucideSquare from '@lucide/svelte/icons/square';
     import LucidePlay from '@lucide/svelte/icons/play';
     import { Separator } from "$lib/components/ui/separator/index.js";    
-	import { DEFAULT_NUMBER_OF_ITERATIONS } from '$lib/constants/values';
+	import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
+	import { toast } from 'svelte-sonner';
 
 
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
     const selectedProjectGraph = $derived(createGraphFromDTO(globalState.selectedProjectGraph));
     let fa2Running = $state(false);
     let numberOfIterations = $state(DEFAULT_NUMBER_OF_ITERATIONS);
+    let nodeFilter = $state('');
+    let labelThreshold = $state(INITIAL_LABEL_THRESHOLD);
+    let labelSize = $state(INITIAL_LABEL_SIZE);
+    let showUnconnectedNodes = $state(INITIAL_SHOW_UNCONNECTED_NODES);
+    let nodeSize = $state(INITIAL_NODE_SIZE);
+
+    let initialProps = $derived<GraphVisualizerInitial>({
+        nodeFilter,
+        nodeSize,
+        showUnconnectedNodes,
+        labelSize,
+        labelThreshold,
+        numberOfIterations
+    });
 
     function createGraphFromDTO(dto: Graph | null) {
         if (dto === null) {
@@ -103,8 +118,8 @@
         graphVisualizerRef?.setLabelThreshold(threshold);
     }
 
-    function handleNodesChange(nodeSize: number, showConnectedNodes: boolean) {
-        graphVisualizerRef?.setNodeConfig(nodeSize, showConnectedNodes, selectedNodeTypes);
+    function handleNodesChange(nodeFilter: string, nodeSize: number, showConnectedNodes: boolean) {
+        graphVisualizerRef?.setNodeConfig(nodeFilter, nodeSize, showConnectedNodes, selectedNodeTypes);
     }
 
 </script>
@@ -116,17 +131,31 @@
                 <span class="mb-0.5 text-text-secondary text-base font-medium" in:fade>{globalState.selectedProject.id}</span>   
             {/key}
             <div class="flex gap-4 items-center">
+                <div class={`relative flex flex-col ${fa2Running ? 'bg-gray-200' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>
+                    <label for="number-iterations" class="select-none text-text-placeholder absolute top-0.75 left-1 text-[0.65rem] px-1">Iterations</label>
+                    <input id="number-iterations" bind:value={numberOfIterations} min={1} disabled={fa2Running} type="number" class="h-full pt-3 text-sm outline-none"/>
+                </div>
                 {#key fa2Running}
                     <div in:fade class="gap-2 flex items-center">
                         {#if fa2Running}
                         <Button class="bg-destructive hover:bg-destructive/80" onclick={() => graphVisualizerRef?.stopLayout()}>
-                            <LucideSquare />
-                            <span class="animate-pulse">Applying layout...</span>
+                            <LucideSquare class="fill-text-tertiary" />
+                            <span class="animate-pulse">Applying layout</span>
                         </Button>
                         {:else}
-                            <Button class="bg-blue-400 hover:bg-blue-400/80" onclick={() => graphVisualizerRef?.startLayout(numberOfIterations)}>
+                            <Button
+                                class="bg-blue-400 hover:bg-blue-400/80"
+                                disabled={!numberOfIterations}
+                                onclick={() => {
+                                    if (!numberOfIterations) {
+                                        toast.error('Please enter a valid number of iterations');
+                                        return;
+                                    }
+                                    graphVisualizerRef?.startLayout(numberOfIterations);
+                                }}
+                            >
                                 Start layout
-                                <LucidePlay />
+                                <LucidePlay class="fill-text-tertiary" />
                             </Button>
                         {/if}
                     </div>
@@ -143,20 +172,32 @@
                         <GraphToolbar 
                             bind:selectedNodeTypes={selectedNodeTypes}
                             bind:selectedEdgeTypes={selectedEdgeTypes}
+                            bind:nodeSize={nodeSize}
+                            bind:showUnconnectedNodes={showUnconnectedNodes}
+                            bind:labelSize={labelSize}
+                            bind:labelThreshold={labelThreshold}
                             onLabelSizeChange={handleLabelSizeChange}
                             onLabelThresholdChange={handleLabelThresholdChange}
-                            handleNodesChange={handleNodesChange}
+                            onNodeSizeChange={(nodeSize) => handleNodesChange(nodeFilter, nodeSize, showUnconnectedNodes)}
+                            onShowUnconnectedNodesChange={(show) => handleNodesChange(nodeFilter, nodeSize, show)}
                         />
                     </Popover.Content>
                 </Popover.Root>
-                <Searchbar placeholder="Filter nodes..." onSearch={(query) => console.log("Search query:", query)} />
+                <Searchbar placeholder="Filter nodes..." onSearch={(query) => { nodeFilter = query; handleNodesChange(nodeFilter, nodeSize, showUnconnectedNodes) }} />
             </div>
         </div>
 
         <div class="flex-1 bg-page-foreground rounded-lg shadow-sm">
             {#if selectedProjectGraph !== null}
                 {#key selectedProjectGraph}
-                    <GraphVisualizer bind:this={graphVisualizerRef} bind:fa2Running={fa2Running} {selectedNodeTypes} {selectedEdgeTypes} graph={selectedProjectGraph} />
+                    <GraphVisualizer
+                        bind:this={graphVisualizerRef} 
+                        bind:fa2Running={fa2Running}
+                        {selectedNodeTypes}
+                        {selectedEdgeTypes}
+                        graph={selectedProjectGraph}
+                        {initialProps}
+                     />
                 {/key}
             {:else}
                 <div class="relative p-4 w-full h-full">
