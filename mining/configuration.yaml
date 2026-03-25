@@ -6,4 +6,9 @@ must_contain_filters:
   - extension: mtl
     contains: "[template"
   - extension: xtend
-    contains: "'''"        
+    contains: "'''"
+
+ignore:
+  # TODO: See if there is a way to ignore binary etl files
+  - pattern: "microsoft/profile-explorer/*"
+  
