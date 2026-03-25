@@ -15,9 +15,16 @@
     import * as Popover from "$lib/components/ui/popover/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import LucideFilter from '@lucide/svelte/icons/filter';
+    import LucideSquare from '@lucide/svelte/icons/square';
+    import LucidePlay from '@lucide/svelte/icons/play';
+    import { Separator } from "$lib/components/ui/separator/index.js";    
+	import { DEFAULT_NUMBER_OF_ITERATIONS } from '$lib/constants/values';
+
 
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
     const selectedProjectGraph = $derived(createGraphFromDTO(globalState.selectedProjectGraph));
+    let fa2Running = $state(false);
+    let numberOfIterations = $state(DEFAULT_NUMBER_OF_ITERATIONS);
 
     function createGraphFromDTO(dto: Graph | null) {
         if (dto === null) {
@@ -44,13 +51,12 @@
                     name = 'unknown';
             }
 
-			graph.addNode(node.id, {
+            graph.addNode(node.id, {
 				x: 0,
 				y: 0,
 				impl: node,
 				nodeType: type,
 				label: name,
-				color: nodeTypes[type]?.color || nodeTypes['error'].color
 			});
 		});
 
@@ -97,8 +103,8 @@
         graphVisualizerRef?.setLabelThreshold(threshold);
     }
 
-    function handleShowUnconnectedNodesChange(show: boolean) {
-        graphVisualizerRef?.setNodeConfig(show, selectedNodeTypes);
+    function handleNodesChange(nodeSize: number, showConnectedNodes: boolean) {
+        graphVisualizerRef?.setNodeConfig(nodeSize, showConnectedNodes, selectedNodeTypes);
     }
 
 </script>
@@ -109,7 +115,23 @@
             {#key globalState.selectedProject.id}
                 <span class="mb-0.5 text-text-secondary text-base font-medium" in:fade>{globalState.selectedProject.id}</span>   
             {/key}
-            <div class="flex gap-4">
+            <div class="flex gap-4 items-center">
+                {#key fa2Running}
+                    <div in:fade class="gap-2 flex items-center">
+                        {#if fa2Running}
+                        <Button class="bg-destructive hover:bg-destructive/80" onclick={() => graphVisualizerRef?.stopLayout()}>
+                            <LucideSquare />
+                            <span class="animate-pulse">Applying layout...</span>
+                        </Button>
+                        {:else}
+                            <Button class="bg-blue-400 hover:bg-blue-400/80" onclick={() => graphVisualizerRef?.startLayout(numberOfIterations)}>
+                                Start layout
+                                <LucidePlay />
+                            </Button>
+                        {/if}
+                    </div>
+                {/key}
+                <Separator orientation="vertical" class="min-h-5 bg-gray-400" />
                 <Popover.Root>
                     <Popover.Trigger>
                         <Button variant="outline">
@@ -123,7 +145,7 @@
                             bind:selectedEdgeTypes={selectedEdgeTypes}
                             onLabelSizeChange={handleLabelSizeChange}
                             onLabelThresholdChange={handleLabelThresholdChange}
-                            onShowUnconnectedNodesChange={handleShowUnconnectedNodesChange}
+                            handleNodesChange={handleNodesChange}
                         />
                     </Popover.Content>
                 </Popover.Root>
@@ -134,7 +156,7 @@
         <div class="flex-1 bg-page-foreground rounded-lg shadow-sm">
             {#if selectedProjectGraph !== null}
                 {#key selectedProjectGraph}
-                    <GraphVisualizer bind:this={graphVisualizerRef} {selectedNodeTypes} {selectedEdgeTypes} graph={selectedProjectGraph} />
+                    <GraphVisualizer bind:this={graphVisualizerRef} bind:fa2Running={fa2Running} {selectedNodeTypes} {selectedEdgeTypes} graph={selectedProjectGraph} />
                 {/key}
             {:else}
                 <div class="relative p-4 w-full h-full">

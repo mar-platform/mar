@@ -7,17 +7,20 @@
 	import FA2Layout from 'graphology-layout-forceatlas2/worker';
 	import forceAtlas2 from 'graphology-layout-forceatlas2';
 
-	import type { Node } from '$lib/dto/Graph';
+	import type { EdgeType, Node } from '$lib/dto/Graph';
 	import { onMount } from 'svelte';
-	import { INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
+	import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
+	import { edgeTypes } from '$lib/constants/edgeTypes';
+	import { nodeTypes } from '$lib/constants/graphNodeTypes';
 
 	interface GraphVisualizerProps {
 		graph: UndirectedGraph;
 		selectedNodeTypes: Record<string, boolean>;
 		selectedEdgeTypes: Record<string, boolean>;
+		fa2Running: boolean;
 	}
 
-	let { graph, selectedNodeTypes, selectedEdgeTypes }: GraphVisualizerProps = $props();
+	let { graph, selectedNodeTypes, selectedEdgeTypes, fa2Running = $bindable(false) }: GraphVisualizerProps = $props();
 
 	// ── Graph state ──────────────────────────────────────────
 	let container: HTMLDivElement = $state(null!);
@@ -28,8 +31,6 @@
 	let renderer: Sigma | null = null;
 
 	let fa2: InstanceType<typeof FA2Layout> | null = null;
-	let fa2Running = $state(false);
-	let numberOfIterations = 20; //$state(20);
 
 	onMount(() => {
 		console.log('Initializing graph...');
@@ -57,34 +58,56 @@
 		renderer?.setSetting("labelRenderedSizeThreshold", threshold);
 	}
 
-	export function setNodeConfig(showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
+	export function setNodeConfig(nodeSize: number, showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
 		renderer?.setSetting('nodeReducer', (nodeId, data) => {
 			const res: Partial<NodeDisplayData> = { ...data };
-			if (!selectedNodeTypes[data.nodeType]) res.hidden = true;
-			if (!showUnconnectedNodes && graph.degree(nodeId) == 0) res.hidden = true;
+			
+			// Hide nodes if not selected
+			if (!selectedNodeTypes[data.nodeType]) {
+				res.hidden = true;
+			}
+
+			// Hide unconnected nodes if the option is disabled
+			if (!showUnconnectedNodes && graph.degree(nodeId) == 0) {
+				res.hidden = true;
+			}
+
+			// Highlight the selected node
 			if (currentNode?.id === nodeId) {
 				res.highlighted = true;
-				res.size = (data.size ?? 5) * 2;
+				res.size = nodeSize * 1.25;
+			} else {
+				res.size = nodeSize;
 			}
+
+			// Set the color
+			const color = getComputedStyle(document.documentElement).getPropertyValue(nodeTypes[data.nodeType as keyof typeof nodeTypes]?.color || nodeTypes['error'].color); // Needed to calculate the value of the css variable
+			res.color = color;
+
 			return res;
 		});
 	}
 
-	export const setEdgeConfig = (selectedEdgeTypes: Record<string, boolean>) => {
+	export const setEdgeConfig = (selectedEdgeTypes: Record<EdgeType, boolean>) => {
 		renderer?.setSetting('edgeReducer', (edge, data) => {
 			const res: Partial<EdgeDisplayData> = { ...data };
 			const srcType = graph.getNodeAttribute(graph.source(edge), 'nodeType');
 			const tgtType = graph.getNodeAttribute(graph.target(edge), 'nodeType');
+			
 			if (!(selectedNodeTypes[srcType] && selectedNodeTypes[tgtType])) res.hidden = true;
-			const edgeTypes = graph.getEdgeAttribute(edge, 'edgeTypes');
+			const currentEdgeTypes = graph.getEdgeAttribute(edge, 'edgeTypes');
 
-			const selectedEdgeType = selectEdgeType(selectedEdgeTypes, edgeTypes);
-			//console.log(edge, selectedEdgeTypes, edgeTypes, selectedEdgeType);
-			if (!selectedEdgeType) {
+			const selectedEdgeType = selectEdgeType(selectedEdgeTypes, currentEdgeTypes);
+			console.log(selectedEdgeType)
+
+			// Set the color
+			if (selectedEdgeType === null) {
 				res.hidden = true;
-				res.color = '#94a3b8';
+				res.color = 'transparent';
 			} else {
-				res.color = /*edgeColorMap[selectedEdgeType] ?? */'#94a3b8';
+				const color = getComputedStyle(document.documentElement).getPropertyValue(edgeTypes[selectedEdgeType].color); // Needed to calculate the value of the css variable
+				res.color = color;
+				console.log('Setting edge color: ', res.color);
 			}
 
 			if (hoveredEdge === edge) {
@@ -105,10 +128,11 @@
 
 		setLabelSize(INITIAL_LABEL_SIZE);
 		setLabelThreshold(INITIAL_LABEL_THRESHOLD);
-		setNodeConfig(INITIAL_SHOW_UNCONNECTED_NODES, selectedNodeTypes);
+		setNodeConfig(INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES, selectedNodeTypes);
 		setEdgeConfig(selectedEdgeTypes);
 
-		startLayout();
+		startLayout(DEFAULT_NUMBER_OF_ITERATIONS);
+
 		return renderer;
 	}
 
@@ -143,7 +167,7 @@
 		return renderer;
 	}
 
-	function startLayout() {
+	export function startLayout(numberOfIterations: number) {
 		if (fa2) {
 			fa2.kill();
 			fa2 = null;
@@ -156,7 +180,7 @@
 		setTimeout(() => stopLayout(), numberOfIterations * 1000);
 	}
 
-	function stopLayout() {
+	export function stopLayout() {
 		if (fa2) {
 			fa2.stop();
 			fa2.kill();
@@ -189,8 +213,8 @@
 		renderer?.refresh();
 	}
 
-	function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]): string | null {
-		return e.find((type) => checkedEdgeTypes[type]) || null;
+	function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]): EdgeType | null {
+		return e.find((type) => checkedEdgeTypes[type]) as EdgeType || null;
 	}
 </script>
 
