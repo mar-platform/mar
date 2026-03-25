@@ -41,7 +41,7 @@ public class EcoreDuplicateFinderTest {
 		finder.addResource("m4", loader.toEMF(new File(m4)));
 
 		
-		Collection<DuplicationGroup<String>> result = finder.getDuplicates(0.7, 0.8);
+		Collection<DuplicationGroup<String>> result = finder.getDuplicates(0.8, 0.7);
 		System.out.println("Groups: " + result.size());
 		for (DuplicationGroup<String> duplicationGroup : result) {
 			System.out.println(duplicationGroup);

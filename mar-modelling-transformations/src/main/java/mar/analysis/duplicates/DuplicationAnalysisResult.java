@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 
@@ -60,6 +61,11 @@ public class DuplicationAnalysisResult {
 			T representative = duplicationGroup.getRepresentative();
 			
 			String groupId = conf.toId(representative) + "#duplicate-group"; 
+			
+			// This is because several mini-graphs may have contributed the same artefact with different relative paths
+			var uniqueElements = duplicationGroup.stream().map(p1 -> conf.toId(p1)).collect(Collectors.toSet());
+			if (uniqueElements.size() <= 1)
+				continue;
 			
 			for (T p1  : duplicationGroup) {
 				String id = conf.toId(p1);

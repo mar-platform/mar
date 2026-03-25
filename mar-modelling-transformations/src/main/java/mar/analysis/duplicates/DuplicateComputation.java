@@ -42,8 +42,28 @@ public class DuplicateComputation {
 			result.add(type, groups);
 		}
 		
-		Collection<DuplicationGroup<Metamodel>> groups = metamodelDuplicateFinder.getDuplicates(0.7, 0.8);
+		
+		DuplicateFinder<Metamodel, Resource> finder = metamodelConfiguration.toFinder();
+		Collection<RecoveryGraph> metamodelGraphs = miniGraphs.get(metamodelConfiguration.getType());
+		for (RecoveryGraph recoveryGraph : metamodelGraphs) {
+			for (Metamodel metamodel : recoveryGraph.getMetamodels()) {
+				try {
+					Resource r = metamodelConfiguration.toResource(metamodel);
+					finder.addResource(metamodel, r);
+					r.unload();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			
+			}
+		}
+		
+		Collection<DuplicationGroup<Metamodel>> groups = finder.getDuplicates(0.8, 0.7);
 		result.add(groups);
+		
+		
+		//Collection<DuplicationGroup<Metamodel>> groups = metamodelDuplicateFinder.getDuplicates(0.8, 0.7);
+		//result.add(groups);
 		
 		return result;
 	}

@@ -1,7 +1,9 @@
 package mar.analysis.megamodel.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -47,6 +49,12 @@ public class DuplicationRelationships {
 		Collection<String> nodes = groups.get(groupId);
 		Preconditions.checkState(nodes != null && ! nodes.isEmpty());
 		nodes.forEach(consumer);
+	}
+	
+	public List<String> getGroupArtefacts(String groupId) {
+		List<String> result = new ArrayList<String>();
+		groups.get(groupId).forEach(result::add);
+		return result;
 	}
 
 	public String getGroupOf(String nodeId) {

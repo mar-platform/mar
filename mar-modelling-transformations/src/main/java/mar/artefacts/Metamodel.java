@@ -118,6 +118,10 @@ public class Metamodel {
 		return true;
 	}
 	
+	@Override
+	public String toString() {
+		return "Metamodel " + name + ":"+ (uri == null ? file.getPath().toString() : uri);
+	}
 	
 	
 }
