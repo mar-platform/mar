@@ -372,3 +372,5 @@ org.eclipse.jdt.apt.core.prefs
 !mar-modelling/lib
 
 supergraph
+
+.idea
