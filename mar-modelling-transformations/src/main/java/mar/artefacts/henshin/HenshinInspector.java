@@ -68,7 +68,7 @@ public class HenshinInspector extends XMLProjectInspector {
 		for(int i = 0, len = result.getLength(); i < len; i++) {
 			Node metamodelRef = result.item(i);
 			String ref = metamodelRef.getTextContent();
-			Metamodel metamodel = getMetamodelFromHRef(ref);
+			Metamodel metamodel = toMetamodel(ref, getRepositoryPath(f).getParent());
 
 			graph.addMetamodel(metamodel);
 			program.addMetamodel(metamodel, MetamodelReference.Kind.TYPED_BY);

@@ -250,6 +250,7 @@ if __name__ == "__main__":
         '.emf': 'emfatic',
 
         '.odesign': 'sirius',
+        '.gmfmap': 'gmf', # Because it contains the references to the mm
 
         '.henshin': 'henshin',
 

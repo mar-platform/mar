@@ -154,6 +154,27 @@ public class EpsilonInspector extends ProjectInspector {
 
 	private void matchTemplateCalls(String strProgram, EpsilonProgram program) {
 		// Example: template : "table2html.egl"
+		
+		// Do this line by line to ensure that we handle comments
+		Pattern pattern = Pattern.compile("template\\s+:\\s*\"(.+)\"");
+		String[] lines = strProgram.split("\\r?\\n");
+		for (String line : lines) {
+		    String trimmed = line.trim();		    
+		    if (trimmed.startsWith("//") || trimmed.startsWith("--")) {
+		        continue;
+		    }
+		    
+		    Matcher matcher = pattern.matcher(line);
+		    if (matcher.find()) {
+				String templateName = matcher.group(1);
+				RecoveredPath recovered = getFileSearcher().findFile(Paths.get(templateName));
+				if (! (recovered instanceof MissingPath)) {
+					program.addImportDependency(recovered.getPath());
+				}
+		    }
+		}
+		
+		/*
 		Pattern pattern = Pattern.compile("template\\s+:\\s*\"(.+)\"");
 		final Matcher matcher = pattern.matcher(strProgram);
 		while (matcher.find()) {
@@ -163,6 +184,7 @@ public class EpsilonInspector extends ProjectInspector {
 				program.addImportDependency(recovered.getPath());
 			}
 		}
+		*/
 	}
 	
 	private Map<String, RecoveredMetamodelFile> toClassFootprints(String epsilonProgram) {

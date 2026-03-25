@@ -29,6 +29,7 @@ import mar.artefacts.db.RepositoryDB.RepoFile;
 import mar.artefacts.epsilon.BuildFileInspector;
 import mar.artefacts.epsilon.EpsilonInspector;
 import mar.artefacts.epsilon.EpsilonLaunchInspector;
+import mar.artefacts.gmf.GmfInspector;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.henshin.HenshinInspector;
 import mar.artefacts.ocl.OCLInspector;
@@ -116,6 +117,10 @@ public class InspectorLauncher {
 		return doInspect("sirius", (projectPath) -> new SiriusInspector(repositoryDataFolder, projectPath, analysisDb, db));
 	}
 
+	public InspectorResult fromGMF() throws SQLException {
+		return doInspect("gmf", (projectPath) -> new GmfInspector(repositoryDataFolder, projectPath, analysisDb, db));
+	}
+	
 	public InspectorResult fromHenshin() throws SQLException {
 		return doInspect("henshin",
 				(projectPath) -> new HenshinInspector(repositoryDataFolder, projectPath, analysisDb, db));
@@ -184,6 +189,7 @@ public class InspectorLauncher {
 		tasks.put(ArtefactType.ACCELEO, inspector::fromAcceleoFiles);
 		tasks.put(ArtefactType.ATL, inspector::fromATLFiles);
 		tasks.put(ArtefactType.SIRIUS, inspector::fromSirius);
+		tasks.put(ArtefactType.GMF, inspector::fromGMF);		
 		tasks.put(ArtefactType.HENSHIN, inspector::fromHenshin);
 		
 		Map<ArtefactType, InspectorResult> results = new HashMap<>();

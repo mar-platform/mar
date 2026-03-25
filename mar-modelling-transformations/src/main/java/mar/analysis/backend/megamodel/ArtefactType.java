@@ -15,6 +15,7 @@ public enum ArtefactType {
 	ACCELEO("acceleo"),
 	ATL("atl"),
 	SIRIUS("sirius"),
+	GMF("gmf"),
 	HENSHIN("henshin");
 	
 	public final String id;
