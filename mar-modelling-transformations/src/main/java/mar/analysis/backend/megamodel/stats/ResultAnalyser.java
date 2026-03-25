@@ -52,6 +52,7 @@ import mar.analysis.backend.megamodel.stats.ArtefactAnalysis.Result;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.DuplicationRelationships;
+import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
@@ -173,39 +174,68 @@ public class ResultAnalyser implements Callable<Integer> {
 				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
 
-			System.out.println("Duplication information");
-			DuplicationRelationships duplicates = megamodelDb.getDuplicates();
-			Map<String, Integer> totalCount = new HashMap<String, Integer>();
-			Map<String, Integer> groupCount = new HashMap<String, Integer>();
-			Set<String> types = new TreeSet<String>();
-			for (Artefact artefact : megamodelDb.getAllArtefacts().values()) {
-				totalCount.putIfAbsent(artefact.getType(), 0);
-				totalCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
-				String group = duplicates.getGroupOf(artefact.getId());				
-				if (group != null) {
-					groupCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
-				}
-				types.add(artefact.getType());
-			}
-			
-			for (String type : types) {
-				double total = totalCount.get(type) * 1.0;
-				double dups = groupCount.getOrDefault(type, 0);
-				double duplicationPercentage = 100.0 * (dups / total);
-				System.out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", duplicationPercentage) + " - " + dups + " / " + total);
-			}
-			
-			/*
-			duplicates.forEachGroup((k, v) -> {
-				System.out.println();
-				System.out.println("Group: " + k);
-				v.forEach(x -> System.out.println(" - " + x));
-			});
-			System.out.println();
-			*/
+			duplicationInfo(megamodelDb);
+			projectInfo(megamodelDb);
 			
 			showProjectInformation();
 		};
+	}
+
+	private void projectInfo(MegamodelDB megamodelDb) {
+		System.out.println("\nProject info:");
+		List<Project> allProjects = megamodelDb.allProjects();
+		Map<String, Integer> totalCount = new HashMap<String, Integer>();
+		Set<String> types = new TreeSet<String>();
+		for (Project project : allProjects) {
+			Set<String> ocurredInProject = new HashSet<String>();
+			megamodelDb.getProjectArtefacts(project.getId(), (id, artefact) -> {
+				if (! ocurredInProject.contains(artefact.getType())) {
+					ocurredInProject.add(artefact.getType());
+					totalCount.putIfAbsent(artefact.getType(), 0);
+					totalCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
+					types.add(artefact.getType());
+				}
+			});
+		}
+		
+		for (String type : types) {
+			double projectOcurrence = totalCount.get(type) * 1.0;
+			double duplicationPercentage = 100.0 * (projectOcurrence / allProjects.size());
+			System.out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", duplicationPercentage) + " - " + projectOcurrence + " / " + allProjects.size());
+		}		
+	}
+
+	private void duplicationInfo(MegamodelDB megamodelDb) {
+		System.out.println("Duplication information");
+		DuplicationRelationships duplicates = megamodelDb.getDuplicates();
+		Map<String, Integer> totalCount = new HashMap<String, Integer>();
+		Map<String, Integer> groupCount = new HashMap<String, Integer>();
+		Set<String> types = new TreeSet<String>();
+		for (Artefact artefact : megamodelDb.getAllArtefacts().values()) {
+			totalCount.putIfAbsent(artefact.getType(), 0);
+			totalCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
+			String group = duplicates.getGroupOf(artefact.getId());				
+			if (group != null) {
+				groupCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
+			}
+			types.add(artefact.getType());
+		}
+		
+		for (String type : types) {
+			double total = totalCount.get(type) * 1.0;
+			double dups = groupCount.getOrDefault(type, 0);
+			double duplicationPercentage = 100.0 * (dups / total);
+			System.out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", duplicationPercentage) + " - " + dups + " / " + total);
+		}
+		
+		/*
+		duplicates.forEachGroup((k, v) -> {
+			System.out.println();
+			System.out.println("Group: " + k);
+			v.forEach(x -> System.out.println(" - " + x));
+		});
+		System.out.println();
+		*/
 	}
 
 	private GraphLevelStats computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb, RawRepositoryDB rawDb) {
