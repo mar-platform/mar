@@ -50,6 +50,7 @@ import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.stats.ArtefactAnalysis.Result;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
+import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
@@ -170,6 +171,10 @@ public class ResultAnalyser implements Callable<Integer> {
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
 				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
+
+			System.out.println("Duplication information");
+			DuplicationRelationships duplicates = megamodelDb.getDuplicates();
+			
 			
 			showProjectInformation();
 		};

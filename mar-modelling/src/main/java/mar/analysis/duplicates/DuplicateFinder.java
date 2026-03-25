@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -69,9 +71,12 @@ public abstract class DuplicateFinder<I, T> {
 			}
 		});
 		
+		Set<DuplicationGroup<I>> groupsWithTwoOrMore = groups.values().stream().filter(g -> g.size() > 1).collect(Collectors.toSet());
+		return groupsWithTwoOrMore;
+		
 		// We need to compute the HashSet because the same DuplicationGroup appears several times
 		// i.e., several resources points to the same groups (because they belong to it).
-		return new HashSet<>(groups.values());
+		// return new HashSet<>(groups.values());
 	}
 	
 	private boolean areDuplicates(I a, I b, double t0, double t1) {
