@@ -13,9 +13,13 @@ class GlobalState {
     initialize(projects: Project[]) {
         this.projects = projects;
         this.state = 'OK';
-        this.selectedProject = projects.length > 0 ? projects[0] : null;
         this.searchProjects = projects;
+        this.selectedProject = null;
         this.selectedProjectGraph = null; // Reset the graph when initializing with new projects
+        
+        if (projects.length > 0) {
+            this.selectProject(projects[0]);
+        }
     }
 
     // —— Projects —————————————————————————————
