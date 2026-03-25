@@ -114,7 +114,7 @@ public class EpsilonInspector extends ProjectInspector {
 		List<String> result = new ArrayList<String>();
 		text.lines().forEach(line -> {
 			line = line.stripLeading();
-			if (! line.startsWith("//")) {
+			if (! line.startsWith("//") && !line.startsWith("--")) {
 				matcher.reset(line);
 				while (matcher.find()) {
 					String content = matcher.group(1);
