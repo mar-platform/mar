@@ -1,9 +1,9 @@
 import type Project from "./Project";
 
-export type Node = ArtefactNode | VirtualNode;
+export type Node = ArtefactNode | VirtualNode | DuplicationNode;
 
 export interface BaseNode {
-    _type: 'artefact' | 'virtual';
+    _type: 'artefact' | 'virtual' | 'duplication';
     id: string;
     artefact: {
         id: string;
@@ -33,6 +33,13 @@ export interface ArtefactNode extends BaseNode {
 export interface VirtualNode extends BaseNode {
     _type: 'virtual';
     kind: 'duplication' | 'project';
+}
+
+export interface DuplicationNode extends BaseNode {
+    _type: 'duplication';
+    kind: 'duplication' | 'project';
+    artefactType: ArtefactType;
+    artefacts: string[];
 }
 
 export type EdgeType = 'typed-by' | 'import' | 'duplicate' | 'build_duplicate' | 'project-to-project' | 'input-type' | 'output-type';

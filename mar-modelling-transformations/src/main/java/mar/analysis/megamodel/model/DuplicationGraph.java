@@ -5,15 +5,16 @@ import java.util.Collection;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 public class DuplicationGraph extends RelationshipsGraph {
-	// extends RelationshipsGraph
 	private List<Artefact> artefacts = new ArrayList<Artefact>();
 	
 	public void addArtefact(Artefact artefact) {
 		artefacts.add(artefact);
 	}
 	
+	@JsonTypeName("duplication")
 	public static class ArtefactGroup extends RelationshipsGraph.VirtualNode {
 
 		@JsonProperty

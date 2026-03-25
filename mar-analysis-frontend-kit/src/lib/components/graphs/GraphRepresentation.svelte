@@ -57,8 +57,12 @@
                     name = node.artefact.name;
                     break;
                 case 'virtual':
-                    type = /* FIXME node.kind === 'duplication' ? node.artefactType :*/ node.kind;
+                    type = node.kind;
                     console.log('Type for virtual: ', type);
+                    name = node.id;
+                    break;
+                case 'duplication':
+                    type = node.artefactType; // When a node is duplicated we set its type as the original (instead of 'duplication')
                     name = node.id;
                     break;
                 default:
