@@ -11,8 +11,9 @@
     import LucideX from '@lucide/svelte/icons/x';
     import LucideSun from '@lucide/svelte/icons/sun';
     import LucideMoon from '@lucide/svelte/icons/moon';
-    import LucideGithub from '@lucide/svelte/icons/github';
-	import { toggleMode } from 'mode-watcher';
+    import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
+    import GithubLogo from '$lib/assets/github-icon.svg';
+	import { mode, toggleMode } from 'mode-watcher';
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -123,9 +124,11 @@
                     variant="ghost"
                     href={GITHUB_PATH}
                 >
-                    <LucideGithub
-                        class="h-[1.2rem] w-[1.2rem]"
-                    />
+                    {#if mode.current === 'dark'}
+                        <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                    {:else}
+                        <img src={GithubLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                    {/if}
                 </Button>
                 <Button
                     size="icon"

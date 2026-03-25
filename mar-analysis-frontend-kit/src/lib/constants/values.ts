@@ -1,1 +1,5 @@
 export const SEARCHBAR_DEBOUNCE_MS = 300;
+
+export const INITIAL_LABEL_SIZE = 14;
+export const INITIAL_LABEL_THRESHOLD = 0;
+export const INITIAL_SHOW_UNCONNECTED_NODES = true;

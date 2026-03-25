@@ -1,6 +1,8 @@
 import type Project from "./Project";
 
-export interface Node {
+export type Node = ArtefactNode | VirtualNode;
+
+export interface BaseNode {
     _type: 'artefact' | 'virtual';
     id: string;
     artefact: {
@@ -14,10 +16,31 @@ export interface Node {
     attributes: string[];
 }
 
+export type ArtefactType = "qvto" | "ocl" | "ecore" | "xtext" | "emfatic" | "epsilon" | "acceleo" | "atl" | "sirius" | "henshin";
+
+export interface ArtefactNode extends BaseNode {
+    _type: 'artefact';
+    artefact: {
+        id: string;
+        category: string;
+        fileStatus: 'EXISTS' | 'MISSING' | 'UNRESOLVED' | 'GENERATED' | 'HEURISTIC' | 'BUILTIN' | 'UNEXPECTED' | 'ERROR';
+        name: string;
+        project: Project['id'];
+        type: ArtefactType;
+    };
+}
+
+export interface VirtualNode extends BaseNode {
+    _type: 'virtual';
+    kind: 'duplication' | 'project';
+}
+
+export type EdgeType = 'typed-by' | 'import' | 'duplicate' | 'build_duplicate' | 'project-to-project' | 'input-type' | 'output-type';
+
 export interface Edge {
     source: string;
     target: string;
-    types: ('typed-by' | 'import' | 'duplicate' | 'build_duplicate' | 'project-to-project' | 'input-type' | 'output-type')[];
+    types: EdgeType[];
 }
 
 export default interface Graph {

@@ -2,147 +2,65 @@
 	import Sigma from 'sigma';
 	import type { EdgeDisplayData, NodeDisplayData } from 'sigma/types';
 	import type Graph from 'graphology';
-	import type GraphDTO from '$lib/dto/Graph';
 	import UndirectedGraph from 'graphology';
 
 	import FA2Layout from 'graphology-layout-forceatlas2/worker';
 	import forceAtlas2 from 'graphology-layout-forceatlas2';
-	import random from 'graphology-layout/random';
 
-	import { untrack } from 'svelte';
-	import { edgeTypes } from '$lib/constants/edgeTypes';
-	import type ArtefactType from '$lib/dto/ArtefactType';
-	import type { Edge, Node } from '$lib/dto/Graph';
+	import type { Node } from '$lib/dto/Graph';
+	import { onMount } from 'svelte';
+	import { INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
 
 	interface GraphVisualizerProps {
-		types: ArtefactType[];
-		document: GraphDTO;
+		graph: UndirectedGraph;
+		selectedNodeTypes: Record<string, boolean>;
+		selectedEdgeTypes: Record<string, boolean>;
 	}
 
-	let { types, document }: GraphVisualizerProps = $props();
+	let { graph, selectedNodeTypes, selectedEdgeTypes }: GraphVisualizerProps = $props();
 
 	// ── Graph state ──────────────────────────────────────────
-	let container: HTMLDivElement;
-	let graph: Graph;
+	let container: HTMLDivElement = $state(null!);
 	let currentNode = $state<Node | null>(null);
-	let currentEdge = $state<(Edge & { key: string }) | null>(null);
-	let hoveredEdge: string | null = null;
+	let currentEdge = $state<{ key: string; type: string; sourceId: string; targetId: string } | null>(null);
+	let hoveredEdge: string | null = $state(null);
+
 	let renderer: Sigma | null = null;
+
 	let fa2: InstanceType<typeof FA2Layout> | null = null;
 	let fa2Running = $state(false);
 	let numberOfIterations = 20; //$state(20);
-	let showUnconnectedNodes = $state(false);
 
-  const colorMap = $derived(types.reduce(
-    function (map: Record<string, string>, obj: ArtefactType): Record<string, string> {
-      map[obj.type] = obj.color;
-      return map;
-    },
-    {} as Record<string, string>
-  ));
+	onMount(() => {
+		console.log('Initializing graph...');
+		renderer = initGraph();
 
-  const edgeColorMap = edgeTypes.reduce(
-    function (map: Record<string, string>, obj: { type: string; color: string }) {
-      map[obj.type] = obj.color;
-      return map;
-    },
-    {} as Record<string, string>
-  );
-
-	let checkedTypes = $derived.by<Record<string, boolean>>(() => {
-		const result: Record<string, boolean> = {};
-		for (let i = 0; i < types.length; i++) {
-			result[types[i].type] = true;
-		}
-		return result;
-	});
-
-	let checkedEdgeTypes = $derived.by<Record<string, boolean>>(() => {
-		const result: Record<string, boolean> = {};
-		for (const et of edgeTypes) {
-			result[et.type] = true;
-		}
-		return result;
-	});
-
-	$effect(() => {
-		// capture dependencies
-		const doc = document;
-		const c = container;
-		if (doc != undefined && c != undefined) {
-			untrack(() => {
-				currentNode = null;
-				currentEdge = null;
-				if (fa2) {
-					fa2.kill();
-					fa2 = null;
-					fa2Running = false;
-				}
-				if (renderer != null) renderer.kill();
-				createNetwork(doc);
-			});
-		}
-	});
-
-	function createNetwork(doc: GraphDTO) {
-		graph = new UndirectedGraph();
-
-		doc.nodes.forEach((node: Node) => {
-			let type: string, name: string;
-			if (node._type == 'artefact') {
-				type = node.artefact.type;
-				name = node.artefact.name;
-			} else if (node._type == 'virtual') {
-				type = node.kind == 'duplication' ? node.artefactType : node.kind;
-				console.log('Type for virtual: ', type);
-				name = node.id;
-			} else {
-				type = 'error';
-				name = 'unknown';
+		// When unmounting, kill the renderer and the layout to free resources
+		return () => {
+			if (fa2) {
+				fa2.kill();
+				fa2 = null;
+				fa2Running = false;
 			}
-			graph.addNode(node.id, {
-				x: 0,
-				y: 0,
-				impl: node,
-				nodeType: type,
-				label: name,
-				color: colorMap[type] || '#b34f47'
-			});
-		});
+			if (renderer) {
+				renderer.kill();
+				renderer = null;
+			}
+		};
+	})
 
-		doc.edges.forEach((edge: Edge) => {
-			graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
-		});
+	export function setLabelSize(size: number) {
+		renderer?.setSetting("labelSize", size);
+	}
 
-		random.assign(graph);
+	export function setLabelThreshold(threshold: number) {
+		renderer?.setSetting("labelRenderedSizeThreshold", threshold);
+	}
 
-		renderer = new Sigma(graph, container, {
-			hideEdgesOnMove: true,
-			renderEdgeLabels: false,
-			labelRenderedSizeThreshold: 6
-		});
-		renderer.on('clickNode', (e) => {
-			selectNode(graph.getNodeAttributes(e.node).impl);
-		});
-		renderer.on('clickEdge', (e) => {
-			selectEdge(e.edge);
-		});
-		renderer.on('enterEdge', (e) => {
-			hoveredEdge = e.edge;
-			container.style.cursor = 'pointer';
-			renderer?.refresh();
-		});
-		renderer.on('leaveEdge', () => {
-			hoveredEdge = null;
-			container.style.cursor = '';
-			renderer?.refresh();
-		});
-		renderer.on('doubleClickStage', (e) => {
-			e.preventSigmaDefault();
-		});
-		renderer.setSetting('nodeReducer', (nodeId, data) => {
+	export function setNodeConfig(showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
+		renderer?.setSetting('nodeReducer', (nodeId, data) => {
 			const res: Partial<NodeDisplayData> = { ...data };
-			if (!checkedTypes[data.nodeType]) res.hidden = true;
+			if (!selectedNodeTypes[data.nodeType]) res.hidden = true;
 			if (!showUnconnectedNodes && graph.degree(nodeId) == 0) res.hidden = true;
 			if (currentNode?.id === nodeId) {
 				res.highlighted = true;
@@ -150,23 +68,24 @@
 			}
 			return res;
 		});
-		startLayout();
+	}
 
-		renderer.setSetting('edgeReducer', (edge, data) => {
+	export const setEdgeConfig = (selectedEdgeTypes: Record<string, boolean>) => {
+		renderer?.setSetting('edgeReducer', (edge, data) => {
 			const res: Partial<EdgeDisplayData> = { ...data };
 			const srcType = graph.getNodeAttribute(graph.source(edge), 'nodeType');
 			const tgtType = graph.getNodeAttribute(graph.target(edge), 'nodeType');
-			if (!(checkedTypes[srcType] && checkedTypes[tgtType])) res.hidden = true;
+			if (!(selectedNodeTypes[srcType] && selectedNodeTypes[tgtType])) res.hidden = true;
 			const edgeTypes = graph.getEdgeAttribute(edge, 'edgeTypes');
 
-			const selectedEdgeType = selectEdgeType(checkedEdgeTypes, edgeTypes);
-			//console.log(edge, checkedEdgeTypes, edgeTypes, selectedEdgeType);
+			const selectedEdgeType = selectEdgeType(selectedEdgeTypes, edgeTypes);
+			//console.log(edge, selectedEdgeTypes, edgeTypes, selectedEdgeType);
 			if (!selectedEdgeType) {
-        res.hidden = true;
-        res.color = '#94a3b8';
-      } else {
-        res.color = edgeColorMap[selectedEdgeType] ?? '#94a3b8';
-      }
+				res.hidden = true;
+				res.color = '#94a3b8';
+			} else {
+				res.color = /*edgeColorMap[selectedEdgeType] ?? */'#94a3b8';
+			}
 
 			if (hoveredEdge === edge) {
 				res.size = 3;
@@ -181,21 +100,59 @@
 		});
 	}
 
+	function initGraph() {
+		const renderer = startRenderer(graph);
+
+		setLabelSize(INITIAL_LABEL_SIZE);
+		setLabelThreshold(INITIAL_LABEL_THRESHOLD);
+		setNodeConfig(INITIAL_SHOW_UNCONNECTED_NODES, selectedNodeTypes);
+		setEdgeConfig(selectedEdgeTypes);
+
+		startLayout();
+		return renderer;
+	}
+
+	function startRenderer(graph: Graph) {
+		renderer = new Sigma(graph, container, {
+			hideEdgesOnMove: true,
+			renderEdgeLabels: true,
+			labelRenderedSizeThreshold: 6,
+		});
+		renderer.on('clickNode', (e) => {
+			selectNode(graph.getNodeAttributes(e.node).impl);
+		});
+		renderer.on('clickEdge', (e) => {
+			console.log('Clicked edge: ', e.edge);
+			selectEdge(e.edge);
+		});
+		renderer.on('enterEdge', (e) => {
+			console.log('Hovering edge: ', e.edge);
+			hoveredEdge = e.edge;
+			container.style.cursor = 'pointer';
+			renderer?.refresh();
+		});
+		renderer.on('leaveEdge', () => {
+			hoveredEdge = null;
+			container.style.cursor = '';
+			renderer?.refresh();
+		});
+		renderer.on('doubleClickStage', (e) => {
+			e.preventSigmaDefault(); // We dont want to zoom on double click
+		});
+
+		return renderer;
+	}
+
 	function startLayout() {
 		if (fa2) {
 			fa2.kill();
 			fa2 = null;
 		}
-		const s = forceAtlas2.inferSettings(graph);
+		const settings = forceAtlas2.inferSettings(graph);
 
-		//let iterationOptions = {}
-		//if (numberOfIterations > 0)
-		//  iterationOptions = { iterations: numberOfIterations }
-		//fa2 = new FA2Layout(graph, { settings: s, ...iterationOptions });
-		fa2 = new FA2Layout(graph, { settings: s });
+		fa2 = new FA2Layout(graph, { settings });
 		fa2.start();
 		fa2Running = true;
-		console.log(numberOfIterations);
 		setTimeout(() => stopLayout(), numberOfIterations * 1000);
 	}
 
