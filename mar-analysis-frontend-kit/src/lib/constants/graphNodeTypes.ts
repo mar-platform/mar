@@ -1,21 +1,21 @@
 export const nodeTypes = {
-    // Artefact types
-	qvto: { color: '#5ac477' },
-	ocl: { color: '#8a8477' },
-	ecore: { color: '#5a8bc4' },
-	xtext: { color: '#6e1ae5' },
-	emfatic: { color: '#fb04d8' },
-	epsilon: { color: '#b33636' },
-	acceleo: { color: '#36b336' },
-	atl: { color: '#2a4e6a' },
-	sirius: { color: '#3b5c4e' },
-	henshin: { color: '#3baa9e' },
+	// Artefact types
+	qvto: { color: '--color-qvto' },
+	ocl: { color: '--color-ocl' },
+	ecore: { color: '--color-ecore' },
+	xtext: { color: '--color-xtext' },
+	emfatic: { color: '--color-emfatic' },
+	epsilon: { color: '--color-epsilon' },
+	acceleo: { color: '--color-acceleo' },
+	atl: { color: '--color-atl' },
+	sirius: { color: '--color-sirius' },
+	henshin: { color: '--color-henshin' },
 
-    // Duplication types
-    duplication: {color: '#ffe100'},
+	// Duplication types
+	duplication: { color: '--color-duplication' },
 
-    // Project types
-    project: { color: '#ffe100' },
+	// Project types
+	project: { color: '--color-project' },
 
-	error: { color: '#ff0000' }
+	error: { color: '--color-error' }
 } as const;

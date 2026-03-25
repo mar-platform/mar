@@ -6,14 +6,14 @@
     import { Checkbox } from "$lib/components/ui/checkbox/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
     import { Slider } from "$lib/components/ui/slider/index.js";
-	import { INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_SHOW_UNCONNECTED_NODES } from "$lib/constants/values";
+	import { INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from "$lib/constants/values";
     
     interface GraphToolbarProps {
         selectedNodeTypes: Record<keyof typeof nodeTypes, boolean>;
         selectedEdgeTypes: Record<keyof typeof edgeTypes, boolean>;
         onLabelSizeChange: (size: number) => void;
         onLabelThresholdChange: (threshold: number) => void;
-        onShowUnconnectedNodesChange: (show: boolean) => void;
+        handleNodesChange: (nodeSize: number, showConnectedNodes: boolean) => void;
     }
 
     let {
@@ -21,12 +21,13 @@
         selectedEdgeTypes = $bindable(),
         onLabelSizeChange,
         onLabelThresholdChange,
-        onShowUnconnectedNodesChange,
+        handleNodesChange,
     }: GraphToolbarProps = $props();
 
     let showUnconnectedNodes = $state(INITIAL_SHOW_UNCONNECTED_NODES);
     let labelSize = $state(INITIAL_LABEL_SIZE);
     let labelThreshold = $state(INITIAL_LABEL_THRESHOLD);
+    let nodeSize = $state(INITIAL_NODE_SIZE);
 
     function toggleVisibility(type: 'node' | 'edge', name: string) {
         if (type === 'node') {
@@ -48,8 +49,8 @@
 {#snippet filterItem(type: 'node' | 'edge', name: string, checked: boolean, color: string)}
     <button 
         onclick={() => toggleVisibility(type, name)}
-        class="text-xs font-semibold flex items-center gap-2 px-1 py-0.5 cursor-pointer active:scale-95 transition-transform rounded-full"
-        style={`background-color: ${color}1A; color: ${color}; border: 1px solid ${color}33;`}
+        class="select-none text-xs font-semibold flex items-center gap-2 px-1 py-0.5 cursor-pointer active:scale-95 transition-transform rounded-full"
+        style={`background-color: color-mix(in srgb, ${color}, transparent 85%); color: ${color}; border: 1px solid color-mix(in srgb, ${color}, transparent 60%);`}
     >
         {#if type === 'node'}
             <div class="size-3 rounded-full" style={`background-color: ${color};`}></div>
@@ -74,7 +75,7 @@
         <span class="text-text-secondary text-sm font-medium">Nodes</span>
         <div class="flex flex-wrap gap-2">
             {#each Object.entries(selectedNodeTypes) as [name, checked](name)}
-                {@render filterItem('node', name, checked, nodeTypes[name as keyof typeof nodeTypes].color)}
+                {@render filterItem('node', name, checked, `var(${nodeTypes[name as keyof typeof nodeTypes].color})`)}
             {/each}
         </div>
     </div>
@@ -83,7 +84,7 @@
         <span class="text-text-secondary text-sm font-medium">Edges</span>
         <div class="flex flex-wrap gap-2">
             {#each Object.entries(selectedEdgeTypes) as [name, checked](name)}
-                {@render filterItem('edge', name, checked, edgeTypes[name as keyof typeof edgeTypes].color)}
+                {@render filterItem('edge', name, checked, `var(${edgeTypes[name as keyof typeof edgeTypes].color})`)}
             {/each}
         </div>
     </div>
@@ -92,8 +93,13 @@
         <span class="text-text-secondary text-sm font-medium">Advanced Options</span>
         <div class="flex flex-wrap gap-10">
             <div class="flex items-center gap-3">
-                <Checkbox id="unconnected-nodes" bind:checked={showUnconnectedNodes} onCheckedChange={(checked) => onShowUnconnectedNodesChange(checked)} />
+                <Checkbox id="unconnected-nodes" bind:checked={showUnconnectedNodes} onCheckedChange={(checked) => handleNodesChange(nodeSize, checked)} />
                 <Label for="unconnected-nodes">Unconnected nodes</Label>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <Label for="node-size">Node size</Label>
+                <Slider id="node-size" type="single" onValueCommit={(value) => handleNodesChange(value, showUnconnectedNodes)} bind:value={nodeSize} min={1} max={30} step={1} class="w-50" />
             </div>
             
             <div class="flex flex-col gap-3">

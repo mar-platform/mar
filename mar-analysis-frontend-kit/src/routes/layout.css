@@ -51,6 +51,28 @@
 	--input-border: #E3E3E3;
 	--input-error-border: #E61F1F;
 	--input-error: #FFE0E0;
+
+	--color-qvto: #059669;
+    --color-ocl: #7c2d12;
+    --color-ecore: #0369a1;
+    --color-xtext: #6d28d9;
+    --color-emfatic: #be185d;
+    --color-epsilon: #991b1b;
+    --color-acceleo: #15803d;
+    --color-atl: #064e3b;
+    --color-sirius: #164e63;
+    --color-henshin: #0f766e;
+    --color-duplication: #b45309;
+    --color-project: #9333ea;
+    --color-error: #dc2626;
+
+	--color-typed-by: #6b7280;
+    --color-import: #22c55e;
+    --color-duplicate: #eab308;
+    --color-build-duplicate: #f97316;
+    --color-project-to-project: #a855f7;
+    --color-input-type: #3b82f6;
+    --color-output-type: #ef4444;
 }
 
 .dark {
@@ -99,6 +121,28 @@
 	--input-border: #575757;
 	--input-error-border: #E53935;
 	--input-error: #311414;
+
+	--color-qvto: #34d399;
+    --color-ocl: #fb923c;
+    --color-ecore: #38bdf8;
+    --color-xtext: #a78bfa;
+    --color-emfatic: #f472b6;
+    --color-epsilon: #fca5a5;
+    --color-acceleo: #4ade80;
+    --color-atl: #6ee7b7;
+    --color-sirius: #22d3ee;
+    --color-henshin: #2dd4bf;
+    --color-duplication: #fbbf24;
+    --color-project: #c084fc;
+    --color-error: #f87171;
+
+	--color-typed-by: #9ca3af;
+    --color-import: #4ade80;
+    --color-duplicate: #facc15;
+    --color-build-duplicate: #fb923c;
+    --color-project-to-project: #c084fc;
+    --color-input-type: #60a5fa;
+    --color-output-type: #f87171;
 }
 
 @theme inline {
@@ -157,6 +201,28 @@
 	--color-input-border: var(--input-border);
 	--color-input-error-border: var(--input-error-border);
 	--color-input-error: var(--input-error);
+
+	--color-qvto: var(--color-qvto);
+	--color-ocl: var(--color-ocl);
+	--color-ecore: var(--color-ecore);
+	--color-xtext: var(--color-xtext);
+	--color-emfatic: var(--color-emfatic);
+	--color-epsilon: var(--color-epsilon);
+	--color-acceleo: var(--color-acceleo);
+	--color-atl: var(--color-atl);
+	--color-sirius: var(--color-sirius);
+	--color-henshin: var(--color-henshin);
+	--color-duplication: var(--color-duplication);
+	--color-project: var(--color-project);
+	--color-error: var(--color-error);
+
+	--color-typed-by: var(--color-typed-by);
+	--color-import: var(--color-import);
+	--color-duplicate: var(--color-duplicate);
+	--color-build-duplicate: var(--color-build-duplicate);
+	--color-project-to-project: var(--color-project-to-project);
+	--color-input-type: var(--color-input-type);
+	--color-output-type: var(--color-output-type);
 }
 
 @layer base {
