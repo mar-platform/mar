@@ -20,6 +20,7 @@
     import { Separator } from "$lib/components/ui/separator/index.js";    
 	import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
 	import { toast } from 'svelte-sonner';
+	import GraphInfoPanel from './GraphInfoPanel.svelte';
 
 
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
@@ -212,4 +213,5 @@
             {/if}
         </div>
     </div>
+    <GraphInfoPanel />
 {/if}

@@ -37,7 +37,7 @@ export interface VirtualNode extends BaseNode {
 
 export interface DuplicationNode extends BaseNode {
     _type: 'duplication';
-    kind: 'duplication' | 'project';
+    kind: 'duplication';
     artefactType: ArtefactType;
     artefacts: string[];
 }

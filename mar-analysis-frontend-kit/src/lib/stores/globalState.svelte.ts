@@ -1,4 +1,5 @@
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
+import type { Node } from "$lib/dto/Graph";
 import type Graph from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
 import { toast } from "svelte-sonner";
@@ -9,6 +10,7 @@ class GlobalState {
     searchProjects = $state<Project[]>([]);
     selectedProject: Project | null = $state(null);
     selectedProjectGraph: Graph | null = $state(null);
+    selectedNode: Node | null = $state(null);
 
     initialize(projects: Project[]) {
         this.projects = projects;
@@ -16,7 +18,20 @@ class GlobalState {
         this.searchProjects = projects;
         this.selectedProject = null;
         this.selectedProjectGraph = null; // Reset the graph when initializing with new projects
-        
+        this.selectedNode = /*{
+            "_type": "artefact",
+            "artefact": {
+                "category": "transformation",
+                "fileStatus": "EXISTS",
+                "id": "101companies/101repo/contributions/atlTotalPlugin/bin/ATL_ComputeTotalPlugin/files/ComputeTotal.atl",
+                "name": "ComputeTotal.atl",
+                "project": "101companies/101repo",
+                "type": "atl"
+            },
+            "attributes": [],
+            "id": "101companies/101repo/contributions/atlTotalPlugin/bin/ATL_ComputeTotalPlugin/files/ComputeTotal.atl"
+        }*/ null; 
+
         if (projects.length > 0) {
             this.selectProject(projects[0]);
         }
@@ -25,6 +40,8 @@ class GlobalState {
     // —— Projects —————————————————————————————
 
     async selectProject(project: Project) {
+        this.deselectNode(); // Deselect any selected node when changing projects
+
         this.selectedProject = project;
 
         // Start loading the project graph
@@ -52,6 +69,15 @@ class GlobalState {
         }
     }
 
+    // —— Nodes —————————————————————————————
+
+    selectNode(node: Node | null) {
+        this.selectedNode = node;
+    }
+
+    deselectNode() {
+        this.selectedNode = null;
+    }
 
 }
 

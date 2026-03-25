@@ -11,6 +11,7 @@
 	import { onMount } from 'svelte';
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
+	import { globalState } from '$lib/stores/globalState.svelte';
 
 	export interface GraphVisualizerInitial {
 		nodeFilter: string;
@@ -33,7 +34,7 @@
 
 	// ── Graph state ──────────────────────────────────────────
 	let container: HTMLDivElement = $state(null!);
-	let currentNode = $state<Node | null>(null);
+	let currentNode = $derived<Node | null>(globalState.selectedNode);
 	let currentEdge = $state<{ key: string; type: string; sourceId: string; targetId: string } | null>(null);
 	let hoveredEdge: string | null = $state(null);
 
@@ -196,8 +197,8 @@
 		renderer?.refresh();
 	}
 
-	function selectNode(nodeImpl: Node) {
-		currentNode = nodeImpl;
+	function selectNode(node: Node) {
+		globalState.selectNode(node);
 		currentEdge = null;
 		renderer?.refresh();
 	}
