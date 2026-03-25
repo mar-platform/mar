@@ -4,4 +4,6 @@ must_contain_filters:
   - extension: emf
     contains: "@namespace"
   - extension: mtl
-    contains: "[template"    
+    contains: "[template"
+  - extension: xtend
+    contains: "'''"        

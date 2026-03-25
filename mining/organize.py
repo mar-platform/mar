@@ -34,7 +34,7 @@ class Configuration:
             filter_ = self.must_contain_filters[ext]
             #print("Checking filter", filter_)
             try:
-                with open(fullpath, 'r') as fp:
+                with open(fullpath, 'r', encoding='utf-8', errors='ignore') as fp:
                     for l_no, line in enumerate(fp):
                         if filter_ in line:
                             print("It's accepted: ", filepath)
@@ -327,6 +327,8 @@ if __name__ == "__main__":
         '.mtl': 'acceleo',
         
         '.xtext': 'xtext',
+        '.xtend': 'xtend',
+        '.mwe2' : 'mwe2',
 
         '.launch': 'eclipse-launcher',        
 

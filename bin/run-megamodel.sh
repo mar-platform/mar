@@ -24,7 +24,8 @@ if [[ "$SKIP_STEP" =~ ^[Yy]$ ]]; then
 else
     echo ">>> Running organization step..."
     cd mining || { echo "Failure: Could not enter mining directory"; exit 1; }
-    python3 organize.py -d /data3/supergraph/repos:/data3/supergraph/repos-mps:/data3/supergraph/repos-spoofax \
+#    python3 organize.py -d /data3/supergraph/repos:/data3/supergraph/repos-mps:/data3/supergraph/repos-spoofax \
+    python3 organize.py -d /data3/supergraph/repos2 \
 	    -o "$DB_PATH" \
 	    -c configuration.yaml
     cd ..
@@ -34,7 +35,7 @@ fi
 echo ">>> Starting Java transformations..."
 # Note: Using the second parameter $MEGAMODELDB for the output
 time java --add-opens java.base/java.lang=ALL-UNNAMED -jar mar-modelling-transformations/target/mar-modelling-transformations-1.0-SNAPSHOT-all.jar \
-     --repository /data3/supergraph/repos \
+     --repository /data3/supergraph/repos2 \
      --repoDB "$DB_PATH" \
      --cache /data3/supergraph/ \
      --output "$MEGAMODELDB" \
