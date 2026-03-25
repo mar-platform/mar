@@ -60,6 +60,8 @@ import mar.validation.IFileProvider;
 import mar.validation.ISingleFileAnalyser;
 import mar.validation.ISingleFileAnalyser.Remote;
 import mar.validation.ResourceAnalyser;
+import mar.validation.AnalysisDB.Model;
+import mar.validation.AnalysisDB.Status;
 import mar.validation.ResourceAnalyser.Factory;
 import mar.validation.ResourceAnalyser.OptionMap;
 import picocli.CommandLine;
@@ -138,7 +140,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 	}
 
-	private DuplicationAnalysisResult computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull Path repositoryDataFolder) {
+	private DuplicationAnalysisResult computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull Path repositoryDataFolder, AnalysisDB analysisDb) {
 		DuplicateConfiguration configuration = new DuplicateConfiguration(repositoryDataFolder, MegamodelAnalysis.this::toId, MegamodelAnalysis.this::toName);		
 		DuplicateComputation computation = configuration.newComputation(miniGraphs);
 		computation.setMetamodelConfiguration(new DuplicateFinderConfiguration<Metamodel, Resource>() {
@@ -146,10 +148,28 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			public Resource toResource(Metamodel p) throws Exception {
 				if (p.getPath() == null)
 					throw new UnsupportedOperationException("Ecore duplication for URIs not supported: " + p.getUri());
-
+				
+				Status status = analysisDb.hasFile(p.getPath().getPath().toString());
+				if (status == null) {
+					System.out.println("Can't find model " + p.getUri());
+					throw new CannotHandleModelException("Model not found " + p.getUri());
+				} else if (status == Status.CRASHED || status == Status.NOT_HANDLED || status == Status.TIMEOUT || status == Status.NOT_HANDLED) {
+					throw new CannotHandleModelException("Model with status " + status + " - " + p.getUri());
+				}
+				
 				return ModelLoader.DEFAULT.load(p.getPath().getCompletePath(repositoryDataFolder).toFile());
 			}
 
+			class CannotHandleModelException extends RuntimeException {
+
+				private static final long serialVersionUID = 1L;
+
+				public CannotHandleModelException(String string) {
+					super(string);
+				}
+				
+			}
+			
 			@Override
 			public DuplicateFinder<Metamodel, Resource> toFinder() {
 				return new EcoreDuplicateFinder();
@@ -337,7 +357,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		
 		// 2. Perform global analysis (for the moment duplicate computation)
 		System.out.println("2. Global analysis. Duplicate computation.");
-		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath());
+		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath(), analysisDb);
 		
 		// 3. Perform local analysis (maybe using the global information)
 		System.out.println("3. Local analysis.");

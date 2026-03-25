@@ -92,6 +92,8 @@ public class DuplicateComputation {
 				}
 			}
 			
+			// Not anymore because it is done globally (see above)
+			/*
 			for (Metamodel metamodel : graph.getMetamodels()) {
 				try {
 					Resource r = metamodelConfiguration.toResource(metamodel);
@@ -102,6 +104,7 @@ public class DuplicateComputation {
 				}
 			
 			}
+			*/
 		}		
 		
 		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(conf.default_t0(), conf.default_t1());
