@@ -82,7 +82,7 @@
 			// Highlight the selected node
 			if (currentNode?.id === nodeId) {
 				res.highlighted = true;
-				res.size = nodeSize * 1.25;
+				res.size = nodeSize * 1.35;
 			} else {
 				res.size = nodeSize;
 			}
@@ -132,7 +132,6 @@
 
 	function initGraph() {
 		const renderer = startRenderer(graph);
-		console.log(initialProps)
 		setLabelSize(initialProps.labelSize);
 		setLabelThreshold(initialProps.labelThreshold);
 		setNodeConfig(initialProps.nodeFilter, initialProps.nodeSize, initialProps.showUnconnectedNodes, selectedNodeTypes);

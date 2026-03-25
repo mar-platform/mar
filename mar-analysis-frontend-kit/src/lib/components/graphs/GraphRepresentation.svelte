@@ -93,6 +93,7 @@
         epsilon: true,
         henshin: true,
         ocl: true,
+        gmf: true,
         project: true,
         qvto: true,
         sirius: true,
@@ -125,10 +126,10 @@
 </script>
 
 {#if globalState.selectedProject}
-    <div class="w-full h-full flex flex-col gap-2" in:fade out:fade>
-        <div class="flex justify-between items-end">
+    <div class="w-full h-full overflow-hidden flex flex-col gap-2" in:fade out:fade>
+        <div class="flex justify-between items-end gap-4">
             {#key globalState.selectedProject.id}
-                <span class="mb-0.5 text-text-secondary text-base font-medium" in:fade>{globalState.selectedProject.id}</span>   
+                <span title={globalState.selectedProject.id} class="mb-0.5 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject.id}</span>   
             {/key}
             <div class="flex gap-4 items-center">
                 <div class={`relative flex flex-col ${fa2Running ? 'bg-gray-200' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>

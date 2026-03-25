@@ -11,6 +11,7 @@
 
 
     function onClickProject(project: Project) {
+        if (globalState.selectedProject?.id === project.id) return;
         globalState.selectProject(project);
     }
 

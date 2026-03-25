@@ -62,6 +62,7 @@
     --color-atl: #064e3b;
     --color-sirius: #164e63;
     --color-henshin: #0f766e;
+	--color-gmf: #4338ca;
     --color-duplication: #b45309;
     --color-project: #9333ea;
     --color-error: #dc2626;
@@ -132,6 +133,7 @@
     --color-atl: #6ee7b7;
     --color-sirius: #22d3ee;
     --color-henshin: #2dd4bf;
+	--color-gmf: #818cf8;
     --color-duplication: #fbbf24;
     --color-project: #c084fc;
     --color-error: #f87171;
@@ -212,6 +214,7 @@
 	--color-atl: var(--color-atl);
 	--color-sirius: var(--color-sirius);
 	--color-henshin: var(--color-henshin);
+	--color-gmf: var(--color-gmf);
 	--color-duplication: var(--color-duplication);
 	--color-project: var(--color-project);
 	--color-error: var(--color-error);

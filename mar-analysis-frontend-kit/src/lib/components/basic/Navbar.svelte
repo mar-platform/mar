@@ -17,6 +17,7 @@
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import { APP_NAME, SHOW_LOGOS_AND_REPO } from '$lib/constants/values';
 
     type RouteItem = {
         title: string;
@@ -69,11 +70,13 @@
 </script>
 
 <header>
-    <div class="absolute top-0 left-0 right-0 flex flex-col items-center m-5 p-5 bg-page-foreground rounded-xl shadow-sm">
+    <div class="absolute z-10 top-0 left-0 right-0 flex flex-col items-center m-5 p-5 bg-page-foreground rounded-xl shadow-sm">
         <div class="flex gap-10 items-center justify-between w-full">
             <a href={STATS_PATH} class="flex items-center gap-3">
-                <img src={Logo} alt="Logo" class="h-10 w-auto" />
-                <span class="font-semibold">MDE Artefact Inspector</span>
+                {#if SHOW_LOGOS_AND_REPO}
+                    <img src={Logo} alt="Logo" class="h-10 w-auto" />
+                {/if}
+                <span class="font-semibold">{APP_NAME}</span>
             </a>
             <NavigationMenu.Root viewport={false} class="min-[920px]:block hidden">
                 <NavigationMenu.List class="flex-wrap w-full">
@@ -119,17 +122,19 @@
                         class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all! dark:rotate-0 dark:scale-100"
                     />
                 </Button>
-                <Button
-                    size="icon"
-                    variant="ghost"
-                    href={GITHUB_PATH}
-                >
-                    {#if mode.current === 'dark'}
-                        <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
-                    {:else}
-                        <img src={GithubLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
-                    {/if}
-                </Button>
+                {#if SHOW_LOGOS_AND_REPO}
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        href={GITHUB_PATH}
+                    >
+                        {#if mode.current === 'dark'}
+                            <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                        {:else}
+                            <img src={GithubLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                        {/if}
+                    </Button>
+                {/if}
                 <Button
                     size="icon"
                     class="min-[920px]:hidden"

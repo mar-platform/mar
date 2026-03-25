@@ -8,13 +8,16 @@
 	import LucideOctagonX from '@lucide/svelte/icons/octagon-x';
 	import LucideInfo from '@lucide/svelte/icons/info';
 	import LucideTriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import { APP_NAME, SHOW_LOGOS_AND_REPO } from '$lib/constants/values';
 
 	let { children } = $props();
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
-	<title>MDE Artefact Inspector</title>
+	{#if SHOW_LOGOS_AND_REPO}
+		<link rel="icon" href={favicon} />
+	{/if}
+	<title>{APP_NAME}</title>
 </svelte:head>
 
 <ModeWatcher />

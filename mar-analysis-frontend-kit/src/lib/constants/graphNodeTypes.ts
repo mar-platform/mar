@@ -10,6 +10,7 @@ export const nodeTypes = {
 	atl: { color: '--color-atl' },
 	sirius: { color: '--color-sirius' },
 	henshin: { color: '--color-henshin' },
+	gmf: { color: '--color-gmf' },
 
 	// Duplication types
 	duplication: { color: '--color-duplication' },

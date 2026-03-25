@@ -16,7 +16,7 @@ export interface BaseNode {
     attributes: string[];
 }
 
-export type ArtefactType = "qvto" | "ocl" | "ecore" | "xtext" | "emfatic" | "epsilon" | "acceleo" | "atl" | "sirius" | "henshin";
+export type ArtefactType = "qvto" | "ocl" | "ecore" | "xtext" | "emfatic" | "epsilon" | "acceleo" | "atl" | "sirius" | "henshin" | "gmf";
 
 export interface ArtefactNode extends BaseNode {
     _type: 'artefact';
