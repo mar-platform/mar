@@ -40,6 +40,7 @@ import mar.analysis.duplicates.EcoreDuplicateFinder;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
+import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
@@ -83,8 +84,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 
 	@Option(required = true, names = { "--output" }, description = "The output file")
 	private File output;
-	
-	
+
+	@Option(required = false, names = { "--prev-version" }, description = "Previous megamodel to reuse data")
+	private File previousMegamodel;
+
 	
 	@Option(required = false, names = { "--configuration" }, description = "Configuration files")
 	private File configurationFile;
@@ -195,8 +198,16 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return computation.run();
 	}
 
+
+	private void reuseDuplicates(File previousMegamodel, MegamodelDB megamodelDB) throws IOException {
+		try(MegamodelDB previous = new MegamodelDB(previousMegamodel)) {
+			DuplicationRelationships duplicates = previous.getDuplicates();
+			megamodelDB.dumpDuplicatesFrom(duplicates);
+		}
+	}
+	
 	// This is computing the project-level graph
-	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, DuplicationAnalysisResult duplicates, File repositoryDataFolder, AnalysisDB metamodels) {
+	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();
 		
@@ -254,7 +265,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 							withImports.add(p);
 						}
 						
-						extendLocalInformation(p, type, duplicates, graph);
+						// extendLocalInformation(p, type, duplicates, graph);
 					}
 					
 					if (miniGraph.getStats() != null)
@@ -363,19 +374,22 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		Map<ArtefactType, InspectorResult> inspectionResults  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
 		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs = inspectionResults.keySet().stream().collect(Collectors.toMap(k -> k, k -> inspectionResults.get(k).getGraphs()));
 		//Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
+				
+		// 2. Merge local information + local information
+		System.out.println("2. Merge.");
+		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
 		
-		// 2. Perform global analysis (for the moment duplicate computation)
-		System.out.println("2. Global analysis. Duplicate computation.");
-		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath(), analysisDb);
+		// 3. Perform global analysis (for the moment duplicate computation)
+		System.out.println("3. Global analysis. Duplicate computation.");
+		DuplicationAnalysisResult duplicates = null;
+		if (this.previousMegamodel == null) {
+			duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath(), analysisDb);			 
+		}
 		
 		// 3. Perform local analysis (maybe using the global information)
-		System.out.println("3. Local analysis.");
-		localAnalysis(miniGraphs);
-		
-		// 4. Merge local information + local information
-		System.out.println("4. Merge.");
-		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, duplicates, repositoryDataFolder, analysisDb);
-		
+		//System.out.println("3. Local analysis.");
+		//localAnalysis(miniGraphs);
+				
 		// 5. Organize errors for dumping (this is just for statistics purposes)
 		List<Error> explicitErrors = inspectionResults.values().stream().flatMap(i -> i.getErrors().stream()).
 				map(e -> new Error(toId(e.getProgramPath()), "syntax", "-")).
@@ -405,7 +419,13 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
 		megamodelDB.dump(graph, stats, allErrors, allIgnored);
-		duplicates.updateGraph(megamodelDB);
+		if (duplicates != null) {
+			duplicates.updateGraph(megamodelDB);
+		} else if (this.previousMegamodel != null) {
+			reuseDuplicates(this.previousMegamodel, megamodelDB);
+		} else {
+			throw new IllegalStateException();
+		}
 		megamodelDB.close();
 		analysisDb.close();
 		

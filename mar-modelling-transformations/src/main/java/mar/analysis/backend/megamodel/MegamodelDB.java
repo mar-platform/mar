@@ -349,13 +349,17 @@ public class MegamodelDB implements Closeable {
 	}
 
 	public void addDuplicate(String groupId, String nodeId, ArtefactType artefactType) {
-		Preconditions.checkState(allArtefacts.containsKey(nodeId));
+		String artefactTypeId = artefactType.id;
+		addDuplicateAux(groupId, nodeId, artefactTypeId);
+	}
 
+	private void addDuplicateAux(String groupId, String nodeId, String artefactTypeId) {
+		Preconditions.checkState(allArtefacts.containsKey(nodeId));
 		try {
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO duplication(group_id, node_id, type) VALUES (?, ?, ?)");
 			preparedStatement.setString(1, groupId);
 			preparedStatement.setString(2, nodeId);
-			preparedStatement.setString(3, artefactType.id);
+			preparedStatement.setString(3, artefactTypeId);
 			preparedStatement.executeUpdate();
 			preparedStatement.close();
 		} catch (SQLException e) {
@@ -363,6 +367,17 @@ public class MegamodelDB implements Closeable {
 		}
 	}	
 
+
+	public void dumpDuplicatesFrom(DuplicationRelationships duplicates) {
+		duplicates.forEachGroup((groupId, artefacts) -> {
+			String type = duplicates.getTypeOfGroup(groupId);
+			for (String artefactId : artefacts) {
+				addDuplicateAux(groupId, artefactId, type);
+			}
+		});
+	}
+
+	
 	public DuplicationRelationships getDuplicates() {
 		try {
 			DuplicationRelationships dup = new DuplicationRelationships();
