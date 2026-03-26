@@ -244,7 +244,7 @@ public class ResultAnalyser implements Callable<Integer> {
 		long totalOutDegree = 0;
 		long totalInDegree = 0;
 		
-		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();		
+		Multimap<String, Artefact> isolatedByType = MultimapBuilder.hashKeys().arrayListValues().build();		
 		
 		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb, TransformationRelationshipsAnalysis.ALL_ACCEPTED);
 		RelationshipsGraph graph = analysis.getRelationships();
@@ -264,7 +264,7 @@ public class ResultAnalyser implements Callable<Integer> {
 				totalInDegree += inDegree;
 				if (inDegree == 0 && outDegree == 0) {
 					totalIsolatedArtefacts++;
-					byType.put(artefact.getType(), artefact);
+					isolatedByType.put(artefact.getType(), artefact);
 				}
 			}
 		}
@@ -273,14 +273,16 @@ public class ResultAnalyser implements Callable<Integer> {
 			
 		out.println();
 		out.println("Isolated nodes:");
-		byType.asMap().forEach((type, artefacts) -> {
+		isolatedByType.asMap().forEach((type, artefacts) -> {
 			out.println("- Type: " + type + "  " + artefacts.size() + " isolated artefacts");
+			/*
 			List<Artefact> sorted = new ArrayList<>(artefacts);
 			Collections.sort(sorted, (a1, a2) -> a1.getId().compareTo(a2.getId()));
 			sorted.forEach(a -> {
 				graphStats.addIsolated(a);
 				out.println("   " + a.getId());
 			});
+			*/
 		});
 		
 		checkIsolationCause(graphStats, rawDb);
@@ -305,8 +307,9 @@ public class ResultAnalyser implements Callable<Integer> {
 			out.println("      " + String.format("%-8s", "# Isolated " + k) + " " + String.format("%d", v));			
 		});
 		
-		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / totalArtefactNodes));
-		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / totalArtefactNodes));
+		// In/Out for non-isolated nodes only (see substraction (totalArtefactNodes - totalIsolatedArtefacts))
+		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / (totalArtefactNodes - totalIsolatedArtefacts)));
+		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / (totalArtefactNodes - totalIsolatedArtefacts)));
 
 		
 		return graphStats;
@@ -468,7 +471,7 @@ public class ResultAnalyser implements Callable<Integer> {
 
 	
 	public static void main(String[] args) {
-		int exitCode = new CommandLine(new ResultAnalyser()).execute(args);
+		int exitCode = new CommandLine(new ResultAnalyser().withOutput(System.out, new File("/tmp/stats.txt"))).execute(args);
 		System.exit(exitCode);
 	}
 	
