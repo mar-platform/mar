@@ -92,6 +92,7 @@
 
 			return res;
 		});
+		globalState.renderer?.refresh();
 	}
 
 	export const setEdgeConfig = (selectedEdgeTypes: Record<EdgeType, boolean>) => {
@@ -125,6 +126,7 @@
 			}
 			return res;
 		});
+		globalState.renderer?.refresh();
 	}
 
 	function initGraph() {

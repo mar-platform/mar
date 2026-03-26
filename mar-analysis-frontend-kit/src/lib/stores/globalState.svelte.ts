@@ -1,4 +1,5 @@
 import { getInterProjectGraphApi } from "$lib/api/interproject";
+import { getMegamodelGraphApi } from "$lib/api/megamodel";
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
 import type ApiResponse from "$lib/dto/ApiResponse";
@@ -12,7 +13,7 @@ import type { Sigma } from "sigma";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 
-type GraphMode = 'PROJECT' | 'INTER_PROJECT';
+type GraphMode = 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL';
 
 class GlobalState {
     state: 'LOADING' | 'OK' | 'ERROR' = $state('LOADING');
@@ -94,6 +95,9 @@ class GlobalState {
                 return; // Exit early since selectProject will handle graph loading
             case 'INTER_PROJECT':
                 apiResponse = await getInterProjectGraphApi();
+                break;
+            case 'MEGAMODEL':
+                apiResponse = await getMegamodelGraphApi();
                 break;
             default:
                 toast.error('Invalid graph mode selected.');
