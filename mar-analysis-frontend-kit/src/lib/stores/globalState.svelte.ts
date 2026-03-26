@@ -1,5 +1,7 @@
+import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
+import type ApiResponse from "$lib/dto/ApiResponse";
 import type { Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
@@ -7,10 +9,14 @@ import type Graph from "graphology";
 import { UndirectedGraph } from "graphology";
 import { random } from "graphology-layout";
 import type { Sigma } from "sigma";
+import { tick } from "svelte";
 import { toast } from "svelte-sonner";
+
+type GraphMode = 'PROJECT' | 'INTER_PROJECT';
 
 class GlobalState {
     state: 'LOADING' | 'OK' | 'ERROR' = $state('LOADING');
+    mode: GraphMode | null = $state(null);
     projects: Project[] = $state([]);
     searchProjects = $state<Project[]>([]);
     selectedProject: Project | null = $state(null);
@@ -25,16 +31,13 @@ class GlobalState {
         this.selectedProject = null;
         this.selectedGraph = null; // Reset the graph when initializing with new projects
         this.selectedNode = null; 
+        this.mode = null; // Reset the mode
 
         // Clean up the existing graph renderer if it exists
         if (this.currentGraphRenderer) {
             this.currentGraphRenderer.kill();
         }
         this.currentGraphRenderer = null;
-
-        if (projects.length > 0) {
-            this.selectProject(projects[0]);
-        }
     }
 
     // —— Projects —————————————————————————————
@@ -71,6 +74,39 @@ class GlobalState {
 
     // —— Graph —————————————————————————————
 
+    async setGraphMode(mode: GraphMode) {
+        this.mode = mode;
+        
+        // Reset selected project, nodes...
+        this.selectedProject = null;
+        this.selectedGraph = null;
+        this.selectedNode = null;
+        
+        await tick(); // Ensure that any reactive updates related to mode change are processed before proceeding
+        
+        // Start calculating the graph depending on the mode
+        let apiResponse: ApiResponse<GraphDTO> | null = null;
+        switch(mode) {
+            case 'PROJECT':
+                if (this.projects.length > 0) {
+                    await this.selectProject(this.projects[0]);
+                }
+                return; // Exit early since selectProject will handle graph loading
+            case 'INTER_PROJECT':
+                apiResponse = await getInterProjectGraphApi();
+                break;
+            default:
+                toast.error('Invalid graph mode selected.');
+        }
+
+        if (apiResponse && apiResponse.status === 200 && apiResponse.data) {
+            this.selectGraph(apiResponse.data);
+        } else {
+            toast.error('Failed to load graph data. Please try again later.');
+            this.selectedGraph = null;
+        }
+    }
+
     selectGraph(dto: GraphDTO) {
         if (dto === null) {
             return null;
@@ -105,7 +141,12 @@ class GlobalState {
 		});
 
 		dto.edges.forEach((edge: Edge) => {
-			graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
+            // FIXME Why duplicate edges???
+			if (graph.hasEdge(edge.source, edge.target)) {
+                console.log(`Edge between ${edge.source} and ${edge.target} already exists. Skipping duplicate edge.`);
+            } else {
+                graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
+            }
 		});
 
 		random.assign(graph);
@@ -128,8 +169,11 @@ class GlobalState {
         this.renderer?.refresh();
     }
 
-    deselectNode() {
+    async deselectNode() {
         this.selectedNode = null;
+        await tick();
+        // Important to refresh the graph after deselecting a node to ensure that any visual changes (like unhighlighting) are applied correctly
+        this.renderer?.refresh();
     }
 
 }

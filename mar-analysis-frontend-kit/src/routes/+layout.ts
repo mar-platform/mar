@@ -7,7 +7,7 @@ export const ssr = false;
 
 export const load: LayoutLoad = ({ fetch }) => {
     const projectData = allProjectsApi(fetch);
-    
+
     const promise = Promise.all([projectData]).then(([projects]) => {
         let projectData: Project[] = [];
         if (projects.status === 200 && projects.data) {

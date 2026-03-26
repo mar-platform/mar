@@ -60,47 +60,61 @@
             <LucideX class="" />
         </Button>
 
-        <Accordion.Root type="multiple" value={['artefact', 'members', 'dependencies']} >
-            <Accordion.Item value="artefact">
-                <Accordion.Trigger class="text-base mt-2">Artefact</Accordion.Trigger>
-                <Accordion.Content class="flex flex-col gap-4">
-                    {@render entry('Id', selectedNode.id)}
-                    {#if selectedNode._type === 'artefact'}
-                        {#snippet artefactType()}
-                            <NodeOrEdgeItem
-                                type="node"
-                                class="w-fit mt-1"
-                                name={selectedNode.artefact.type}
-                                checked={false}
-                                color={`var(${nodeTypes[selectedNode.artefact.type as keyof typeof nodeTypes].color})`}
-                            />
-                        {/snippet}
-                        {@render entry('Type', artefactType)}
-                        {@render entry('Name', selectedNode.artefact.name)}
-                    {:else if selectedNode._type === 'virtual'}
-                        {@render entry('Kind', selectedNode.kind)}    
-                    {/if}
-                </Accordion.Content>
-            </Accordion.Item>
-
-            <!-- Artefact members of this group -->
-            {#if selectedNode._type === 'virtual' && selectedNode.artefacts}
-                <Accordion.Item value="members">
-                    <Accordion.Trigger class="text-base">Members</Accordion.Trigger>
+        <Accordion.Root type="multiple" value={['artefact', 'project', 'members', 'dependencies']} >
+            <!-- Artefact details -->
+            {#if selectedNode._type === 'artefact'}
+                <Accordion.Item value="artefact">
+                    <Accordion.Trigger class="text-base mt-2 flex items-center gap-3">
+                        Artefact
+                        <NodeOrEdgeItem
+                            type="node"
+                            class="w-fit mt-1"
+                            name={selectedNode.artefact.type}
+                            checked={false}
+                            color={`var(${nodeTypes[selectedNode.artefact.type as keyof typeof nodeTypes].color})`}
+                        />
+                    </Accordion.Trigger>
                     <Accordion.Content class="flex flex-col gap-4">
-                        {#each selectedNode.artefacts as nodeId(nodeId)}
-                            {@const attrs = graph.hasNode(nodeId) ? graph.getNodeAttributes(nodeId) : null}
-                            {#if attrs}
-                                <button
-                                    class="text-left hover:underline cursor-pointer"
-                                    onclick={() => globalState.selectNode(attrs.impl)}
-                                >{attrs.label}</button>
-                            {:else}
-                                <span class="text-muted-foreground">{nodeId}</span>
-                            {/if}
-                        {/each}
+                        {@render entry('Id', selectedNode.id)}
+                        {@render entry('Name', selectedNode.artefact.name)}
                     </Accordion.Content>
                 </Accordion.Item>
+            {/if}
+
+            <!-- Virtual node -->
+            {#if selectedNode._type === 'virtual'}
+                {#if selectedNode.kind === 'project'}
+                    <Accordion.Item value="project">
+                        <Accordion.Trigger class="text-base mt-2 flex items-center gap-3">
+                            Project
+                        </Accordion.Trigger>
+                        <Accordion.Content class="flex flex-col gap-4">
+                            {@render entry('Id', selectedNode.id)}
+                        </Accordion.Content>
+                    </Accordion.Item>
+                {/if}
+            
+                <!-- Artefact members of this group -->
+                {#if selectedNode.artefacts}
+                    <Accordion.Item value="members">
+                        <Accordion.Trigger class="text-base">Members</Accordion.Trigger>
+                        <Accordion.Content class="flex flex-col gap-4">
+                            {#each selectedNode.artefacts as nodeId(nodeId)}
+                                {@const attrs = graph.hasNode(nodeId) ? graph.getNodeAttributes(nodeId) : null}
+                                {#if attrs}
+                                    <button
+                                        class="text-left hover:underline cursor-pointer"
+                                        onclick={() => globalState.selectNode(attrs.impl)}
+                                    >{attrs.label}</button>
+                                {:else}
+                                    <span class="text-muted-foreground">{nodeId}</span>
+                                {/if}
+                            {:else}
+                                <span class="text-text-secondary">No members found</span>
+                            {/each}
+                        </Accordion.Content>
+                    </Accordion.Item>
+                {/if}
             {/if}
 
             <!-- Dependencies -->

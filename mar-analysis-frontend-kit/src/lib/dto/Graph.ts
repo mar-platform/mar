@@ -5,14 +5,6 @@ export type Node = ArtefactNode | VirtualNode;
 export interface BaseNode {
     _type: 'artefact' | 'virtual' | 'duplication';
     id: string;
-    artefact: {
-        id: string;
-        category: string;
-        fileStatus: 'EXISTS' | 'MISSING' | 'UNRESOLVED' | 'GENERATED' | 'HEURISTIC' | 'BUILTIN' | 'UNEXPECTED' | 'ERROR';
-        name: string;
-        project: Project['id'];
-        type: string;
-    };
     attributes: string[];
 }
 

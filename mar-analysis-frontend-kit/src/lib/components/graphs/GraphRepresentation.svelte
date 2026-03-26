@@ -18,7 +18,7 @@
 	import { toast } from 'svelte-sonner';
 	import GraphInfoPanel from './GraphInfoPanel.svelte';
 
-
+    let graphMode = $derived(globalState.mode);
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
     const selectedGraph = $derived(globalState.selectedGraph);
     let fa2Running = $state(false);
@@ -79,67 +79,73 @@
 
 </script>
 
-{#if globalState.selectedProject}
+{#if graphMode !== null}
     <div class="w-full h-full overflow-hidden flex flex-col gap-2" in:fade out:fade>
         <div class="flex justify-between items-end gap-4">
-            {#key globalState.selectedProject.id}
-                <span title={globalState.selectedProject.id} class="mb-0.5 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject.id}</span>   
-            {/key}
-            <div class="flex gap-4 items-center">
-                <div class={`relative flex flex-col ${fa2Running ? 'bg-transparent' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>
-                    <label for="number-iterations" class="select-none text-text-placeholder absolute top-0.75 left-1 text-[0.65rem] px-1">Iterations</label>
-                    <input id="number-iterations" bind:value={numberOfIterations} min={1} disabled={fa2Running} type="number" class="h-full pt-3 text-sm outline-none"/>
-                </div>
-                {#key fa2Running}
-                    <div in:fade class="gap-2 flex items-center">
-                        {#if fa2Running}
-                        <Button class="bg-destructive hover:bg-destructive/80 text-white" onclick={() => graphVisualizerRef?.stopLayout()}>
-                            <LucideSquare class="fill-white" />
-                            <span class="animate-pulse">Applying layout</span>
-                        </Button>
-                        {:else}
-                            <Button
-                                class="bg-blue-400 hover:bg-blue-400/80 text-white"
-                                disabled={!numberOfIterations}
-                                onclick={() => {
-                                    if (!numberOfIterations) {
-                                        toast.error('Please enter a valid number of iterations');
-                                        return;
-                                    }
-                                    graphVisualizerRef?.startLayout(numberOfIterations);
-                                }}
-                            >
-                                Start layout
-                                <LucidePlay class="fill-white" />
-                            </Button>
-                        {/if}
-                    </div>
+            {#if globalState.selectedProject}
+                {#key globalState.selectedProject.id}
+                    <span title={globalState.selectedProject.id} class="mb-0.5 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject.id}</span>   
                 {/key}
-                <Separator orientation="vertical" class="min-h-5 bg-gray-400" />
-                <Popover.Root>
-                    <Popover.Trigger>
-                        <Button variant="outline">
-                            <LucideFilter />
-                            Filters
-                        </Button>
-                    </Popover.Trigger>
-                    <Popover.Content class="xl:w-200">
-                        <GraphToolbar 
-                            bind:selectedNodeTypes={selectedNodeTypes}
-                            bind:selectedEdgeTypes={selectedEdgeTypes}
-                            bind:nodeSize={nodeSize}
-                            bind:showUnconnectedNodes={showUnconnectedNodes}
-                            bind:labelSize={labelSize}
-                            bind:labelThreshold={labelThreshold}
-                            onLabelSizeChange={handleLabelSizeChange}
-                            onLabelThresholdChange={handleLabelThresholdChange}
-                            onNodeSizeChange={(nodeSize) => handleNodesChange(nodeFilter, nodeSize, showUnconnectedNodes)}
-                            onShowUnconnectedNodesChange={(show) => handleNodesChange(nodeFilter, nodeSize, show)}
-                        />
-                    </Popover.Content>
-                </Popover.Root>
-                <Searchbar placeholder="Filter nodes..." onSearch={(query) => { nodeFilter = query; handleNodesChange(nodeFilter, nodeSize, showUnconnectedNodes) }} />
-            </div>
+            {/if}
+            {#if selectedGraph !== null}
+                <div class="ml-auto flex gap-4 items-center" in:fade>
+                    <div class={`relative flex flex-col ${fa2Running ? 'bg-transparent' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>
+                        <label for="number-iterations" class="select-none text-text-placeholder absolute top-0.75 left-1 text-[0.65rem] px-1">Iterations</label>
+                        <input id="number-iterations" bind:value={numberOfIterations} min={1} disabled={fa2Running} type="number" class="h-full pt-3 text-sm outline-none"/>
+                    </div>
+                    {#key fa2Running}
+                        <div in:fade class="gap-2 flex items-center">
+                            {#if fa2Running}
+                            <Button class="bg-destructive hover:bg-destructive/80 text-white" onclick={() => graphVisualizerRef?.stopLayout()}>
+                                <LucideSquare class="fill-white" />
+                                <span class="animate-pulse">Applying layout</span>
+                            </Button>
+                            {:else}
+                                <Button
+                                    class="bg-blue-400 hover:bg-blue-400/80 text-white"
+                                    disabled={!numberOfIterations}
+                                    onclick={() => {
+                                        if (!numberOfIterations) {
+                                            toast.error('Please enter a valid number of iterations');
+                                            return;
+                                        }
+                                        graphVisualizerRef?.startLayout(numberOfIterations);
+                                    }}
+                                >
+                                    Start layout
+                                    <LucidePlay class="fill-white" />
+                                </Button>
+                            {/if}
+                        </div>
+                    {/key}
+                    <Separator orientation="vertical" class="min-h-5 bg-gray-400" />
+                    <Popover.Root>
+                        <Popover.Trigger>
+                            <Button variant="outline">
+                                <LucideFilter />
+                                Filters
+                            </Button>
+                        </Popover.Trigger>
+                        <Popover.Content class="xl:w-200">
+                            <GraphToolbar 
+                                bind:selectedNodeTypes={selectedNodeTypes}
+                                bind:selectedEdgeTypes={selectedEdgeTypes}
+                                bind:nodeSize={nodeSize}
+                                bind:showUnconnectedNodes={showUnconnectedNodes}
+                                bind:labelSize={labelSize}
+                                bind:labelThreshold={labelThreshold}
+                                onLabelSizeChange={handleLabelSizeChange}
+                                onLabelThresholdChange={handleLabelThresholdChange}
+                                onNodeSizeChange={(nodeSize) => handleNodesChange(nodeFilter, nodeSize, showUnconnectedNodes)}
+                                onShowUnconnectedNodesChange={(show) => handleNodesChange(nodeFilter, nodeSize, show)}
+                            />
+                        </Popover.Content>
+                    </Popover.Root>
+                    <Searchbar placeholder="Filter nodes..." onSearch={(query) => { nodeFilter = query; handleNodesChange(nodeFilter, nodeSize, showUnconnectedNodes) }} />
+                </div>
+            {:else}
+                <div class="min-h-10"></div>
+            {/if}
         </div>
 
         <div class="flex-1 bg-page-foreground rounded-lg shadow-sm">
