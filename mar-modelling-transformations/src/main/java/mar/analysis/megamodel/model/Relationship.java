@@ -12,7 +12,7 @@ public enum Relationship {
 	TYPED_BY("typed-by"), 
 	IMPORT("import"), 
 	DUPLICATE("duplicate"),
-	GENERATE("duplicate"),	
+	GENERATE("generate"),	
 	
 	BUILD_DUPLICATE("build_duplicate"), // Specialization of duplicate for projects
 	
