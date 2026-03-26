@@ -75,7 +75,7 @@ public class EpsilonInspector extends ProjectInspector {
 		for (String string : deps) {
 			Path loosyPath = getRepositoryPath(f).resolve(Paths.get(string));			
 			RecoveredPath r = getFileSearcher().findFile(loosyPath);
-			program.addImportDependency(r.getPath()); // FIXME: Check that that this is not using RecoveredPath
+			program.addImportDependency(r); // FIXME: Check that that this is not using RecoveredPath
 		}
 		
 		Map<String, RecoveredMetamodelFile> classFootprints = toClassFootprints(programText);
@@ -169,7 +169,7 @@ public class EpsilonInspector extends ProjectInspector {
 				String templateName = matcher.group(1);
 				RecoveredPath recovered = getFileSearcher().findFile(Paths.get(templateName));
 				if (! (recovered instanceof MissingPath)) {
-					program.addImportDependency(recovered.getPath());
+					program.addImportDependency(recovered);
 				}
 		    }
 		}

@@ -21,7 +21,7 @@ public abstract class FileProgram {
 	@Nonnull
 	private final List<MetamodelReference> metamodels = new ArrayList<>();
 	
-	private final List<Path> importedPrograms = new ArrayList<>();
+	private final List<RecoveredPath> importedPrograms = new ArrayList<>();
 	
 	public FileProgram(@Nonnull RecoveredPath path) {
 		this.path = path;
@@ -49,11 +49,11 @@ public abstract class FileProgram {
 		return metamodels;
 	}
 
-	public void addImportDependency(Path path) {
+	public void addImportDependency(RecoveredPath path) {
 		importedPrograms.add(path);
 	}
 	
-	public List<? extends Path> getImportedPrograms() {
+	public List<? extends RecoveredPath> getImportedPrograms() {
 		return importedPrograms;
 	}
 

@@ -48,6 +48,7 @@ import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.HeuristicPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
@@ -267,8 +268,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 		
 		for (FileProgram fileProgram : withImports) {
-			for (Path path : fileProgram.getImportedPrograms()) {
-				String tgt = toId(path);
+			for (RecoveredPath path : fileProgram.getImportedPrograms()) {
+				String tgt = toId(path.getPath());
 				if ( ! graph.hasNode(tgt) ) {
 					// This happens for instance with:
 					//  - src: adilinam/QVTo-QVTd-OCL/org.eclipse.m2m.tests.qvt.oml/parserTestData/sources/bug468303/bug468303.qvto
@@ -280,7 +281,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					System.err.println("Target node not found: " + tgt);
 					continue;
 				}
-				graph.addEdge(toId(fileProgram), toId(path), Relationship.IMPORT);
+				graph.addEdge(toId(fileProgram), toId(path.getPath()), Relationship.IMPORT);
+				if (path instanceof HeuristicPath) {
+					graph.addEdge(toId(fileProgram), toId(path.getPath()), Relationship.HEURISTIC);
+				}
 			}
 		}
 		
@@ -306,12 +310,17 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	private void addEdge(RelationshipsGraph graph, String id, String metamodelId, MetamodelReference ref) {
+		// ref.getRecoveryMethod()
 		if (ref.is(MetamodelReference.Kind.TYPED_BY))
 			graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
 		if (ref.is(MetamodelReference.Kind.INPUT_OF))
 			graph.addEdge(metamodelId, id, Relationship.INPUT_TYPE);
 		if (ref.is(MetamodelReference.Kind.OUTPUT_OF))
 			graph.addEdge(id, metamodelId, Relationship.OUTPUT_TYPE);
+		if (ref.is(MetamodelReference.Kind.GENERATE))
+			graph.addEdge(id, metamodelId, Relationship.GENERATE);		
+		if (ref.isHeuristicRecovery()) 
+			graph.addEdge(id, metamodelId, Relationship.OUTPUT_TYPE);		
 	}
 
 	@Override

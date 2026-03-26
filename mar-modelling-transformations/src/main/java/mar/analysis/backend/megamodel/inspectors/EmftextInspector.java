@@ -47,7 +47,7 @@ public class EmftextInspector extends ProjectInspector {
 		for (String file : result.syntaxUris) {
 			Path path = getRepositoryPath(f).resolveSibling(file);
 			RecoveredPath recovered = getFileSearcher().findFile(path);
-			p.addImportDependency(recovered.getPath());
+			p.addImportDependency(recovered);
 		}
 		
 		return graph;

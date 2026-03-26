@@ -112,7 +112,7 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 			if (recovered instanceof MissingPath) {
 				// TODO: Try another strategy, by methods calls
 			} else {
-				program.addImportDependency(recovered.getPath());
+				program.addImportDependency(recovered);
 			}
 		}
 		

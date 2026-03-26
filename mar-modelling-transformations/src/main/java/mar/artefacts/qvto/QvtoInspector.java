@@ -19,6 +19,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.ExistingPath;
 import mar.artefacts.Transformation.Qvto;
 import mar.artefacts.Transformation.TransformationParameter;
 import mar.artefacts.db.RepositoryDB;
@@ -76,8 +77,8 @@ public class QvtoInspector extends ProjectInspector {
 				if (names.size() > 0) {
 					String name = names.stream().map(n -> n.getValue()).collect(Collectors.joining("/")) + ".qvto";					
 					if (getFileSearcher().fileExistsInFolder(qvtoFilePath.getParent(), name)) {
-						Path path = qvtoFilePath.getParent().resolve(name);
-						program.addImportDependency(path);
+						Path path = qvtoFilePath.getParent().resolve(name);						
+						program.addImportDependency(RecoveredPath.newExistingPath(path, repoFolder));
 					}
 				}
 			}
