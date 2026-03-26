@@ -14,7 +14,6 @@ public class DuplicationGraph extends RelationshipsGraph {
 		artefacts.add(artefact);
 	}
 	
-	@JsonTypeName("duplication")
 	public static class ArtefactGroup extends RelationshipsGraph.VirtualNode {
 
 		@JsonProperty

@@ -6,10 +6,6 @@
 	import GraphVisualizer, { type GraphVisualizerInitial } from './GraphVisualizer.svelte';
     import LucideLoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
-	import { random } from 'graphology-layout';
-	import { UndirectedGraph } from 'graphology';
-	import type Graph from '$lib/dto/Graph';
-	import type { Edge, Node } from '$lib/dto/Graph';
 	import GraphToolbar from './GraphToolbar.svelte';
 	import type { edgeTypes } from '$lib/constants/edgeTypes';
     import * as Popover from "$lib/components/ui/popover/index.js";
@@ -24,7 +20,7 @@
 
 
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
-    const selectedProjectGraph = $derived(createGraphFromDTO(globalState.selectedProjectGraph));
+    const selectedGraph = $derived(globalState.selectedGraph);
     let fa2Running = $state(false);
     let numberOfIterations = $state(DEFAULT_NUMBER_OF_ITERATIONS);
     let nodeFilter = $state('');
@@ -41,53 +37,6 @@
         labelThreshold,
         numberOfIterations
     });
-
-    function createGraphFromDTO(dto: Graph | null) {
-        if (dto === null) {
-            return null;
-        }
-
-		const graph = new UndirectedGraph();
-
-		dto.nodes.forEach((node: Node) => {
-			let type: keyof typeof nodeTypes, name: string;
-
-            switch(node._type) {
-                case 'artefact':
-                    type = node.artefact.type;
-                    name = node.artefact.name;
-                    break;
-                case 'virtual':
-                    type = node.kind;
-                    console.log('Type for virtual: ', type);
-                    name = node.id;
-                    break;
-                case 'duplication':
-                    type = node.artefactType; // When a node is duplicated we set its type as the original (instead of 'duplication')
-                    name = node.id;
-                    break;
-                default:
-                    type = 'error';
-                    name = 'unknown';
-            }
-
-            graph.addNode(node.id, {
-				x: 0,
-				y: 0,
-				impl: node,
-				nodeType: type,
-				label: name,
-			});
-		});
-
-		dto.edges.forEach((edge: Edge) => {
-			graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
-		});
-
-		random.assign(graph);
-
-        return graph;
-	}
 
     let selectedNodeTypes = $state<Record<keyof typeof nodeTypes, boolean>>({
         acceleo: true,
@@ -137,20 +86,20 @@
                 <span title={globalState.selectedProject.id} class="mb-0.5 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject.id}</span>   
             {/key}
             <div class="flex gap-4 items-center">
-                <div class={`relative flex flex-col ${fa2Running ? 'bg-gray-200' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>
+                <div class={`relative flex flex-col ${fa2Running ? 'bg-transparent' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>
                     <label for="number-iterations" class="select-none text-text-placeholder absolute top-0.75 left-1 text-[0.65rem] px-1">Iterations</label>
                     <input id="number-iterations" bind:value={numberOfIterations} min={1} disabled={fa2Running} type="number" class="h-full pt-3 text-sm outline-none"/>
                 </div>
                 {#key fa2Running}
                     <div in:fade class="gap-2 flex items-center">
                         {#if fa2Running}
-                        <Button class="bg-destructive hover:bg-destructive/80" onclick={() => graphVisualizerRef?.stopLayout()}>
-                            <LucideSquare class="fill-text-tertiary" />
+                        <Button class="bg-destructive hover:bg-destructive/80 text-white" onclick={() => graphVisualizerRef?.stopLayout()}>
+                            <LucideSquare class="fill-white" />
                             <span class="animate-pulse">Applying layout</span>
                         </Button>
                         {:else}
                             <Button
-                                class="bg-blue-400 hover:bg-blue-400/80"
+                                class="bg-blue-400 hover:bg-blue-400/80 text-white"
                                 disabled={!numberOfIterations}
                                 onclick={() => {
                                     if (!numberOfIterations) {
@@ -161,7 +110,7 @@
                                 }}
                             >
                                 Start layout
-                                <LucidePlay class="fill-text-tertiary" />
+                                <LucidePlay class="fill-white" />
                             </Button>
                         {/if}
                     </div>
@@ -194,14 +143,14 @@
         </div>
 
         <div class="flex-1 bg-page-foreground rounded-lg shadow-sm">
-            {#if selectedProjectGraph !== null}
-                {#key selectedProjectGraph}
+            {#if selectedGraph !== null}
+                {#key selectedGraph}
                     <GraphVisualizer
                         bind:this={graphVisualizerRef} 
                         bind:fa2Running={fa2Running}
                         {selectedNodeTypes}
                         {selectedEdgeTypes}
-                        graph={selectedProjectGraph}
+                        graph={selectedGraph}
                         {initialProps}
                      />
                 {/key}

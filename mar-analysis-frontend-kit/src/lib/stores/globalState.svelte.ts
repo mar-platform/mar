@@ -1,7 +1,12 @@
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
-import type { Node } from "$lib/dto/Graph";
-import type Graph from "$lib/dto/Graph";
+import type { nodeTypes } from "$lib/constants/graphNodeTypes";
+import type { Edge, Node } from "$lib/dto/Graph";
+import type GraphDTO from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
+import type Graph from "graphology";
+import { UndirectedGraph } from "graphology";
+import { random } from "graphology-layout";
+import type { Sigma } from "sigma";
 import { toast } from "svelte-sonner";
 
 class GlobalState {
@@ -9,28 +14,23 @@ class GlobalState {
     projects: Project[] = $state([]);
     searchProjects = $state<Project[]>([]);
     selectedProject: Project | null = $state(null);
-    selectedProjectGraph: Graph | null = $state(null);
+    selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
+    private currentGraphRenderer: Sigma | null = null;
 
     initialize(projects: Project[]) {
         this.projects = projects;
         this.state = 'OK';
         this.searchProjects = projects;
         this.selectedProject = null;
-        this.selectedProjectGraph = null; // Reset the graph when initializing with new projects
-        this.selectedNode = /*{
-            "_type": "artefact",
-            "artefact": {
-                "category": "transformation",
-                "fileStatus": "EXISTS",
-                "id": "101companies/101repo/contributions/atlTotalPlugin/bin/ATL_ComputeTotalPlugin/files/ComputeTotal.atl",
-                "name": "ComputeTotal.atl",
-                "project": "101companies/101repo",
-                "type": "atl"
-            },
-            "attributes": [],
-            "id": "101companies/101repo/contributions/atlTotalPlugin/bin/ATL_ComputeTotalPlugin/files/ComputeTotal.atl"
-        }*/ null; 
+        this.selectedGraph = null; // Reset the graph when initializing with new projects
+        this.selectedNode = null; 
+
+        // Clean up the existing graph renderer if it exists
+        if (this.currentGraphRenderer) {
+            this.currentGraphRenderer.kill();
+        }
+        this.currentGraphRenderer = null;
 
         if (projects.length > 0) {
             this.selectProject(projects[0]);
@@ -48,10 +48,10 @@ class GlobalState {
         const graph = await getProjectGraphApi(project.id);
 
         if (graph.status === 200 && graph.data) {
-            this.selectedProjectGraph = graph.data;
+            this.selectGraph(graph.data);
         } else {
             toast.error('Failed to load project graph. Please try again later.');
-            this.selectedProjectGraph = null;
+            this.selectedGraph = null;
         }
     }
 
@@ -69,10 +69,63 @@ class GlobalState {
         }
     }
 
+    // —— Graph —————————————————————————————
+
+    selectGraph(dto: GraphDTO) {
+        if (dto === null) {
+            return null;
+        }
+
+		const graph = new UndirectedGraph();
+
+		dto.nodes.forEach((node: Node) => {
+			let type: keyof typeof nodeTypes, name: string;
+
+            switch(node._type) {
+                case 'artefact':
+                    type = node.artefact.type;
+                    name = node.artefact.name;
+                    break;
+                case 'virtual':
+                    type = node.kind === 'duplication' ? node.artefactType! : node.kind;
+                    name = node.id;
+                    break;
+                default:
+                    type = 'error';
+                    name = 'unknown';
+            }
+
+            graph.addNode(node.id, {
+				x: 0,
+				y: 0,
+				impl: node,
+				nodeType: type,
+				label: name,
+			});
+		});
+
+		dto.edges.forEach((edge: Edge) => {
+			graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
+		});
+
+		random.assign(graph);
+
+        this.selectedGraph = graph;
+    }
+
+    get renderer() {
+        return this.currentGraphRenderer;
+    }
+
+    set renderer(renderer: Sigma | null) {
+        this.currentGraphRenderer = renderer;
+    }
+
     // —— Nodes —————————————————————————————
 
     selectNode(node: Node | null) {
         this.selectedNode = node;
+        this.renderer?.refresh();
     }
 
     deselectNode() {

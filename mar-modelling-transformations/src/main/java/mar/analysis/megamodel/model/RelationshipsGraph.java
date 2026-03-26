@@ -22,8 +22,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Preconditions;
 
-import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
-
 public class RelationshipsGraph {
 	
 	private Set<Project> projects = new HashSet<>();
@@ -90,7 +88,6 @@ public class RelationshipsGraph {
     @JsonSubTypes({
         @JsonSubTypes.Type(value = ArtefactNode.class, name = "artefact"),
         @JsonSubTypes.Type(value = VirtualNode.class, name = "virtual"),
-		@JsonSubTypes.Type(value = ArtefactGroup.class, name = "duplication")
     })
 	public static abstract class Node {
 

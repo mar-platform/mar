@@ -38,13 +38,11 @@
 	let currentEdge = $state<{ key: string; type: string; sourceId: string; targetId: string } | null>(null);
 	let hoveredEdge: string | null = $state(null);
 
-	let renderer: Sigma | null = null;
 
 	let fa2: InstanceType<typeof FA2Layout> | null = null;
 
 	onMount(() => {
-		console.log('Initializing graph...');
-		renderer = initGraph();
+		initGraph();
 
 		// When unmounting, kill the renderer and the layout to free resources
 		return () => {
@@ -53,23 +51,23 @@
 				fa2 = null;
 				fa2Running = false;
 			}
-			if (renderer) {
-				renderer.kill();
-				renderer = null;
+			if (globalState.renderer) {
+				globalState.renderer.kill();
+				globalState.renderer = null;
 			}
 		};
 	})
 
 	export function setLabelSize(size: number) {
-		renderer?.setSetting("labelSize", size);
+		globalState.renderer?.setSetting("labelSize", size);
 	}
 
 	export function setLabelThreshold(threshold: number) {
-		renderer?.setSetting("labelRenderedSizeThreshold", threshold);
+		globalState.renderer?.setSetting("labelRenderedSizeThreshold", threshold);
 	}
 
 	export function setNodeConfig(nodeFilter: string, nodeSize: number, showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
-		renderer?.setSetting('nodeReducer', (nodeId, data) => {
+		globalState.renderer?.setSetting('nodeReducer', (nodeId, data) => {
 			const res: Partial<NodeDisplayData> = { ...data };
 			// Node visibility logic
 			if (nodeFilter !== '' && nodeId.toLowerCase()?.includes(nodeFilter.toLowerCase()) === false) {
@@ -97,7 +95,7 @@
 	}
 
 	export const setEdgeConfig = (selectedEdgeTypes: Record<EdgeType, boolean>) => {
-		renderer?.setSetting('edgeReducer', (edge, data) => {
+		globalState.renderer?.setSetting('edgeReducer', (edge, data) => {
 			const res: Partial<EdgeDisplayData> = { ...data };
 			const srcType = graph.getNodeAttribute(graph.source(edge), 'nodeType');
 			const tgtType = graph.getNodeAttribute(graph.target(edge), 'nodeType');
@@ -106,7 +104,6 @@
 			const currentEdgeTypes = graph.getEdgeAttribute(edge, 'edgeTypes');
 
 			const selectedEdgeType = selectEdgeType(selectedEdgeTypes, currentEdgeTypes);
-			console.log(selectedEdgeType)
 
 			// Set the color
 			if (selectedEdgeType === null) {
@@ -115,7 +112,6 @@
 			} else {
 				const color = getComputedStyle(document.documentElement).getPropertyValue(edgeTypes[selectedEdgeType].color); // Needed to calculate the value of the css variable
 				res.color = color;
-				console.log('Setting edge color: ', res.color);
 			}
 
 			if (hoveredEdge === edge) {
@@ -132,46 +128,42 @@
 	}
 
 	function initGraph() {
-		const renderer = startRenderer(graph);
+		startRenderer(graph);
 		setLabelSize(initialProps.labelSize);
 		setLabelThreshold(initialProps.labelThreshold);
 		setNodeConfig(initialProps.nodeFilter, initialProps.nodeSize, initialProps.showUnconnectedNodes, selectedNodeTypes);
 		setEdgeConfig(selectedEdgeTypes);
 
 		startLayout(initialProps.numberOfIterations);
-
-		return renderer;
 	}
 
 	function startRenderer(graph: Graph) {
-		renderer = new Sigma(graph, container, {
+		globalState.renderer = new Sigma(graph, container, {
 			hideEdgesOnMove: true,
 			renderEdgeLabels: true,
 			labelRenderedSizeThreshold: 6,
 		});
-		renderer.on('clickNode', (e) => {
+		globalState.renderer.on('clickNode', (e) => {
 			selectNode(graph.getNodeAttributes(e.node).impl);
 		});
-		renderer.on('clickEdge', (e) => {
+		globalState.renderer.on('clickEdge', (e) => {
 			console.log('Clicked edge: ', e.edge);
 			selectEdge(e.edge);
 		});
-		renderer.on('enterEdge', (e) => {
+		globalState.renderer.on('enterEdge', (e) => {
 			console.log('Hovering edge: ', e.edge);
 			hoveredEdge = e.edge;
 			container.style.cursor = 'pointer';
-			renderer?.refresh();
+			globalState.renderer?.refresh();
 		});
-		renderer.on('leaveEdge', () => {
+		globalState.renderer.on('leaveEdge', () => {
 			hoveredEdge = null;
 			container.style.cursor = '';
-			renderer?.refresh();
+			globalState.renderer?.refresh();
 		});
-		renderer.on('doubleClickStage', (e) => {
+		globalState.renderer.on('doubleClickStage', (e) => {
 			e.preventSigmaDefault(); // We dont want to zoom on double click
 		});
-
-		return renderer;
 	}
 
 	export function startLayout(numberOfIterations: number) {
@@ -194,13 +186,12 @@
 			fa2 = null;
 		}
 		fa2Running = false;
-		renderer?.refresh();
+		globalState.renderer?.refresh();
 	}
 
 	function selectNode(node: Node) {
 		globalState.selectNode(node);
 		currentEdge = null;
-		renderer?.refresh();
 	}
 
 	export function selectNodeById(id: string) {
@@ -217,7 +208,7 @@
 			targetId: graph.target(edgeKey)
 		};
 		currentNode = null;
-		renderer?.refresh();
+		globalState.renderer?.refresh();
 	}
 
 	function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]): EdgeType | null {
