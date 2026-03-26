@@ -57,9 +57,12 @@
 
 {#if selectedNode !== null && graph !== null}
     <div class="min-w-80 max-w-80 bg-page-foreground rounded-lg shadow-sm p-4 flex flex-col">
-        <Button size="icon-sm" variant="ghost" class="ml-auto rounded-full" onclick={closePanel}>
-            <LucideX class="" />
-        </Button>
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Details</h2>
+            <Button size="icon-sm" variant="ghost" class="rounded-full" onclick={closePanel}>
+                <LucideX class="" />
+            </Button>
+        </div>
 
         <ScrollArea type="hover" class="flex-1 h-10 pr-4">
             <Accordion.Root type="multiple" value={['artefact', 'project', 'duplication', 'members', 'dependencies']} >
@@ -120,16 +123,23 @@
                                         {selectedNode.artefacts.length}
                                     </div>
                                 </Accordion.Trigger>
-                                <Accordion.Content class="flex flex-col gap-4">
+                                <Accordion.Content class="flex flex-col gap-1">
                                     {#each selectedNode.artefacts as nodeId(nodeId)}
                                         {@const attrs = graph.hasNode(nodeId) ? graph.getNodeAttributes(nodeId) : null}
                                         {#if attrs}
-                                            <button
-                                                class="text-left hover:underline cursor-pointer"
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                class="rounded-full justify-start w-full"
+                                                title={attrs.label}
                                                 onclick={() => globalState.selectNode(attrs.impl)}
-                                            >{attrs.label}</button>
+                                            >
+                                                <span title={attrs.label} class="whitespace-nowrap overflow-hidden text-ellipsis">
+                                                    {attrs.label}
+                                                </span>
+                                            </Button>
                                         {:else}
-                                            <span class="text-muted-foreground">{nodeId}</span>
+                                            <span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{nodeId}</span>
                                         {/if}
                                     {:else}
                                         <span class="text-text-secondary">No members found</span>
@@ -143,7 +153,12 @@
     
                 <!-- Dependencies -->
                 <Accordion.Item value="dependencies">
-                    <Accordion.Trigger class="text-base">Dependencies</Accordion.Trigger>
+                    <Accordion.Trigger class="text-base flex items-center gap-3">
+                        Dependencies
+                        <div class="py-0.5 min-w-6 px-2 flex items-center justify-center bg-accent rounded-full text-sm">
+                            {dependencies.length}
+                        </div>
+                    </Accordion.Trigger>
                     <Accordion.Content class="flex flex-col gap-1">
                         {#each dependencies as dep(dep)}
                             <Button
@@ -153,7 +168,9 @@
                                 title={dep.targetName}
                                 onclick={() => globalState.selectNode(dep.target)}
                             >
-                                {dep.targetName}
+                                <span class="whitespace-nowrap overflow-hidden text-ellipsis">
+                                    {dep.targetName}
+                                </span>
                             </Button>
                         {:else}
                             <span class="text-text-secondary">No dependencies found</span>

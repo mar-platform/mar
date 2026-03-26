@@ -1,3 +1,4 @@
+import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
@@ -13,7 +14,7 @@ import type { Sigma } from "sigma";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 
-type GraphMode = 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL';
+type GraphMode = 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION';
 
 class GlobalState {
     state: 'LOADING' | 'OK' | 'ERROR' = $state('LOADING');
@@ -98,6 +99,9 @@ class GlobalState {
                 break;
             case 'MEGAMODEL':
                 apiResponse = await getMegamodelGraphApi();
+                break;
+            case 'DUPLICATION':
+                apiResponse = await getDuplicationGraphApi();
                 break;
             default:
                 toast.error('Invalid graph mode selected.');
