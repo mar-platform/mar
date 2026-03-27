@@ -20,7 +20,6 @@ public class EcoreInspector extends ProjectInspector {
 		super(repoFolder, projectSubPath, analysisDb, repoDb);
 	}
 	
-	
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		RecoveryGraph graph = new RecoveryGraph(getProject());
@@ -29,7 +28,8 @@ public class EcoreInspector extends ProjectInspector {
 		if (m != null) {
 			Metamodel mm = Metamodel.fromFile(f.getName(), RecoveredPath.newExistingPath(m.getRelativePath(), repoFolder));
 			mm.setHash(HashDuplicates.toHash(f));
-			graph.addMetamodel(mm);	
+			graph.addMetamodel(mm);
+			addDependencies(repoPath, m, mm);
 			return graph;
 		} else {
 			Status s = analysisDb.hasFile(repoPath.toString());
@@ -43,6 +43,19 @@ public class EcoreInspector extends ProjectInspector {
 		}
 	
 		return null;
+	}
+
+	private void addDependencies(Path repoPath, Model m, Metamodel mm) {
+		String uris = m.getKeyValueMetadata("externalURIs");
+		if (uris != null && ! uris.isBlank()) {
+			String[] externalURIs = uris.split(",");
+			for (String externalURI : externalURIs) {
+				Metamodel dep = tryFindURI(externalURI);
+				if (dep != null) {
+					mm.addDependent(mm);
+				}
+			}
+		}
 	}	
 
 }
