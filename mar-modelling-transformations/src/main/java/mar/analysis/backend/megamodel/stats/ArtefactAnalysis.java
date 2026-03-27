@@ -67,7 +67,7 @@ public class ArtefactAnalysis {
 	 */
 	private Result filesNotFoundInMegamodel(Set<String> artefactTypes) throws SQLException {
 		Set<String> ignoredFiles = megamodelDb.getIgnoredFileIds();
-		List<RawFile> files = rawDb.getFiles().stream().
+		List<RawFile> files = rawDb.getFiles().values().stream().
 				filter(p -> ! configuration.isIgnored(Paths.get(p.getFilepath()))).
 				filter(p -> ! ignoredFiles.contains(p.getFilepath())).
 				collect(Collectors.toList());
@@ -118,7 +118,7 @@ public class ArtefactAnalysis {
 	private Result filesNotFoundInRawDb(Set<String> artefactTypes) throws SQLException {
 		Set<String> ignoredFiles = megamodelDb.getIgnoredFileIds();
 		
-		Map<String, RawFile> files = rawDb.getFiles().stream().collect(Collectors.toMap(RawFile::getId, r -> r));
+		Map<String, RawFile> files = rawDb.getFiles().values().stream().collect(Collectors.toMap(RawFile::getId, r -> r));
 		
 		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();
 		Multimap<String, Artefact> missingArtefacts = MultimapBuilder.hashKeys().arrayListValues().build();

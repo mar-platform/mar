@@ -71,11 +71,11 @@ public class WebserverApplication {
 	
 	@Bean
 	@Scope("application")
-	public TransformationRelationshipsAnalysis getRelationshipAnalysis(@Autowired ApplicationArguments args, AnalysisConfiguration configuration) {
-		String fileName = args.getNonOptionArgs().get(0);
-    	MegamodelDB db = new MegamodelDB(new File(fileName));
-    	
-		return new TransformationRelationshipsAnalysis(db, new AnalysisFilterImpl(configuration));
+	public TransformationRelationshipsAnalysis getRelationshipAnalysis(
+			@Autowired MegamodelDB db, 
+			@Autowired RawRepositoryDB rawRepository,
+			AnalysisConfiguration configuration) {    	
+		return new TransformationRelationshipsAnalysis(db, rawRepository, new AnalysisFilterImpl(configuration)).withCache(true);
 	}
 	
 	@Bean

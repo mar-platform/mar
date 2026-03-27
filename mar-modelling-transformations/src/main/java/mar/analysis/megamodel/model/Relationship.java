@@ -17,6 +17,8 @@ public enum Relationship {
 	BUILD_DUPLICATE("build_duplicate"), // Specialization of duplicate for projects
 	
 	PROJECT_RELATED_TO("project-to-project"),
+	COPY_FROM("copy-from"),
+	
 	INPUT_TYPE("input-type"),   /* From meta-model to transformation */
 	OUTPUT_TYPE("output-type"), /* From transformation to meta-model */
 	HEURISTIC("heuristic");

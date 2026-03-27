@@ -36,6 +36,10 @@ public class DuplicationGraph extends RelationshipsGraph {
 			return artefacts;
 		}
 		
+		public String getArtefactType() {
+			return artefactType;
+		}
+		
 	}
 	
 	

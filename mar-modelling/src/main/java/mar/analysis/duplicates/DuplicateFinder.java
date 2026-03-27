@@ -26,13 +26,19 @@ public abstract class DuplicateFinder<I, T> {
 
 	private final ITokenExtractor<T> extractor;
 	private final Map<I, Object2IntHashMap<String>> fingerprints = new HashMap<>();
-		
+	private int minTokens = 2;	
+	
 	public DuplicateFinder(ITokenExtractor<T> extractor) {
 		this.extractor = extractor;
 	}
 		
 	public void addResource(I artefact, T resource) {
 		List<String> elements = extractor.extract(resource);
+		//Not sure if it is ok or not considering empty or very simple artefacts
+		//if (elements.size() <= minTokens) {
+		//	return; 
+		//}
+		
 		Object2IntHashMap<String> identifierMultiset = new Object2IntHashMap<String>(0);
 		for (String token : elements) {
 			Preconditions.checkNotNull(token);

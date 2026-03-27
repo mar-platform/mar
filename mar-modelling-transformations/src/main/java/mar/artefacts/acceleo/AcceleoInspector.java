@@ -52,6 +52,10 @@ public class AcceleoInspector extends ProjectInspector {
 			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY, MetamodelReference.Kind.INPUT_OF);
 		}
 		
+		// TODO: Implement import dependencies
+		// For example: [import me::mysoft::acceleo::sample::files::generate /]
+		// Look in a folder named me/mysoft/acceleo/sample/files/generate.mtl
+		
 		return graph;
 	}
 	

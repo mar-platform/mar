@@ -42,6 +42,9 @@ public class ComponentGraph {
 	}
 	
 	
+	public List<SingleComponentGraph> getSubgraphs() {
+		return subgraphs;
+	}
 	
 	public static class SingleComponentGraph extends RelationshipsGraph {
 

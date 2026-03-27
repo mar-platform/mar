@@ -226,11 +226,19 @@ public class MegamodelDB implements Closeable {
 
 	@Nonnull
 	public void getProjectArtefacts(String projectId, BiConsumer<String, Artefact> consumer) {
-		allArtefacts.forEach((id, a) -> {
-			if (a.getProject().getId().equals(projectId)) {
-				consumer.accept(id, a);
-			}
-		});
+		try {
+			PreparedStatement stm = connection.prepareStatement("SELECT id FROM artefacts WHERE project_id = ?");
+			stm.setString(1, projectId);
+			stm.execute();
+			ResultSet rs = stm.getResultSet();
+	        while (rs.next()) {
+	        	String id = rs.getString(1);
+	        	Artefact artefact = Preconditions.checkNotNull(allArtefacts.get(id));
+	        	consumer.accept(id, artefact);	
+	        }
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	
