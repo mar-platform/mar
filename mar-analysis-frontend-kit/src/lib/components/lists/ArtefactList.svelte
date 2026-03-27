@@ -13,11 +13,10 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
     interface ArtefactListProps {
-        filterNodes: Record<keyof typeof nodeTypes, boolean>;
         onClickBackButton?: () => void;
     }
 
-    let { filterNodes, onClickBackButton } : ArtefactListProps = $props();
+    let { onClickBackButton } : ArtefactListProps = $props();
 
     let query = $state('');
 
@@ -25,7 +24,7 @@
         if (globalState.mode === 'PROJECT' && !globalState.selectedProject || globalState.state === 'LOADING_GRAPH' && !globalState.selectedUnprocessedGraph) {
             return [];
         }
-        return globalState.getArtefactsFromNodes(globalState.selectedUnprocessedGraph?.nodes || [], filterNodes, query);
+        return globalState.getArtefactsFromNodes(globalState.selectedUnprocessedGraph?.nodes || [], globalState.selectedNodeTypes, query);
     });
 
     function onClickArtefact(node: ArtefactNode) {

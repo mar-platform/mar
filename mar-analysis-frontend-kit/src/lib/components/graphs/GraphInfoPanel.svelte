@@ -58,7 +58,7 @@
 {/snippet}
 
 {#if (selectedNode !== null || selectedEdge !== null) && graph !== null}
-    <div class="min-w-80 max-w-80 bg-page-foreground rounded-lg shadow-sm p-4 flex flex-col">
+    <div class="min-w-85 max-w-85 bg-page-foreground rounded-lg shadow-sm p-4 flex flex-col">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Details</h2>
             <Button size="icon-sm" variant="ghost" class="rounded-full" onclick={closePanel}>

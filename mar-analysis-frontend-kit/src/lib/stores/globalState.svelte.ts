@@ -3,7 +3,9 @@ import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
+import type { edgeTypes } from "$lib/constants/edgeTypes";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
+import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from "$lib/constants/values";
 import type ApiResponse from "$lib/dto/ApiResponse";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
@@ -27,6 +29,41 @@ class GlobalState {
     selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
     selectedEdge: Edge | null = $state(null);
+
+    // Node filter properties
+    nodeFilter: string = $state('');
+    nodeSize: number = $state(INITIAL_NODE_SIZE);
+    showUnconnectedNodes: boolean = $state(INITIAL_SHOW_UNCONNECTED_NODES);
+    labelSize: number = $state(INITIAL_LABEL_SIZE);
+    labelThreshold: number = $state(INITIAL_LABEL_THRESHOLD);
+    numberOfIterations: number | undefined = $state(DEFAULT_NUMBER_OF_ITERATIONS);
+    selectedNodeTypes = $state<Record<keyof typeof nodeTypes, boolean>>({
+        acceleo: true,
+        atl: true,
+        duplication: true,
+        ecore: true,
+        emfatic: true,
+        epsilon: true,
+        henshin: true,
+        ocl: true,
+        gmf: true,
+        project: true,
+        qvto: true,
+        sirius: true,
+        xtext: true,
+        error: true
+    });
+    selectedEdgeTypes = $state<Record<keyof typeof edgeTypes, boolean>>({
+        "typed-by": true,
+        "import": true,
+        "duplicate": true,
+        "build_duplicate": true,
+        "project-to-project": true,
+        "input-type": true,
+        "output-type": true,
+        "copy-from": true,
+    });
+
     private currentGraphRenderer: Sigma | null = null;
 
     initialize(projects: Project[]) {
@@ -38,6 +75,7 @@ class GlobalState {
         this.selectedUnprocessedGraph = null;
         this.selectedNode = null;
         this.selectedEdge = null;
+        this.nodeFilter = '';
         this.mode = null; // Reset the mode
 
         // Clean up the existing graph renderer if it exists
@@ -186,12 +224,21 @@ class GlobalState {
 
     }
 
+    // —— Graph renderer —————————————————————————————
+
     get renderer() {
         return this.currentGraphRenderer;
     }
 
     set renderer(renderer: Sigma | null) {
         this.currentGraphRenderer = renderer;
+    }
+
+    refreshGraph() {
+        if (!this.currentGraphRenderer) {
+            return;
+        }
+        this.currentGraphRenderer = this.currentGraphRenderer.refresh();
     }
 
     // —— Nodes —————————————————————————————
@@ -201,7 +248,7 @@ class GlobalState {
         this.selectedNode = node;
         await tick();
         // Important to refresh the graph after selecting a node
-        this.renderer?.refresh();
+        this.refreshGraph();
     }
 
     // —— Edges —————————————————————————————
@@ -211,7 +258,7 @@ class GlobalState {
         this.selectedEdge = edge;
         await tick();
         // Important to refresh the graph after selecting an edge
-        this.renderer?.refresh();
+        this.refreshGraph();
     }
 
     async deselectNodeOrEdge() {
@@ -220,7 +267,7 @@ class GlobalState {
 
         await tick();
         // Important to refresh the graph after deselecting a node
-        this.renderer?.refresh();
+        this.refreshGraph();
     }
 
     // —— Artefacts —————————————————————————————

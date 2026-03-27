@@ -12,31 +12,22 @@
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
 	import { globalState } from '$lib/stores/globalState.svelte';
-
-	export interface GraphVisualizerInitial {
-		nodeFilter: string;
-		nodeSize: number;
-		showUnconnectedNodes: boolean;
-		labelSize: number;
-		labelThreshold: number;
-		numberOfIterations: number;
-	}
+	import { toast } from 'svelte-sonner';
 
 	interface GraphVisualizerProps {
 		graph: UndirectedGraph;
-		selectedNodeTypes: Record<string, boolean>;
-		selectedEdgeTypes: Record<string, boolean>;
 		fa2Running: boolean;
-		initialProps: GraphVisualizerInitial;
 	}
 
-	let { graph, selectedNodeTypes, selectedEdgeTypes, fa2Running = $bindable(false), initialProps }: GraphVisualizerProps = $props();
+	let { graph, fa2Running = $bindable(false) }: GraphVisualizerProps = $props();
 
 	// ── Graph state ──────────────────────────────────────────
 	let container: HTMLDivElement = $state(null!);
 	let currentNode = $derived<Node | null>(globalState.selectedNode);
 	let currentEdge = $derived<Edge | null>(globalState.selectedEdge);
 	let hoveredEdge: string | null = $state(null);
+
+	const nodeFilter = $derived(globalState.nodeFilter);
 
 
 	let fa2: InstanceType<typeof FA2Layout> | null = null;
@@ -58,32 +49,32 @@
 		};
 	})
 
-	export function setLabelSize(size: number) {
-		globalState.renderer?.setSetting("labelSize", size);
+	export function updateLabelSize() {
+		globalState.renderer?.setSetting("labelSize", globalState.labelSize);
 	}
 
-	export function setLabelThreshold(threshold: number) {
-		globalState.renderer?.setSetting("labelRenderedSizeThreshold", threshold);
+	export function updateLabelThreshold() {
+		globalState.renderer?.setSetting("labelRenderedSizeThreshold", globalState.labelThreshold);
 	}
 
-	export function setNodeConfig(nodeFilter: string, nodeSize: number, showUnconnectedNodes: boolean, selectedNodeTypes: Record<string, boolean>) {
+	function setNodeConfig() {
 		globalState.renderer?.setSetting('nodeReducer', (nodeId, data) => {
 			const res: Partial<NodeDisplayData> = { ...data };
 			// Node visibility logic
 			if (nodeFilter !== '' && nodeId.toLowerCase()?.includes(nodeFilter.toLowerCase()) === false) {
 				res.hidden = true;
-			} else if (!selectedNodeTypes[data.nodeType]) {
+			} else if (!globalState.selectedNodeTypes[data.nodeType as keyof typeof nodeTypes]) {
 				res.hidden = true;
-			} else if (!showUnconnectedNodes && graph.degree(nodeId) == 0) {
+			} else if (!globalState.showUnconnectedNodes && graph.degree(nodeId) == 0) {
 				res.hidden = true;
 			}
 
 			// Highlight the selected node
 			if (currentNode?.id === nodeId) {
 				res.highlighted = true;
-				res.size = nodeSize * 1.35;
+				res.size = globalState.nodeSize * 1.35;
 			} else {
-				res.size = nodeSize;
+				res.size = globalState.nodeSize;
 			}
 
 			// Set the color
@@ -92,19 +83,18 @@
 
 			return res;
 		});
-		globalState.renderer?.refresh();
 	}
 
-	export const setEdgeConfig = (selectedEdgeTypes: Record<EdgeType, boolean>) => {
+	const setEdgeConfig = () => {
 		globalState.renderer?.setSetting('edgeReducer', (edge, data) => {
 			const res: Partial<EdgeDisplayData> = { ...data };
 			const srcType = graph.getNodeAttribute(graph.source(edge), 'nodeType');
 			const tgtType = graph.getNodeAttribute(graph.target(edge), 'nodeType');
 			
-			if (!(selectedNodeTypes[srcType] && selectedNodeTypes[tgtType])) res.hidden = true;
+			if (!(globalState.selectedNodeTypes[srcType as keyof typeof nodeTypes] && globalState.selectedNodeTypes[tgtType as keyof typeof nodeTypes])) res.hidden = true;
 			const currentEdgeTypes = graph.getEdgeAttribute(edge, 'edgeTypes');
 
-			const selectedEdgeType = selectEdgeType(selectedEdgeTypes, currentEdgeTypes);
+			const selectedEdgeType = selectEdgeType(globalState.selectedEdgeTypes, currentEdgeTypes);
 
 			// Set the color
 			if (selectedEdgeType === null) {
@@ -125,17 +115,16 @@
 			}
 			return res;
 		});
-		globalState.renderer?.refresh();
 	}
 
 	function initGraph() {
 		startRenderer(graph);
-		setLabelSize(initialProps.labelSize);
-		setLabelThreshold(initialProps.labelThreshold);
-		setNodeConfig(initialProps.nodeFilter, initialProps.nodeSize, initialProps.showUnconnectedNodes, selectedNodeTypes);
-		setEdgeConfig(selectedEdgeTypes);
+		updateLabelSize();
+		updateLabelThreshold();
+		setNodeConfig();
+		setEdgeConfig();
 
-		startLayout(initialProps.numberOfIterations);
+		startLayout();
 	}
 
 	function startRenderer(graph: Graph) {
@@ -160,29 +149,33 @@
 		globalState.renderer.on('enterEdge', (e) => {
 			hoveredEdge = e.edge;
 			container.style.cursor = 'pointer';
-			globalState.renderer?.refresh();
+			globalState.refreshGraph();
 		});
 		globalState.renderer.on('leaveEdge', () => {
 			hoveredEdge = null;
 			container.style.cursor = '';
-			globalState.renderer?.refresh();
+			globalState.refreshGraph();
 		});
 		globalState.renderer.on('doubleClickStage', (e) => {
 			e.preventSigmaDefault(); // We dont want to zoom on double click
 		});
 	}
 
-	export function startLayout(numberOfIterations: number) {
+	export function startLayout() {
 		if (fa2) {
 			fa2.kill();
 			fa2 = null;
+		}
+		if (globalState.numberOfIterations === undefined || globalState.numberOfIterations < 1) {
+			toast.error('Please enter a valid number of iterations');
+			return;
 		}
 		const settings = forceAtlas2.inferSettings(graph);
 
 		fa2 = new FA2Layout(graph, { settings });
 		fa2.start();
 		fa2Running = true;
-		setTimeout(() => stopLayout(), numberOfIterations * 1000);
+		setTimeout(() => stopLayout(), globalState.numberOfIterations * 1000);
 	}
 
 	export function stopLayout() {
@@ -192,7 +185,7 @@
 			fa2 = null;
 		}
 		fa2Running = false;
-		globalState.renderer?.refresh();
+		globalState.refreshGraph();
 	}
 
 	function selectNode(node: Node) {
