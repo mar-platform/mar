@@ -50,6 +50,7 @@ public abstract class ProjectInspector {
 		return repoFolder.resolve(projectSubPath);
 	}
 
+	// Gets the path relative to the root folder with all repositories
 	protected Path getRepositoryPath(File f) {
 		return getRepositoryPath(f.toPath());
 	}
