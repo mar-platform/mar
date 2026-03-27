@@ -29,7 +29,7 @@ export interface VirtualNode extends BaseNode {
     artefacts?: string[];
 }
 
-export type EdgeType = 'typed-by' | 'import' | 'duplicate' | 'build_duplicate' | 'project-to-project' | 'input-type' | 'output-type';
+export type EdgeType = 'typed-by' | 'import' | 'duplicate' | 'build_duplicate' | 'project-to-project' | 'input-type' | 'output-type' | 'copy-from';
 
 export interface Edge {
     source: string;

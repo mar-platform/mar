@@ -1,3 +1,4 @@
+import { getAllGraphsApi } from "$lib/api/allGraphs";
 import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
@@ -14,7 +15,7 @@ import type { Sigma } from "sigma";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 
-type GraphMode = 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION';
+type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION';
 
 class GlobalState {
     state: 'LOADING' | 'OK' | 'ERROR' = $state('LOADING');
@@ -89,6 +90,9 @@ class GlobalState {
         // Start calculating the graph depending on the mode
         let apiResponse: ApiResponse<GraphDTO> | null = null;
         switch(mode) {
+            case 'ALL':
+                apiResponse = await getAllGraphsApi();
+                break;
             case 'PROJECT':
                 if (this.projects.length > 0) {
                     await this.selectProject(this.projects[0]);
@@ -172,15 +176,17 @@ class GlobalState {
 
     // —— Nodes —————————————————————————————
 
-    selectNode(node: Node | null) {
+    async selectNode(node: Node | null) {
         this.selectedNode = node;
+        await tick();
+        // Important to refresh the graph after selecting a node
         this.renderer?.refresh();
     }
 
     async deselectNode() {
         this.selectedNode = null;
         await tick();
-        // Important to refresh the graph after deselecting a node to ensure that any visual changes (like unhighlighting) are applied correctly
+        // Important to refresh the graph after deselecting a node
         this.renderer?.refresh();
     }
 

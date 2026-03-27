@@ -2,7 +2,7 @@
     /* eslint-disable svelte/no-navigation-without-resolve */
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
 	import { navigationMenuTriggerStyle } from '$lib/components/ui/navigation-menu/navigation-menu-trigger.svelte';
-	import { CLUSTERS_PATH, COMPONENT_GRAPHS_EXPLORATION_PATH, DATABASE_EXPLORATION_PATH, DUPLICATION_GRAPHS_EXPLORATION_PATH, GITHUB_PATH, GRAPH_EXPLORATION_PATH, INTERPROJECT_GRAPHS_EXPLORATION_PATH, MEGAMODEL_GRAPHS_EXPLORATION_PATH, PROJECT_GRAPHS_EXPLORATION_PATH, STATS_PATH } from '$lib/constants/routes';
+	import { COMPONENT_GRAPHS_EXPLORATION_PATH, DUPLICATION_GRAPHS_EXPLORATION_PATH, GITHUB_PATH, ALL_GRAPHS_PATH, INTERPROJECT_GRAPHS_EXPLORATION_PATH, MEGAMODEL_GRAPHS_EXPLORATION_PATH, PROJECT_GRAPHS_EXPLORATION_PATH, STATS_PATH } from '$lib/constants/routes';
     import Logo from '$lib/assets/logo.png';
 	import { Button } from "$lib/components/ui/button/index.js";
     import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
@@ -25,23 +25,22 @@
         subList?: Omit<RouteItem, 'subList'>[];
     }
 
+    const showAsNestedMenus = false;
     let isVerticalMenuOpen = $state(false);
 
     const routes: RouteItem[] = [
         { title: "Stats", href: STATS_PATH },
         { 
-            title: "Graph Exploration", 
-            href: GRAPH_EXPLORATION_PATH,
+            title: "All graphs",
+            href: ALL_GRAPHS_PATH,
             subList: [
                 { title: "Duplication", href: DUPLICATION_GRAPHS_EXPLORATION_PATH },
                 { title: "Megamodel", href: MEGAMODEL_GRAPHS_EXPLORATION_PATH },
                 { title: "Inter-project", href: INTERPROJECT_GRAPHS_EXPLORATION_PATH },
                 { title: "Projects", href: PROJECT_GRAPHS_EXPLORATION_PATH },
                 { title: "Components", href: COMPONENT_GRAPHS_EXPLORATION_PATH },
-            ]
+            ],
         },
-        { title: "Clusters", href: CLUSTERS_PATH },
-        { title: "Database Exploration", href: DATABASE_EXPLORATION_PATH },
     ] as const;
 
     let breadcrumbs = $derived.by(() => {
@@ -83,18 +82,33 @@
                     {#each routes as route(route.title)}
                         <NavigationMenu.Item class="hidden md:block">
                             {#if route.subList}
-                                <NavigationMenu.Trigger class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</NavigationMenu.Trigger>
-                                <NavigationMenu.Content>
-                                    <ul class="grid w-75 gap-4 p-2">
-                                        {#each route.subList as subRoute(subRoute.title)}
-                                            <li>
-                                                <NavigationMenu.Link href={subRoute.href}>
-                                                    <div class="font-medium">{subRoute.title}</div>
-                                                </NavigationMenu.Link>
-                                            </li>
-                                        {/each}
-                                    </ul>
-                                </NavigationMenu.Content>
+                                {#if showAsNestedMenus}
+                                    <NavigationMenu.Trigger class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</NavigationMenu.Trigger>
+                                    <NavigationMenu.Content>
+                                        <ul class="grid w-75 gap-4 p-2">
+                                            {#each route.subList as subRoute(subRoute.title)}
+                                                <li>
+                                                    <NavigationMenu.Link href={subRoute.href}>
+                                                        <div class="font-medium">{subRoute.title}</div>
+                                                    </NavigationMenu.Link>
+                                                </li>
+                                            {/each}
+                                        </ul>
+                                    </NavigationMenu.Content>
+                                {:else}
+                                    <NavigationMenu.Link href={route.href}>
+                                        {#snippet child()}
+                                            <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</a>
+                                        {/snippet}
+                                    </NavigationMenu.Link>
+                                    {#each route.subList as subRoute(subRoute.title)}
+                                        <NavigationMenu.Link href={subRoute.href}>
+                                            {#snippet child()}
+                                                <a href={subRoute.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
+                                            {/snippet}
+                                        </NavigationMenu.Link>
+                                    {/each}
+                                {/if}
                             {:else}
                                 <NavigationMenu.Link href={route.href}>
                                     {#snippet child()}
