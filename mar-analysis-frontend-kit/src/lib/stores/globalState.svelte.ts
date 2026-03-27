@@ -26,6 +26,7 @@ class GlobalState {
     selectedUnprocessedGraph: GraphDTO | null = $state(null);
     selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
+    selectedEdge: Edge | null = $state(null);
     private currentGraphRenderer: Sigma | null = null;
 
     initialize(projects: Project[]) {
@@ -35,7 +36,8 @@ class GlobalState {
         this.selectedProject = null;
         this.selectedGraph = null; // Reset the graph when initializing with new projects
         this.selectedUnprocessedGraph = null;
-        this.selectedNode = null; 
+        this.selectedNode = null;
+        this.selectedEdge = null;
         this.mode = null; // Reset the mode
 
         // Clean up the existing graph renderer if it exists
@@ -48,7 +50,7 @@ class GlobalState {
     // —— Projects —————————————————————————————
 
     async selectProject(project: Project) {
-        this.deselectNode(); // Deselect any selected node when changing projects
+        this.deselectNodeOrEdge(); // Deselect any selected node or edge when selecting a new project
 
         this.selectedProject = project;
 
@@ -170,7 +172,7 @@ class GlobalState {
 		dto.edges.forEach((edge: Edge) => {
             // FIXME Why duplicate edges???
 			if (graph.hasEdge(edge.source, edge.target)) {
-                console.log(`Edge between ${edge.source} and ${edge.target} already exists. Skipping duplicate edge.`);
+                //console.log(`Edge between ${edge.source} and ${edge.target} already exists. Skipping duplicate edge.`);
             } else {
                 graph.addEdge(edge.source, edge.target, { edgeTypes: edge.types, size: 2 });
             }
@@ -195,14 +197,27 @@ class GlobalState {
     // —— Nodes —————————————————————————————
 
     async selectNode(node: Node | null) {
+        this.selectedEdge = null; // Deselect any selected edge when selecting a node
         this.selectedNode = node;
         await tick();
         // Important to refresh the graph after selecting a node
         this.renderer?.refresh();
     }
 
-    async deselectNode() {
+    // —— Edges —————————————————————————————
+
+    async selectEdge(edge: Edge | null) {
+        this.selectedNode = null; // Deselect any selected node when selecting an edge
+        this.selectedEdge = edge;
+        await tick();
+        // Important to refresh the graph after selecting an edge
+        this.renderer?.refresh();
+    }
+
+    async deselectNodeOrEdge() {
         this.selectedNode = null;
+        this.selectedEdge = null;
+
         await tick();
         // Important to refresh the graph after deselecting a node
         this.renderer?.refresh();

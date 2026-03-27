@@ -32,6 +32,8 @@ export interface VirtualNode extends BaseNode {
 export type EdgeType = 'typed-by' | 'import' | 'duplicate' | 'build_duplicate' | 'project-to-project' | 'input-type' | 'output-type' | 'copy-from';
 
 export interface Edge {
+    /** NOTE: Only present in selected edges */
+    key?: string;
     source: string;
     target: string;
     types: EdgeType[];

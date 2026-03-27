@@ -97,8 +97,7 @@
       random.assign(graph);
 
       renderer = new Sigma(graph, container, {
-        enableEdgeClickEvents: true,
-        enableEdgeHoverEvents: true,
+        enableEdgeEvents: true,
         hideEdgesOnMove: true,
         renderEdgeLabels: false,
         labelRenderedSizeThreshold: 6,

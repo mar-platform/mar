@@ -106,7 +106,7 @@
 
 {#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
     <ProjectList {onShowArtefactClick} />
-{:else if listState === 'ARTEFACTS'}
+{:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
     <ArtefactList filterNodes={selectedNodeTypes} onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
 {/if}
 {#if graphMode !== null}

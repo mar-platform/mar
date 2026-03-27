@@ -7,7 +7,7 @@
 	import FA2Layout from 'graphology-layout-forceatlas2/worker';
 	import forceAtlas2 from 'graphology-layout-forceatlas2';
 
-	import type { EdgeType, Node } from '$lib/dto/Graph';
+	import type { Edge, EdgeType, Node } from '$lib/dto/Graph';
 	import { onMount } from 'svelte';
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
@@ -35,7 +35,7 @@
 	// ── Graph state ──────────────────────────────────────────
 	let container: HTMLDivElement = $state(null!);
 	let currentNode = $derived<Node | null>(globalState.selectedNode);
-	let currentEdge = $state<{ key: string; type: string; sourceId: string; targetId: string } | null>(null);
+	let currentEdge = $derived<Edge | null>(globalState.selectedEdge);
 	let hoveredEdge: string | null = $state(null);
 
 
@@ -120,7 +120,6 @@
 				res.zIndex = 1;
 			}
 			if (currentEdge?.key === edge) {
-				res.color = '#f97316';
 				res.size = 4;
 				res.zIndex = 2;
 			}
@@ -143,17 +142,22 @@
 		globalState.renderer = new Sigma(graph, container, {
 			hideEdgesOnMove: true,
 			renderEdgeLabels: true,
+			enableEdgeEvents: true,
 			labelRenderedSizeThreshold: 6,
+		});
+		globalState.renderer.on('enterNode', () => {
+			container.style.cursor = 'pointer';
+		});
+		globalState.renderer.on('leaveNode', () => {
+			container.style.cursor = '';
 		});
 		globalState.renderer.on('clickNode', (e) => {
 			selectNode(graph.getNodeAttributes(e.node).impl);
 		});
 		globalState.renderer.on('clickEdge', (e) => {
-			console.log('Clicked edge: ', e.edge);
 			selectEdge(e.edge);
 		});
 		globalState.renderer.on('enterEdge', (e) => {
-			console.log('Hovering edge: ', e.edge);
 			hoveredEdge = e.edge;
 			container.style.cursor = 'pointer';
 			globalState.renderer?.refresh();
@@ -192,25 +196,18 @@
 	}
 
 	function selectNode(node: Node) {
-		globalState.selectNode(node);
 		currentEdge = null;
-	}
-
-	export function selectNodeById(id: string) {
-		if (graph?.hasNode(id)) {
-			selectNode(graph.getNodeAttributes(id).impl);
-		}
+		globalState.selectNode(node);
 	}
 
 	function selectEdge(edgeKey: string) {
-		currentEdge = {
-			key: edgeKey,
-			type: graph.getEdgeAttribute(edgeKey, 'edgeType'),
-			sourceId: graph.source(edgeKey),
-			targetId: graph.target(edgeKey)
-		};
 		currentNode = null;
-		globalState.renderer?.refresh();
+		globalState.selectEdge({
+			key: edgeKey,
+			types: graph.getEdgeAttribute(edgeKey, 'edgeTypes'),
+			source: graph.source(edgeKey),
+			target: graph.target(edgeKey)
+		});
 	}
 
 	function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]): EdgeType | null {
