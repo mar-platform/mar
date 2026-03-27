@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.jgrapht.Graph;
@@ -48,6 +49,11 @@ public class RelationshipsGraph {
 
 	public boolean hasNode(String id) {
 		return idToNode.containsKey(id);
+	}
+	
+	@CheckForNull
+	public Node getNodeOrNull(String id) {
+		return idToNode.get(id);
 	}
 	
 	public Node getNode(String id) {

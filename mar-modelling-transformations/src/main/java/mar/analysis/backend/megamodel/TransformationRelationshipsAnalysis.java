@@ -10,11 +10,12 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import org.jgrapht.alg.connectivity.ConnectivityInspector;
-
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+import edu.emory.mathcs.backport.java.util.Collections;
+import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.ComponentGraph;
 import mar.analysis.megamodel.model.DuplicationGraph;
@@ -22,8 +23,10 @@ import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
 import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.InterProjectGraph;
 import mar.analysis.megamodel.model.InterProjectGraph.ProjectGroup;
+import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
+import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
@@ -31,12 +34,24 @@ public class TransformationRelationshipsAnalysis {
 
 	private static Relationship[] MAIN_RELATIONSHIP_TYPES = { Relationship.TYPED_BY, Relationship.IMPORT };
 	
+	private RawRepositoryDB raw;
 	private MegamodelDB db;
 	private Filter filter;
+	private boolean cachesResults;
 
-	public TransformationRelationshipsAnalysis(@Nonnull MegamodelDB db, Filter filter) {
+	private InterProjectGraph interprojectGraph;
+
+
+	public TransformationRelationshipsAnalysis(@Nonnull MegamodelDB db, RawRepositoryDB raw, Filter filter) {
 		this.db = db;		
+		this.raw = raw;
 		this.filter = filter;
+	}
+	
+
+	public TransformationRelationshipsAnalysis withCache(boolean b) {
+		this.cachesResults = b;
+		return this;
 	}
 	
 	@Nonnull
@@ -170,9 +185,176 @@ public class TransformationRelationshipsAnalysis {
 		
 		return graph;
 	}
-	
+
+	@Nonnull
+	public RelationshipsGraph getInterProjectGraph_NoTimestamped() {
+		if (cachesResults && interprojectGraph != null) {
+			return interprojectGraph;
+		}
+		
+		InterProjectGraph graph = computeInterprojectGraph(false);
+		
+		if (cachesResults) {
+			this.interprojectGraph = graph;
+		}
+		
+		/*
+		System.out.println("Edges\n\n");
+		for (Edge edge : graph.getEdges()) {
+			System.out.println(edge.getSourceId() + " -> " + edge.getTargetId());
+		}
+		System.out.println("\n\n");
+		*/
+		
+		return graph;
+	}
+
 	@Nonnull
 	public RelationshipsGraph getInterProjectGraph() {
+		if (cachesResults && interprojectGraph != null) {
+			return interprojectGraph;
+		}
+		
+		InterProjectGraph graph = computeInterprojectGraph(true);
+		
+		if (cachesResults) {
+			this.interprojectGraph = graph;
+		}
+		
+		/*
+		System.out.println("Edges\n\n");
+		for (Edge edge : graph.getEdges()) {
+			System.out.println(edge.getSourceId() + " -> " + edge.getTargetId());
+		}
+		System.out.println("\n\n");
+		*/
+		
+		return graph;
+	}
+	
+	private InterProjectGraph computeInterprojectGraph(boolean useTimestamps) {
+		RelationshipsGraph megamodel = getMegamodelGraph();
+		InterProjectGraph graph = new InterProjectGraph();
+		Map<String, RawFile> files = useTimestamps ? raw.getFiles() : Collections.emptyMap();
+		
+		for (Project project : db.allProjects()) {
+			ProjectGroup prj = new InterProjectGraph.ProjectGroup(project.getId(), "project");
+			graph.addNode(prj);							
+		}
+		
+		for (Node node : megamodel.getNodes()) {
+			Set<Edge> edges = megamodel.getGraph().outgoingEdgesOf(node);
+			Set<String> targetProjects = new HashSet<String>();
+			
+			for (Edge edge : edges) {
+				Node targetNode = megamodel.getNode(edge.getTargetId());
+				if (targetNode instanceof ArtefactGroup g) {
+					Collection<? extends String> originalArtefacts;
+					if (useTimestamps) {
+						originalArtefacts = pickRelevantByTimestamp(g.getArtefacts(), files);
+					} else {
+						originalArtefacts = g.getArtefacts();
+					}
+					
+					for (String artefactId : originalArtefacts) {
+						Artefact a = db.getArtefactById(artefactId);
+						targetProjects.add(a.getProject().getId());
+					}
+				} else {
+					Artefact a = ((ArtefactNode) targetNode).getArtefact();
+					targetProjects.add(a.getProject().getId());
+				}
+			}
+			
+			if (node instanceof ArtefactGroup g) {
+				Set<String> sourceProjects = new HashSet<String>();
+				Collection<? extends String> originalArtefacts;
+				if (useTimestamps) {
+					originalArtefacts = pickRelevantByTimestamp(g.getArtefacts(), files);
+				} else {
+					originalArtefacts = g.getArtefacts();
+				}
+				
+				for (String artefactId : originalArtefacts) {
+					Artefact a = db.getArtefactById(artefactId);
+					sourceProjects.add(a.getProject().getId());
+				}
+				
+				for (String sourceProjectId : sourceProjects) {
+					for (String targetProjectId : targetProjects) {
+						if (! sourceProjectId.equals(targetProjectId)) {
+							graph.addEdge(sourceProjectId, targetProjectId, Relationship.PROJECT_RELATED_TO);
+						}						
+					}					
+				}
+				
+				/*
+				for (String artefactId : g.getArtefacts()) {
+					Artefact a = db.getArtefactById(artefactId);
+					String sourceProjectId = a.getProject().getId();
+					for (String targetProjectId : targetProjects) {
+						if (! sourceProjectId.equals(targetProjectId)) {
+							graph.addEdge(sourceProjectId, targetProjectId, Relationship.PROJECT_RELATED_TO);
+						}						
+					}					
+				}
+				*/
+				
+				// In addition, every artefact in the group that is not deemed as original, is a copy of the original
+				for (String artefactId : g.getArtefacts()) {
+					if (! originalArtefacts.contains(artefactId)) {
+						Artefact copyOfOriginal = db.getArtefactById(artefactId);
+						String projectOfCopy = copyOfOriginal.getProject().getId();
+						for (String projectOfOriginal : sourceProjects) {
+							graph.addEdge(projectOfCopy, projectOfOriginal, Relationship.COPY_FROM);
+						}
+					}
+				}
+				
+			} else if (node instanceof ArtefactNode a) {
+				String sourceProjectId = a.getArtefact().getProject().getId();
+				for (String targetProjectId : targetProjects) {
+					if (! sourceProjectId.equals(targetProjectId)) {
+						graph.addEdge(sourceProjectId, targetProjectId, Relationship.PROJECT_RELATED_TO);
+					}						
+				}
+			}
+		}
+		return graph;
+	}
+	
+	// TODO: This could be done passing directly the artefact group and doing a direct sql query
+	private Collection<? extends String> pickRelevantByTimestamp(List<? extends String> artefacts, Map<String, RawFile> allFiles) {
+		List<RawFile> files = new ArrayList<RawRepositoryDB.RawFile>();
+		for (String artefactId : artefacts) {
+			RawFile info = allFiles.get(artefactId);
+			if (info == null) {
+				// This is likely because the artefact is heuristic
+				System.out.println("Not found " + artefactId);
+				continue;
+			}
+			
+			if (info.getCreatedAt() != null) {
+				files.add(info);
+				Preconditions.checkArgument(info.getId().equals(artefactId));
+			}
+		}
+		
+		if (files.isEmpty()) {
+			return new HashSet<>(artefacts);
+		}
+		
+		files.sort((r1, r2) -> r1.getCreatedAt().compareTo(r2.getCreatedAt()));
+		return java.util.Collections.singleton(files.getFirst().getId());
+	}
+
+
+	@Nonnull
+	public RelationshipsGraph getInterProjectGraph_Old() {
+		if (cachesResults && interprojectGraph != null) {
+			return interprojectGraph;
+		}
+		
 		InterProjectGraph graph = new InterProjectGraph();
 		
 		Multimap<String, Artefact> projectGroups = ArrayListMultimap.create();
@@ -208,6 +390,10 @@ public class TransformationRelationshipsAnalysis {
 				}
 			}
 			
+		}
+		
+		if (cachesResults) {
+			this.interprojectGraph = graph;
 		}
 		
 		return graph;

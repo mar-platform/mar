@@ -7,10 +7,16 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.management.RuntimeErrorException;
 
 import mar.analysis.backend.megamodel.stats.RawRepositoryStats;
 
@@ -41,19 +47,55 @@ public class RawRepositoryDB implements AutoCloseable {
 		}
 	}
 	
-	public List<RawFile> getFiles() throws SQLException {
-		PreparedStatement files = connection.prepareStatement("select project_path, file_path, extension, type from files");
-		List<RawFile> results = new ArrayList<>();
-		ResultSet rs = files.executeQuery();
-		while (rs.next()) {
-			String project = rs.getString(1);
-			String filepath = rs.getString(2);
-			String extension = rs.getString(3);
-			String type = rs.getString(4);
-			results.add(new RawFile(project, filepath, extension, type));
+	@CheckForNull
+	public RawFile getArtefactInfo(String artefactId) {
+		try {
+			PreparedStatement files = connection.prepareStatement("select project_path, file_path, extension, type, created_at, created_author, updated_at, updated_author from files where file_path = ?");
+			files.setString(1, artefactId);
+			ResultSet rs = files.executeQuery();
+			if (! rs.next()) 
+				return null;
+			
+			RawFile rawFile = toRawFile(rs);			
+			return rawFile;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
 		}
-		
-		return results;
+	}
+
+	
+	public Map<String, RawFile> getFiles() {
+		try {
+			PreparedStatement files;
+			files = connection.prepareStatement("select project_path, file_path, extension, type, created_at, created_author, updated_at, updated_author from files");
+			Map<String, RawFile> results = new HashMap<>();
+			ResultSet rs = files.executeQuery();
+			while (rs.next()) {
+				RawFile rawFile = toRawFile(rs);			
+				results.put(rawFile.getId(), rawFile);
+			}
+			
+			return results;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+
+	private RawFile toRawFile(ResultSet rs) throws SQLException {
+		String project = rs.getString(1);
+		String filepath = rs.getString(2);
+		String extension = rs.getString(3);
+		String type = rs.getString(4);
+		String created_at = rs.getString(5);
+		String created_author = rs.getString(6);
+		String updated_at = rs.getString(7);
+		String updated_author = rs.getString(8);
+				
+		OffsetDateTime createdAt = created_at != null ? OffsetDateTime.parse(created_at) : null;
+		OffsetDateTime updatedAt = created_at != null ? OffsetDateTime.parse(updated_at) : null;
+		RawFile rawFile = new RawFile(project, filepath, extension, type, createdAt, created_author, updatedAt, updated_author);
+		return rawFile;
 	}	
 		
 	public RawRepositoryStats getStats() {
@@ -105,12 +147,20 @@ public class RawRepositoryDB implements AutoCloseable {
 		private final String filepath;
 		private final String extension;
 		private final String type;
+		private OffsetDateTime createdAt;
+		private String createdAuthor;
+		private OffsetDateTime updatedAt;
+		private String updatedAuthor;
 
-		public RawFile(String project, String filepath, String extension, String type) {
+		public RawFile(String project, String filepath, String extension, String type, OffsetDateTime createdAt, String createdAuthor, OffsetDateTime updatedAt, String updatedAuthor) {
 			this.project = project;
 			this.filepath = filepath;
 			this.extension = extension;
 			this.type = type;
+			this.createdAt = createdAt;
+			this.createdAuthor = createdAuthor;
+			this.updatedAt = updatedAt;
+			this.updatedAuthor = updatedAuthor;
 		}
 		
 		public String getProject() {
@@ -132,6 +182,23 @@ public class RawRepositoryDB implements AutoCloseable {
 		public String getExtension() {
 			return extension;
 		}		
+		
+		public OffsetDateTime getCreatedAt() {
+			return createdAt;
+		}
+		
+		public String getCreatedAuthor() {
+			return createdAuthor;
+		}
+		
+		public OffsetDateTime getUpdatedAt() {
+			return updatedAt;
+		}
+		
+		public String getUpdatedAuthor() {
+			return updatedAuthor;
+		}
 	}
+
 
 }

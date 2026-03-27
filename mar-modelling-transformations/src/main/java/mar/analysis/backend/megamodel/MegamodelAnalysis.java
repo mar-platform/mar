@@ -40,6 +40,7 @@ import mar.analysis.duplicates.EcoreDuplicateFinder;
 import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
+import mar.analysis.megamodel.model.DuplicationRelationships;
 import mar.analysis.megamodel.model.Relationship;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
@@ -48,6 +49,7 @@ import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.HeuristicPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.graph.RecoveryStats;
@@ -60,6 +62,8 @@ import mar.validation.IFileProvider;
 import mar.validation.ISingleFileAnalyser;
 import mar.validation.ISingleFileAnalyser.Remote;
 import mar.validation.ResourceAnalyser;
+import mar.validation.AnalysisDB.Model;
+import mar.validation.AnalysisDB.Status;
 import mar.validation.ResourceAnalyser.Factory;
 import mar.validation.ResourceAnalyser.OptionMap;
 import picocli.CommandLine;
@@ -80,8 +84,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 
 	@Option(required = true, names = { "--output" }, description = "The output file")
 	private File output;
-	
-	
+
+	@Option(required = false, names = { "--prev-version" }, description = "Previous megamodel to reuse data")
+	private File previousMegamodel;
+
 	
 	@Option(required = false, names = { "--configuration" }, description = "Configuration files")
 	private File configurationFile;
@@ -138,7 +144,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 	}
 
-	private DuplicationAnalysisResult computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull Path repositoryDataFolder) {
+	private DuplicationAnalysisResult computeDuplicates(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, @Nonnull Path repositoryDataFolder, AnalysisDB analysisDb) {
 		DuplicateConfiguration configuration = new DuplicateConfiguration(repositoryDataFolder, MegamodelAnalysis.this::toId, MegamodelAnalysis.this::toName);		
 		DuplicateComputation computation = configuration.newComputation(miniGraphs);
 		computation.setMetamodelConfiguration(new DuplicateFinderConfiguration<Metamodel, Resource>() {
@@ -146,10 +152,28 @@ public class MegamodelAnalysis implements Callable<Integer> {
 			public Resource toResource(Metamodel p) throws Exception {
 				if (p.getPath() == null)
 					throw new UnsupportedOperationException("Ecore duplication for URIs not supported: " + p.getUri());
-
+				
+				Status status = analysisDb.hasFile(p.getPath().getPath().toString());
+				if (status == null) {
+					System.out.println("Can't find model " + p.getUri());
+					throw new CannotHandleModelException("Model not found " + p.getUri());
+				} else if (status == Status.CRASHED || status == Status.NOT_HANDLED || status == Status.TIMEOUT || status == Status.NOT_HANDLED) {
+					throw new CannotHandleModelException("Model with status " + status + " - " + p.getUri());
+				}
+				
 				return ModelLoader.DEFAULT.load(p.getPath().getCompletePath(repositoryDataFolder).toFile());
 			}
 
+			class CannotHandleModelException extends RuntimeException {
+
+				private static final long serialVersionUID = 1L;
+
+				public CannotHandleModelException(String string) {
+					super(string);
+				}
+				
+			}
+			
 			@Override
 			public DuplicateFinder<Metamodel, Resource> toFinder() {
 				return new EcoreDuplicateFinder();
@@ -174,8 +198,16 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		return computation.run();
 	}
 
+
+	private void reuseDuplicates(File previousMegamodel, MegamodelDB megamodelDB) throws IOException {
+		try(MegamodelDB previous = new MegamodelDB(previousMegamodel)) {
+			DuplicationRelationships duplicates = previous.getDuplicates();
+			megamodelDB.dumpDuplicatesFrom(duplicates);
+		}
+	}
+	
 	// This is computing the project-level graph
-	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, DuplicationAnalysisResult duplicates, File repositoryDataFolder, AnalysisDB metamodels) {
+	private Pair<RelationshipsGraph, RecoveryStats.Composite> mergeMiniGraphs(@Nonnull Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, File repositoryDataFolder, AnalysisDB metamodels) {
 		RelationshipsGraph graph = new RelationshipsGraph();
 		RecoveryStats.Composite stats = new RecoveryStats.Composite();
 		
@@ -233,7 +265,7 @@ public class MegamodelAnalysis implements Callable<Integer> {
 							withImports.add(p);
 						}
 						
-						extendLocalInformation(p, type, duplicates, graph);
+						// extendLocalInformation(p, type, duplicates, graph);
 					}
 					
 					if (miniGraph.getStats() != null)
@@ -247,8 +279,8 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		}
 		
 		for (FileProgram fileProgram : withImports) {
-			for (Path path : fileProgram.getImportedPrograms()) {
-				String tgt = toId(path);
+			for (RecoveredPath path : fileProgram.getImportedPrograms()) {
+				String tgt = toId(path.getPath());
 				if ( ! graph.hasNode(tgt) ) {
 					// This happens for instance with:
 					//  - src: adilinam/QVTo-QVTd-OCL/org.eclipse.m2m.tests.qvt.oml/parserTestData/sources/bug468303/bug468303.qvto
@@ -260,7 +292,10 @@ public class MegamodelAnalysis implements Callable<Integer> {
 					System.err.println("Target node not found: " + tgt);
 					continue;
 				}
-				graph.addEdge(toId(fileProgram), toId(path), Relationship.IMPORT);
+				graph.addEdge(toId(fileProgram), toId(path.getPath()), Relationship.IMPORT);
+				if (path instanceof HeuristicPath) {
+					graph.addEdge(toId(fileProgram), toId(path.getPath()), Relationship.HEURISTIC);
+				}
 			}
 		}
 		
@@ -286,12 +321,17 @@ public class MegamodelAnalysis implements Callable<Integer> {
 	}
 
 	private void addEdge(RelationshipsGraph graph, String id, String metamodelId, MetamodelReference ref) {
+		// ref.getRecoveryMethod()
 		if (ref.is(MetamodelReference.Kind.TYPED_BY))
 			graph.addEdge(id, metamodelId, Relationship.TYPED_BY);						
 		if (ref.is(MetamodelReference.Kind.INPUT_OF))
 			graph.addEdge(metamodelId, id, Relationship.INPUT_TYPE);
 		if (ref.is(MetamodelReference.Kind.OUTPUT_OF))
 			graph.addEdge(id, metamodelId, Relationship.OUTPUT_TYPE);
+		if (ref.is(MetamodelReference.Kind.GENERATE))
+			graph.addEdge(id, metamodelId, Relationship.GENERATE);		
+		if (ref.isHeuristicRecovery()) 
+			graph.addEdge(id, metamodelId, Relationship.OUTPUT_TYPE);		
 	}
 
 	@Override
@@ -334,19 +374,22 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		Map<ArtefactType, InspectorResult> inspectionResults  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
 		Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs = inspectionResults.keySet().stream().collect(Collectors.toMap(k -> k, k -> inspectionResults.get(k).getGraphs()));
 		//Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs  = computeMiniGraphs(repositoryDataFolder.toPath(), analysisDb);
+				
+		// 2. Merge local information + local information
+		System.out.println("2. Merge.");
+		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, repositoryDataFolder, analysisDb);
 		
-		// 2. Perform global analysis (for the moment duplicate computation)
-		System.out.println("2. Global analysis. Duplicate computation.");
-		DuplicationAnalysisResult duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath());
+		// 3. Perform global analysis (for the moment duplicate computation)
+		System.out.println("3. Global analysis. Duplicate computation.");
+		DuplicationAnalysisResult duplicates = null;
+		if (this.previousMegamodel == null) {
+			duplicates = computeDuplicates(miniGraphs, repositoryDataFolder.toPath(), analysisDb);			 
+		}
 		
 		// 3. Perform local analysis (maybe using the global information)
-		System.out.println("3. Local analysis.");
-		localAnalysis(miniGraphs);
-		
-		// 4. Merge local information + local information
-		System.out.println("4. Merge.");
-		Pair<RelationshipsGraph, RecoveryStats.Composite> result = mergeMiniGraphs(miniGraphs, duplicates, repositoryDataFolder, analysisDb);
-		
+		//System.out.println("3. Local analysis.");
+		//localAnalysis(miniGraphs);
+				
 		// 5. Organize errors for dumping (this is just for statistics purposes)
 		List<Error> explicitErrors = inspectionResults.values().stream().flatMap(i -> i.getErrors().stream()).
 				map(e -> new Error(toId(e.getProgramPath()), "syntax", "-")).
@@ -376,7 +419,13 @@ public class MegamodelAnalysis implements Callable<Integer> {
 		MegamodelDB megamodelDB = new MegamodelDB(output);
 		megamodelDB.setAutocommit(false);
 		megamodelDB.dump(graph, stats, allErrors, allIgnored);
-		duplicates.updateGraph(megamodelDB);
+		if (duplicates != null) {
+			duplicates.updateGraph(megamodelDB);
+		} else if (this.previousMegamodel != null) {
+			reuseDuplicates(this.previousMegamodel, megamodelDB);
+		} else {
+			throw new IllegalStateException();
+		}
 		megamodelDB.close();
 		analysisDb.close();
 		

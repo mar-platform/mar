@@ -49,8 +49,12 @@ public class AcceleoInspector extends ProjectInspector {
 		for (String uri : uris) {
 			Metamodel mm = toMetamodel(uri, getRepositoryPath(f).getParent(), ProjectInspector.AbsolutePathResolutionStrategy.ABSOLUTE);
 			graph.addMetamodel(mm);
-			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY);
+			program.addMetamodel(mm, MetamodelReference.Kind.TYPED_BY, MetamodelReference.Kind.INPUT_OF);
 		}
+		
+		// TODO: Implement import dependencies
+		// For example: [import me::mysoft::acceleo::sample::files::generate /]
+		// Look in a folder named me/mysoft/acceleo/sample/files/generate.mtl
 		
 		return graph;
 	}

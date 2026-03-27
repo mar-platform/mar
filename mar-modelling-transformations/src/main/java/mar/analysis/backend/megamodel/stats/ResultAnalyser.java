@@ -52,6 +52,7 @@ import mar.analysis.backend.megamodel.stats.ArtefactAnalysis.Result;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.DuplicationRelationships;
+import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
@@ -160,63 +161,50 @@ public class ResultAnalyser implements Callable<Integer> {
 //				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			//});
 			
+			
+			
+			/*
 			GraphLevelStats graphStats = computeGraphLevelStats(artefactTypes, megamodelDb, rawDb);
 			
 			if (statsFile != null) {
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.writer().writeValue(statsFile, graphStats);
 			}			
+			 */
+
+			new GraphStats(megamodelDb, rawDb, artefactTypes);			
 			
+			
+			/*
 			System.out.println("\nArtefact completion stats:");
 			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
 				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
 
-			System.out.println("Duplication information");
-			DuplicationRelationships duplicates = megamodelDb.getDuplicates();
-			Map<String, Integer> totalCount = new HashMap<String, Integer>();
-			Map<String, Integer> groupCount = new HashMap<String, Integer>();
-			Set<String> types = new TreeSet<String>();
-			for (Artefact artefact : megamodelDb.getAllArtefacts().values()) {
-				totalCount.putIfAbsent(artefact.getType(), 0);
-				totalCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
-				String group = duplicates.getGroupOf(artefact.getId());				
-				if (group != null) {
-					groupCount.compute(artefact.getType(), (k, v) -> (v == null ? 0 : v) + 1);
-				}
-				types.add(artefact.getType());
-			}
+			DuplicationStats duplicationInfo = new DuplicationStats(megamodelDb, rawDb);
+			ProjectStats projectStats = new ProjectStats(megamodelDb, rawDb);
 			
-			for (String type : types) {
-				double total = totalCount.get(type) * 1.0;
-				double dups = groupCount.getOrDefault(type, 0);
-				double duplicationPercentage = 100.0 * (dups / total);
-				System.out.println("  " + String.format("%-8s", type) + " " + String.format("%.2f", duplicationPercentage) + " - " + dups + " / " + total);
-			}
-			
-			/*
-			duplicates.forEachGroup((k, v) -> {
-				System.out.println();
-				System.out.println("Group: " + k);
-				v.forEach(x -> System.out.println(" - " + x));
-			});
-			System.out.println();
-			*/
+			LatexTables.toArtefactTable(System.out, rawDb.getStats(), projectStats, duplicationInfo);
 			
 			showProjectInformation();
+			*/
+
+			ProjectStats projectStats = new ProjectStats(megamodelDb, rawDb);
+
 		};
 	}
 
 	private GraphLevelStats computeGraphLevelStats(Set<String> artefactTypes, MegamodelDB megamodelDb, RawRepositoryDB rawDb) {
 		long totalArtefactNodes = 0;
+		
 		long totalIsolatedArtefacts = 0;
 		long totalOutDegree = 0;
 		long totalInDegree = 0;
 		
-		Multimap<String, Artefact> byType = MultimapBuilder.hashKeys().arrayListValues().build();		
+		Multimap<String, Artefact> isolatedByType = MultimapBuilder.hashKeys().arrayListValues().build();		
 		
-		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb, TransformationRelationshipsAnalysis.ALL_ACCEPTED);
+		TransformationRelationshipsAnalysis analysis = new TransformationRelationshipsAnalysis(megamodelDb, rawDb, TransformationRelationshipsAnalysis.ALL_ACCEPTED);
 		RelationshipsGraph graph = analysis.getRelationships();
 		for (Node node : graph.getNodes()) {
 			if (node instanceof ArtefactNode) {
@@ -229,12 +217,14 @@ public class ResultAnalyser implements Callable<Integer> {
 				Graph<Node, Edge> impl = graph.getGraph();
 				int outDegree = impl.outDegreeOf(node);
 				int inDegree = impl.inDegreeOf(node);
-
 				totalOutDegree += outDegree;
 				totalInDegree += inDegree;
+				System.out.println(inDegree + " - " + outDegree);
+				System.out.println(totalInDegree + " - " + totalOutDegree);
+				
 				if (inDegree == 0 && outDegree == 0) {
 					totalIsolatedArtefacts++;
-					byType.put(artefact.getType(), artefact);
+					isolatedByType.put(artefact.getType(), artefact);
 				}
 			}
 		}
@@ -243,14 +233,16 @@ public class ResultAnalyser implements Callable<Integer> {
 			
 		out.println();
 		out.println("Isolated nodes:");
-		byType.asMap().forEach((type, artefacts) -> {
+		isolatedByType.asMap().forEach((type, artefacts) -> {
 			out.println("- Type: " + type + "  " + artefacts.size() + " isolated artefacts");
+			/*
 			List<Artefact> sorted = new ArrayList<>(artefacts);
 			Collections.sort(sorted, (a1, a2) -> a1.getId().compareTo(a2.getId()));
 			sorted.forEach(a -> {
 				graphStats.addIsolated(a);
 				out.println("   " + a.getId());
 			});
+			*/
 		});
 		
 		checkIsolationCause(graphStats, rawDb);
@@ -275,8 +267,9 @@ public class ResultAnalyser implements Callable<Integer> {
 			out.println("      " + String.format("%-8s", "# Isolated " + k) + " " + String.format("%d", v));			
 		});
 		
-		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / totalArtefactNodes));
-		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / totalArtefactNodes));
+		// In/Out for non-isolated nodes only (see substraction (totalArtefactNodes - totalIsolatedArtefacts))
+		out.println("  " + String.format("%-8s", "Avg. out-degree") + " " + String.format("%.2f", 1.0 * totalOutDegree / (totalArtefactNodes - totalIsolatedArtefacts)));
+		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / (totalArtefactNodes - totalIsolatedArtefacts)));
 
 		
 		return graphStats;
@@ -438,7 +431,7 @@ public class ResultAnalyser implements Callable<Integer> {
 
 	
 	public static void main(String[] args) {
-		int exitCode = new CommandLine(new ResultAnalyser()).execute(args);
+		int exitCode = new CommandLine(new ResultAnalyser().withOutput(System.out, new File("/tmp/stats.txt"))).execute(args);
 		System.exit(exitCode);
 	}
 	

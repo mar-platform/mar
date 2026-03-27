@@ -2,6 +2,8 @@ package mar.artefacts;
 
 import java.util.EnumSet;
 
+import mar.artefacts.RecoveredPath.HeuristicPath;
+
 public class MetamodelReference {
 
 	public static Kind[] EMPTY_KIND = new Kind[0];
@@ -49,6 +51,10 @@ public class MetamodelReference {
 
 	public boolean is(Kind kind) {
 		return this.kind.contains(kind);
+	}
+
+	public boolean isHeuristicRecovery() {
+		return metamodel.getPath() != null && metamodel.getPath() instanceof HeuristicPath;
 	}
 
 }

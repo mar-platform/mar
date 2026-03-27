@@ -104,7 +104,11 @@ public class BuiltinMetamodels {
 			"http://www.eclipse.org/xtext/common/JavaVMTypes", "http://www.eclipse.org/xtext/trace/debug/1.0",
 			"http://www.eclipse.org/Xtext/Xbase/XAnnotations", "http://www.eclipse.org/xtext/xbase/Xbase",
 			"http://www.eclipse.org/xtext/xbase/Xtype", "http://www.w3.org/XML/1998/namespace",
-			"https://www.eclipse.org/epp/logging/aeri/core/2.0" };
+			"https://www.eclipse.org/epp/logging/aeri/core/2.0", 
+			// Others which are not in Eclipse modelling but can be added via plug-ins
+			"http://www.eclipse.org/xtend"
+	
+	};
 
 	public boolean isBuiltin(String uri) {
 		for (String string : METAMODELS) {
