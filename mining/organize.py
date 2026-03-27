@@ -165,14 +165,11 @@ def process_folder(input_folder, extension_map, file_map, cursor, processed_proj
 
         # Open (and cache) the git repo for this project
         if project_path not in repo_cache:
-            if GIT_AVAILABLE:
-                repo_abs = os.path.join(input_folder, project_path)
-                try:
-                    repo_cache[project_path] = gitpython.Repo(repo_abs)
-                except Exception as e:
-                    logging.warning("Could not open git repo at '%s': %s", repo_abs, e)
-                    repo_cache[project_path] = None
-            else:
+            repo_abs = os.path.join(input_folder, project_path)
+            try:
+                repo_cache[project_path] = gitpython.Repo(repo_abs)
+            except Exception as e:
+                logging.warning("Could not open git repo at '%s': %s", repo_abs, e)
                 repo_cache[project_path] = None
 
         repo = repo_cache[project_path]
@@ -258,12 +255,6 @@ def open_db(output_file):
         created_at    TEXT,
         created_commit TEXT,
         created_author TEXT,
-        updated_at      TEXT,
-        updated_commit  TEXT,
-        updated_author  TEXT,
-        created_at      TEXT,
-        created_commit  TEXT,
-        created_author  TEXT,
         updated_at      TEXT,
         updated_commit  TEXT,
         updated_author  TEXT,

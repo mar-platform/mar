@@ -9,6 +9,7 @@ fi
 
 ORGANIZEDB=$1
 MEGAMODELDB=$2
+PREVIOUS_MEGAMODEL=$3
 DB_PATH="/data3/supergraph/$ORGANIZEDB"
 SKIP_STEP="n"
 
@@ -31,6 +32,11 @@ else
     cd ..
 fi
 
+PREV_ARG=""
+if [ -n "$PREVIOUS_MEGAMODEL" ]; then
+    PREV_ARG="--prev-version \"$PREVIOUS_FILE\""
+    fi
+
 # Step 2: Java Transformations
 echo ">>> Starting Java transformations..."
 # Note: Using the second parameter $MEGAMODELDB for the output
@@ -39,4 +45,6 @@ time java --add-opens java.base/java.lang=ALL-UNNAMED -jar mar-modelling-transfo
      --repoDB "$DB_PATH" \
      --cache /data3/supergraph/ \
      --output "$MEGAMODELDB" \
-     --analysis-ecore | tee /tmp/megamodel.log
+     --analysis-ecore \
+     $PREV_ARG | tee /tmp/megamodel.log
+

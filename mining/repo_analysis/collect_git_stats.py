@@ -18,6 +18,9 @@ class GitInfo:
     ci: Optional[str]
     commits_per_month: float
     readme_size: int
+    number_of_files: int
+    total_commits: int
+    last_update: str
     license: Optional[str]
 
 # % GitHub Actions => .github/workflows
@@ -59,6 +62,27 @@ def compute_commit_frequency(repo_path: str) -> float:
 
     return total_commits / total_months if total_months > 0 else 0.0
 
+def get_git_repo_stats(repo_path):
+    repo = Repo(repo_path)
+        
+    files = repo.git.ls_files().splitlines()
+    number_of_files = len(files)
+        
+    all_commits = list(repo.iter_commits())
+    total_commits = len(all_commits)
+        
+    months = [c.committed_datetime.strftime('%Y-%m') for c in all_commits]
+    commits_per_month = dict(Counter(months))
+        
+    last_update = all_commits[0].committed_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+    return {
+        "number_of_files": number_of_files,
+        "total_commits": total_commits,
+        "commits_per_month": commits_per_month,
+        "last_update": last_update
+    }
+
 def measure_readme(repo_path: str):
     f = find_readme_file(repo_path)
     if f is not None:
@@ -71,11 +95,15 @@ def analyse_repo(root, repo_id) -> GitInfo:
     commit_frequency = compute_commit_frequency(path)
     readme_size = measure_readme(path)
     license = find_file_from_variants(path, ['LICENSE', 'COPYING'])
+    data = get_git_repo_stats(path)
     return GitInfo(
         id=repo_id,
         ci=ci,
         commits_per_month=commit_frequency,
         readme_size=readme_size,
+        number_of_files=data["number_of_files"],
+        total_commits=data["total_commits"],
+        last_update=data["last_update"],
         license=license,
     )
 
@@ -109,8 +137,12 @@ def process(root, repo_db_file):
             continue
 
         print("Processing ", repo_id)
-        analysis = analyse_repo(root, repo_id)
-        insert_data(repo_id, analysis, repo_db)
+        try:
+            analysis = analyse_repo(root, repo_id)
+            insert_data(repo_id, analysis, repo_db)
+        except:
+            print("Can't process ", repo_id)
+
 
     repo_db.close()
 
@@ -121,6 +153,9 @@ CREATE TABLE IF NOT EXISTS repo_git (
   ci text, -- Path to CI witness
   readme_size integer,
   commits_per_month real,
+  number_of_files integer,
+  total_commits integer,
+  last_update varchar(255),
   license text -- Path to the LICENSE witness
 )"""
 
