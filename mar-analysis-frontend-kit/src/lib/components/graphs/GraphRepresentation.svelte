@@ -52,7 +52,7 @@
 
     // NOTE: Some properties do not react to changes in the global state
     // So we notify the GraphVisualizer to update them when they change in the toolbar
-    
+
     function onLabelSizeChange() {
         graphVisualizerRef?.updateLabelSize();
     }
@@ -97,7 +97,7 @@
                                             toast.error('Please enter a valid number of iterations');
                                             return;
                                         }
-                                        graphVisualizerRef?.startLayout();
+                                        graphVisualizerRef?.startLayout(globalState.numberOfIterations);
                                     }}
                                 >
                                     Start layout

@@ -12,7 +12,6 @@
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
 	import { globalState } from '$lib/stores/globalState.svelte';
-	import { toast } from 'svelte-sonner';
 
 	interface GraphVisualizerProps {
 		graph: UndirectedGraph;
@@ -124,7 +123,7 @@
 		setNodeConfig();
 		setEdgeConfig();
 
-		startLayout();
+		startLayout(globalState.numberOfIterations);
 	}
 
 	function startRenderer(graph: Graph) {
@@ -161,21 +160,20 @@
 		});
 	}
 
-	export function startLayout() {
+	export function startLayout(numberOfIterations: number | undefined) {
+		if (!numberOfIterations) {
+			return;
+		}
 		if (fa2) {
 			fa2.kill();
 			fa2 = null;
-		}
-		if (globalState.numberOfIterations === undefined || globalState.numberOfIterations < 1) {
-			toast.error('Please enter a valid number of iterations');
-			return;
 		}
 		const settings = forceAtlas2.inferSettings(graph);
 
 		fa2 = new FA2Layout(graph, { settings });
 		fa2.start();
 		fa2Running = true;
-		setTimeout(() => stopLayout(), globalState.numberOfIterations * 1000);
+		setTimeout(() => stopLayout(), numberOfIterations * 1000);
 	}
 
 	export function stopLayout() {
