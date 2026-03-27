@@ -5,7 +5,9 @@ import argparse
 import yaml
 from yaml.loader import SafeLoader
 import glob
+import logging
 import cause
+import git as gitpython
 
 class Configuration:
     def __init__(self, data):
@@ -81,14 +83,47 @@ def load_config(configuration_file):
     f.close()
     return Configuration(data)
 
+def get_git_info(repo_path, file_rel_path):
+    """Return (created_at, created_commit, created_author, updated_at, updated_commit, updated_author).
+    All values are None if git info cannot be retrieved."""
+    try:
+        repo = gitpython.Repo(repo_path)
+        commits = list(repo.iter_commits(paths=file_rel_path))
+        if not commits:
+            return {}
+
+        latest = commits[0]
+        oldest = commits[-1]
+
+        return {
+            'created_at':     oldest.committed_datetime.isoformat(),
+            'created_commit': oldest.hexsha,
+            'created_author': str(oldest.author),
+            'updated_at':     latest.committed_datetime.isoformat(),
+            'updated_commit': latest.hexsha,
+            'updated_author': str(latest.author),
+        }
+    except Exception as e:
+        logging.warning("Git error for '%s' in '%s': %s", file_rel_path, repo_path, e)
+        return {}
+
+
 def insert_project(dir, cursor):
     project_name = dir.split(os.path.sep)[1]
     cursor.execute('INSERT INTO projects(project_path, name) VALUES (?, ?)', [dir, project_name])
 
 
-def insert_file(project_path, path, fname, ext, filetype, cursor):
-    cursor.execute('INSERT INTO files(project_path, file_path, filename, extension, type) VALUES (?, ?, ?, ?, ?)',
-                   [project_path, path, fname, ext, filetype])
+def insert_file(project_path, path, fname, ext, filetype, cursor,
+                created_at=None, created_commit=None, created_author=None,
+                updated_at=None, updated_commit=None, updated_author=None):
+    cursor.execute(
+        'INSERT INTO files(project_path, file_path, filename, extension, type, '
+        'created_at, created_commit, created_author, updated_at, updated_commit, updated_author) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [project_path, path, fname, ext, filetype,
+         created_at, created_commit, created_author,
+         updated_at, updated_commit, updated_author]
+    )
 
 
 def insert_dependency(filepath, depending_file, cursor):
@@ -98,6 +133,8 @@ def insert_dependency(filepath, depending_file, cursor):
 
 
 def process_folder(input_folder, extension_map, file_map, cursor, processed_projects, check_cause = False, conf = None):
+    repo_cache = {}  # project_path -> git.Repo or None
+
     for (dirpath, dirnames, filenames) in os.walk(input_folder, topdown=True, followlinks=False):
         # See: https://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
         dirnames[:] = [d for d in dirnames if d != '.git']
@@ -126,6 +163,20 @@ def process_folder(input_folder, extension_map, file_map, cursor, processed_proj
 
         #print("Processing: ", dirpath)
 
+        # Open (and cache) the git repo for this project
+        if project_path not in repo_cache:
+            if GIT_AVAILABLE:
+                repo_abs = os.path.join(input_folder, project_path)
+                try:
+                    repo_cache[project_path] = gitpython.Repo(repo_abs)
+                except Exception as e:
+                    logging.warning("Could not open git repo at '%s': %s", repo_abs, e)
+                    repo_cache[project_path] = None
+            else:
+                repo_cache[project_path] = None
+
+        repo = repo_cache[project_path]
+
         for filename in filenames:
 
             try:
@@ -145,12 +196,29 @@ def process_folder(input_folder, extension_map, file_map, cursor, processed_proj
                 if ext in extension_map:
                     filetype = extension_map[ext]
                     print(filetype, filepath)
-                    insert_file(project_path, filepath, filename, ext, filetype, cursor)
-                    inserted = True
                 elif filename in file_map:
                     filetype = file_map[filename]
                     print(filetype, filepath)
-                    insert_file(project_path, filepath, filename, ext, filetype, cursor)
+                else:
+                    filetype = None
+
+                if filetype is not None:
+                    # Collect git metadata for the file
+                    file_rel_to_repo = os.path.relpath(filepath, project_path)
+                    if repo is not None:
+                        git_info = get_git_info(
+                            os.path.join(input_folder, project_path), file_rel_to_repo
+                        )
+                    else:
+                        git_info = {}
+
+                    insert_file(project_path, filepath, filename, ext, filetype, cursor,
+                                git_info.get('created_at'),
+                                git_info.get('created_commit'),
+                                git_info.get('created_author'),
+                                git_info.get('updated_at'),
+                                git_info.get('updated_commit'),
+                                git_info.get('updated_author'))
                     inserted = True
 
                 if check_cause:
@@ -181,10 +249,28 @@ def open_db(output_file):
     cursor = conn.cursor()
 
     cursor.execute('CREATE TABLE IF NOT EXISTS projects (project_path VARCHAR(255), name VARCHAR(255), PRIMARY KEY (project_path))')
-    cursor.execute('CREATE TABLE IF NOT EXISTS files (project_path VARCHAR(255), file_path TEXT, filename VARCHAR(255), extension VARCHAR(32), type VARCHAR(32), PRIMARY KEY (file_path))')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS files (
+        project_path  VARCHAR(255),
+        file_path     TEXT,
+        filename      VARCHAR(255),
+        extension     VARCHAR(32),
+        type          VARCHAR(32),
+        created_at    TEXT,
+        created_commit TEXT,
+        created_author TEXT,
+        updated_at      TEXT,
+        updated_commit  TEXT,
+        updated_author  TEXT,
+        created_at      TEXT,
+        created_commit  TEXT,
+        created_author  TEXT,
+        updated_at      TEXT,
+        updated_commit  TEXT,
+        updated_author  TEXT,
+        PRIMARY KEY (file_path)
+    )''')
     # A file_path is used in used_file if its name appears in used_file
     cursor.execute('CREATE TABLE IF NOT EXISTS dependencies (file_path TEXT, using_file TEXT, using_extension VARCHAR(32), PRIMARY KEY (file_path, using_file))')
-
     return cursor, conn
 
 
