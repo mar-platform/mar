@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -16,10 +18,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import java.util.*;
-import java.util.regex.*;
-
-public class SiriusDuplicateFinder<T> extends DuplicateFinder<T, File> {
+public class SiriusDuplicateFinder<T> extends AllamanisDuplicateFinder<T, File> {
 
 	public SiriusDuplicateFinder() {
 		super(new OdesignTokenExtractor());

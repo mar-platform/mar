@@ -20,4 +20,5 @@ public class AcceleoProgram extends FileProgram {
 	public String getCategory() {
 		return "generator";
 	}
+
 }

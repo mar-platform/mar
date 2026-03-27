@@ -20,6 +20,7 @@ import anatlyzer.atlext.ATL.LibraryRef;
 import anatlyzer.atlext.OCL.OclModel;
 import anatlyzer.atlext.OCL.OclModelElement;
 import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
@@ -63,6 +64,8 @@ public class AnATLyzerFileInspector extends ProjectInspector {
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		ATLProgram program = new ATLProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
+		program.setHash(HashDuplicates.toHash(f));
+
 		Resource trafo = AtlLoader.load(f.getAbsolutePath());
 		if (trafo.getContents().isEmpty()) {
 			throw new InspectionErrorException.SyntaxError(program);

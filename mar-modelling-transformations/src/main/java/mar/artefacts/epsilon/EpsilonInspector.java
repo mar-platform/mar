@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.MetamodelReference.Kind;
@@ -52,6 +53,7 @@ public class EpsilonInspector extends ProjectInspector {
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		EpsilonProgram program = new EpsilonProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
+		program.setHash(HashDuplicates.toHash(f));
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		

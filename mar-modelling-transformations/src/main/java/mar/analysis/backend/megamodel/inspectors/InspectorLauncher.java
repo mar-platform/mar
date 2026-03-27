@@ -21,6 +21,8 @@ import com.google.common.base.Preconditions;
 import mar.analysis.backend.megamodel.ArtefactType;
 import mar.analysis.backend.megamodel.Ignored;
 import mar.analysis.backend.megamodel.XtextInspector;
+import mar.analysis.duplicates.HashDuplicates;
+import mar.artefacts.FileProgram;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.acceleo.AcceleoInspector;
 import mar.artefacts.atl.AnATLyzerFileInspector;
@@ -44,11 +46,13 @@ public class InspectorLauncher {
 	private final Path repositoryDataFolder;
 	private AnalysisDB analysisDb;
 	private Predicate<RepoFile> filter;
+	private Function<FileProgram, String> toId;
 
-	public InspectorLauncher(RepositoryDB db, Path repositoryDataFolder, AnalysisDB analysisDb) {
+	public InspectorLauncher(RepositoryDB db, Path repositoryDataFolder, AnalysisDB analysisDb, Function<FileProgram, String> toId) {
 		this.db = db;
 		this.repositoryDataFolder = repositoryDataFolder;
 		this.analysisDb = analysisDb;
+		this.toId = toId;
 	}
 
 	public InspectorLauncher withFilter(Predicate<RepoFile> filter) {
@@ -157,7 +161,7 @@ public class InspectorLauncher {
 				RecoveryGraph minigraph = inspector.process(fullPath.toFile());
 				if (minigraph != null) {
 					minigraph.assertValid();
-					result.add(minigraph);
+					result.add(minigraph);					
 				}
 			} catch (InspectionErrorException e) {
 				result.addError(e);

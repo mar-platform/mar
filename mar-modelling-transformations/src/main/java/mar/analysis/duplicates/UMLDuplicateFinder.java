@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.uml2.uml.NamedElement;
 
 // For the moment it uses the TokenExtractor from Ecore which essentially looks for Name
-public class UMLDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
+public class UMLDuplicateFinder<T> extends AllamanisDuplicateFinder<T, Resource> {
 
 	public UMLDuplicateFinder() {
 		super(new UMLTokenExtractor());

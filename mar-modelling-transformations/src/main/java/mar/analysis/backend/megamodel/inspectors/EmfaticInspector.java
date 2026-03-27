@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 import com.google.common.base.Preconditions;
 
 import mar.analysis.backend.megamodel.inspectors.InspectionErrorException.SyntaxError;
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
@@ -88,6 +89,8 @@ public class EmfaticInspector extends ProjectInspector {
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
 		EmfaticProgram p = new EmfaticProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));		
+		p.setHash(HashDuplicates.toHash(f));
+
 		graph.addProgram(p);
 
 		List<String> uris = getUris(f, p);

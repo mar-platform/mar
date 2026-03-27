@@ -21,8 +21,6 @@ import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.google.common.base.Preconditions;
 
 public class AnalysisDB implements Closeable {
@@ -154,7 +152,7 @@ public class AnalysisDB implements Closeable {
 
 	@Nonnull
 	public static String getValidModelsQuery() {
-		return "select relative_file, id, metadata_document from models where status = '" + Status.VALID.name() + "' or status = '" + Status.NO_VALIDATE.name() + "'";
+		return "select relative_file, id, metadata_document, hash from models where status = '" + Status.VALID.name() + "' or status = '" + Status.NO_VALIDATE.name() + "'";
 	}
 	
 	@Nonnull
@@ -182,7 +180,8 @@ public class AnalysisDB implements Closeable {
 			Path relative = Paths.get(rs.getString(1));
 			File file = new File(relativePathTransformer.apply(rs.getString(1)));
 			String metadata = rs.getString(3);
-			models.add(new Model(id, relative, file, metadata));			
+			String hash = rs.getString(4);
+			models.add(new Model(id, relative, file, metadata, hash));			
 		}
 		
 		return models;
@@ -320,7 +319,7 @@ public class AnalysisDB implements Closeable {
 		if (isReadOnly) {
 			if (modelByPathCache == null) {
 				modelByPathCache = new HashMap<>();
-				try(PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value, type FROM models m, metadata mm WHERE m.id = mm.id ORDER BY relative_file, type")) {
+				try(PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, value, type, m.hash as hash FROM models m, metadata mm WHERE m.id = mm.id ORDER BY relative_file, type")) {
 					stm.execute();
 					ResultSet rs = stm.getResultSet();
 					Model m = null;
@@ -373,13 +372,14 @@ public class AnalysisDB implements Closeable {
 		String metadataDocument = rs.getString(3);
 		String metadataValue = rs.getString(4); // This is because we have two flavours of metadata (a Json document and additional data in a string-map style, which is a pity)			
 		String type = rs.getString(5);
-		return new Model(id, relative, fullFile, metadataDocument).putKeyValueMetadata(type, metadataValue);
+		String hash = rs.getString(6);
+		return new Model(id, relative, fullFile, metadataDocument, hash).putKeyValueMetadata(type, metadataValue);
 	}
 
 	
 	@Nonnull
 	public List<Model> findByMetadata(@Nonnull String key, @Nonnull String value, @Nonnull Function<String, String> relativePathTransformer) {
-		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document FROM models m, metadata mm WHERE m.id = mm.id AND m.status IN ('VALID', 'INVALID') AND mm.type = ? AND mm.value = ?")) {			
+		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, m.hash FROM models m, metadata mm WHERE m.id = mm.id AND m.status IN ('VALID', 'INVALID') AND mm.type = ? AND mm.value = ?")) {			
 			stm.setString(1, key);
 			stm.setString(2, value);
 			stm.execute();
@@ -390,7 +390,8 @@ public class AnalysisDB implements Closeable {
 				String id = rs.getString(1);
 				File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
 				String metadataDocument = rs.getString(3);
-				result.add(new Model(id, Paths.get(rs.getString(2)), fullFile, metadataDocument));
+				String hash = rs.getString(4);
+				result.add(new Model(id, Paths.get(rs.getString(2)), fullFile, metadataDocument, hash));
 			}
 			return result;
 		} catch (SQLException e) {
@@ -409,12 +410,14 @@ public class AnalysisDB implements Closeable {
 		private Path relativePath;		
 		@Nonnull
 		private Map<String, String> keyValueMetadata;
+		private String hash;
 		
-		public Model(@Nonnull String id, @Nonnull Path relativePath, @Nonnull File file, String metadata) {
+		public Model(@Nonnull String id, @Nonnull Path relativePath, @Nonnull File file, String metadata, String hash) {
 			this.id = id;
 			this.file = file;
 			this.relativePath = relativePath;
 			this.metadata = metadata;
+			this.hash = hash;
 		}		
 		
 		protected Map<String, String> getKeyValueMetadata() {
@@ -448,6 +451,10 @@ public class AnalysisDB implements Closeable {
 		
 		public String getMetadata() {
 			return metadata;
+		}
+		
+		public String getHash() {
+			return hash;
 		}
 
 	}

@@ -3,6 +3,7 @@ package mar.analysis.backend.megamodel.inspectors;
 import java.io.File;
 import java.nio.file.Path;
 
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
@@ -27,6 +28,7 @@ public class EcoreInspector extends ProjectInspector {
 		Model m = analysisDb.getModelByPath(repoPath.toString(), (s) -> s);
 		if (m != null) {
 			Metamodel mm = Metamodel.fromFile(f.getName(), RecoveredPath.newExistingPath(m.getRelativePath(), repoFolder));
+			mm.setHash(HashDuplicates.toHash(f));
 			graph.addMetamodel(mm);	
 			return graph;
 		} else {

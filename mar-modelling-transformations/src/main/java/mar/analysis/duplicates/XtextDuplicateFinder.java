@@ -7,7 +7,7 @@ import java.util.List;
 
 import mar.models.xtext.XtextTokenizer;
 
-public class XtextDuplicateFinder<T> extends DuplicateFinder<T, File> {
+public class XtextDuplicateFinder<T> extends AllamanisDuplicateFinder<T, File> {
 
 	public XtextDuplicateFinder() {
 		super(new XtextTokenExtractor());

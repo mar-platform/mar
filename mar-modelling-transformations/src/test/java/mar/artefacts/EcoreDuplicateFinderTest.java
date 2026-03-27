@@ -8,8 +8,8 @@ import java.util.Collection;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
 import mar.analysis.duplicates.EcoreDuplicateFinder;
+import mar.analysis.duplicates.IDuplicateFinder.DuplicationGroup;
 import mar.indexer.common.configuration.ModelLoader;
 import mar.modelling.loader.ILoader;
 import mar.validation.AnalyserRegistry;

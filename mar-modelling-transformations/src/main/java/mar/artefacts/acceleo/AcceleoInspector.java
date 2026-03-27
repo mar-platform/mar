@@ -13,6 +13,7 @@ import java.util.List;
 import com.google.common.annotations.VisibleForTesting;
 
 import mar.analysis.backend.megamodel.inspectors.InspectionErrorException;
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
@@ -35,9 +36,11 @@ public class AcceleoInspector extends ProjectInspector {
 	@Override
 	public RecoveryGraph process(File f) throws Exception {
 		AcceleoProgram program = new AcceleoProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
+		program.setHash(HashDuplicates.toHash(f));
+
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
-
+		
 		List<String> uris = getURIs(f);
 	    if (uris == null)
 			throw new InspectionErrorException.SyntaxError(program);

@@ -12,7 +12,7 @@ import org.eclipse.ocl.parser.OCLLexer;
 
 import lpg.runtime.PrsStream;
 
-public class OclDuplicateFinder<T> extends DuplicateFinder<T, File> {
+public class OclDuplicateFinder<T> extends AllamanisDuplicateFinder<T, File> {
 
 	public OclDuplicateFinder() {
 		super(new OclTokenExtractor());

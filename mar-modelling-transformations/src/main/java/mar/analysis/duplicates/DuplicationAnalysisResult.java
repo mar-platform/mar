@@ -14,7 +14,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import mar.analysis.backend.megamodel.ArtefactType;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
-import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
+import mar.analysis.duplicates.IDuplicateFinder.DuplicationGroup;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 
@@ -73,6 +73,12 @@ public class DuplicationAnalysisResult {
 					db.addDuplicate(groupId, id, conf.getType());
 				} else {
 					System.out.println("Duplication: attempt to add an existing duplicate: " + id);
+				}
+			}
+			
+			for (String id : duplicationGroup.getHashArtefacts()) {
+				if (alreadyAdded.add(id)) {
+					db.addDuplicate(groupId, id, conf.getType());				
 				}
 			}
 		}
