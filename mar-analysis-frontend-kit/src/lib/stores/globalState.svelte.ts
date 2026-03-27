@@ -5,7 +5,7 @@ import { getMegamodelGraphApi } from "$lib/api/megamodel";
 import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
 import type ApiResponse from "$lib/dto/ApiResponse";
-import type { Edge, Node } from "$lib/dto/Graph";
+import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
 import type Graph from "graphology";
@@ -18,11 +18,12 @@ import { toast } from "svelte-sonner";
 type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION';
 
 class GlobalState {
-    state: 'LOADING' | 'OK' | 'ERROR' = $state('LOADING');
+    state: 'LOADING' | 'LOADING_GRAPH' | 'OK' | 'ERROR' = $state('LOADING');
     mode: GraphMode | null = $state(null);
     projects: Project[] = $state([]);
     searchProjects = $state<Project[]>([]);
     selectedProject: Project | null = $state(null);
+    selectedUnprocessedGraph: GraphDTO | null = $state(null);
     selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
     private currentGraphRenderer: Sigma | null = null;
@@ -33,6 +34,7 @@ class GlobalState {
         this.searchProjects = projects;
         this.selectedProject = null;
         this.selectedGraph = null; // Reset the graph when initializing with new projects
+        this.selectedUnprocessedGraph = null;
         this.selectedNode = null; 
         this.mode = null; // Reset the mode
 
@@ -52,12 +54,13 @@ class GlobalState {
 
         // Start loading the project graph
         const graph = await getProjectGraphApi(project.id);
-
+        
         if (graph.status === 200 && graph.data) {
-            this.selectGraph(graph.data);
+            await this.selectGraph(graph.data);
         } else {
             toast.error('Failed to load project graph. Please try again later.');
             this.selectedGraph = null;
+            this.selectedUnprocessedGraph = null;
         }
     }
 
@@ -84,6 +87,8 @@ class GlobalState {
         this.selectedProject = null;
         this.selectedGraph = null;
         this.selectedNode = null;
+        this.selectedUnprocessedGraph = null;
+        this.state = 'LOADING_GRAPH';
         
         await tick(); // Ensure that any reactive updates related to mode change are processed before proceeding
         
@@ -111,18 +116,28 @@ class GlobalState {
                 toast.error('Invalid graph mode selected.');
         }
 
+        // Some APIs take a long time, check if the user is still on the same mode before loading the graph
+        if (this.mode !== mode) {
+            return;
+        }
+        
         if (apiResponse && apiResponse.status === 200 && apiResponse.data) {
-            this.selectGraph(apiResponse.data);
+            await this.selectGraph(apiResponse.data);
         } else {
             toast.error('Failed to load graph data. Please try again later.');
             this.selectedGraph = null;
+            this.selectedUnprocessedGraph = null;
         }
+        this.state = 'OK';
     }
 
-    selectGraph(dto: GraphDTO) {
+    private async selectGraph(dto: GraphDTO) {
         if (dto === null) {
-            return null;
+            return;
         }
+
+        this.state = 'LOADING_GRAPH';
+        await tick(); // Ensure the loading state is rendered before processing the graph
 
 		const graph = new UndirectedGraph();
 
@@ -164,6 +179,9 @@ class GlobalState {
 		random.assign(graph);
 
         this.selectedGraph = graph;
+        this.selectedUnprocessedGraph = dto;
+        this.state = 'OK';
+
     }
 
     get renderer() {
@@ -188,6 +206,20 @@ class GlobalState {
         await tick();
         // Important to refresh the graph after deselecting a node
         this.renderer?.refresh();
+    }
+
+    // —— Artefacts —————————————————————————————
+
+    getArtefactsFromNodes(nodes: Node[], filterNodes: Record<keyof typeof nodeTypes, boolean>, query: string): ArtefactNode[] {
+        const q = query.trim().toLowerCase();
+        let filteredNodes = nodes
+            .filter(node => node._type === 'artefact')
+            .filter(node => filterNodes[node.artefact.type]);
+
+        if (q != '') {
+            filteredNodes = filteredNodes.filter(node => node.artefact.name.toLowerCase().includes(q));
+        }
+        return filteredNodes;
     }
 
 }

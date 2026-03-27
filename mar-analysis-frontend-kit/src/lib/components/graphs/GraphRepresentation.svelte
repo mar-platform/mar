@@ -17,11 +17,20 @@
 	import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from '$lib/constants/values';
 	import { toast } from 'svelte-sonner';
 	import GraphInfoPanel from './GraphInfoPanel.svelte';
+	import ProjectList from '../lists/ProjectList.svelte';
+	import type Project from '$lib/dto/Project';
+	import ArtefactList from '../lists/ArtefactList.svelte';
 
+    // List states
+    let listState = $derived<'PROJECT' | 'ARTEFACTS'>(globalState.mode === 'PROJECT' ? 'PROJECT' : 'ARTEFACTS');
+    
+    // Graph states
     let graphMode = $derived(globalState.mode);
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
     const selectedGraph = $derived(globalState.selectedGraph);
     let fa2Running = $state(false);
+
+    // Filter options
     let numberOfIterations = $state(DEFAULT_NUMBER_OF_ITERATIONS);
     let nodeFilter = $state('');
     let labelThreshold = $state(INITIAL_LABEL_THRESHOLD);
@@ -62,7 +71,8 @@
         "build_duplicate": true,
         "project-to-project": true,
         "input-type": true,
-        "output-type": true
+        "output-type": true,
+        "copy-from": true,
     });
 
     function handleLabelSizeChange(size: number) {
@@ -77,8 +87,28 @@
         graphVisualizerRef?.setNodeConfig(nodeFilter, nodeSize, showConnectedNodes, selectedNodeTypes);
     }
 
+    function onShowArtefactClick(project: Project) {
+        if (globalState.mode !== 'PROJECT') {
+            return;
+        }
+        // Select the project if it's not already selected
+        if (globalState.selectedProject?.id !== project.id) {
+            globalState.selectProject(project);
+        }
+        listState = 'ARTEFACTS';
+    }
+
+    function goBackToProjectList() {
+        listState = 'PROJECT';
+    }
+
 </script>
 
+{#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
+    <ProjectList {onShowArtefactClick} />
+{:else if listState === 'ARTEFACTS'}
+    <ArtefactList filterNodes={selectedNodeTypes} onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
+{/if}
 {#if graphMode !== null}
     <div class="w-full h-full overflow-hidden flex flex-col gap-2" in:fade out:fade>
         <div class="flex justify-between items-end gap-4">

@@ -8,7 +8,15 @@
 	import Searchbar from '../basic/Searchbar.svelte';
     import LucideFolder from '@lucide/svelte/icons/folder';
     import * as Empty from "$lib/components/ui/empty/index.js";
+    import LucideFile from '@lucide/svelte/icons/file';
+    import LucideNewspaper from '@lucide/svelte/icons/newspaper';
+	import { fade } from 'svelte/transition';
 
+    interface ProjectListProps {
+        onShowArtefactClick: (project: Project) => void;
+    }
+
+    let { onShowArtefactClick } : ProjectListProps = $props();
 
     function onClickProject(project: Project) {
         if (globalState.selectedProject?.id === project.id) return;
@@ -20,23 +28,31 @@
     }
 </script>
 
-<div class="min-w-80 max-w-80 rounded-lg h-full bg-page-foreground p-4 shadow-sm flex flex-col">
-	<h2 class="text-lg font-semibold">Projects</h2>
+<div class="min-w-80 max-w-80 rounded-lg h-full bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
+	<div class="flex gap-3 items-center">
+        <LucideFile />
+        <h2 class="text-lg font-semibold">Projects</h2>
+    </div>
 
     <Searchbar class="bg-page-background mt-3 mb-5" placeholder="Filter projects..." {onSearch} />
 
-	<ScrollArea class="flex-1 h-10 pr-3">
+	<ScrollArea class="flex-1 h-10 pr-3 overflow-x-hidden">
 		{#if globalState.state === 'LOADING'}
             {#each Array.from({ length: 8 }, (_, i) => i) as _(_)}
                 <Skeleton class="h-6 mt-2 w-full" />
             {/each}
         {:else}
             {#each globalState.searchProjects as project(project.id)}
-                <Button size="sm" variant={globalState.selectedProject?.id === project.id ? "secondary" : "ghost"} class="rounded-full justify-start w-full" onclick={() => onClickProject(project)}>
-                    <span title={project.id} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedProject?.id === project.id ? "font-semibold" : "")}>
-                        {project.id}
-                    </span>
-                </Button>
+                <div class="grid grid-cols-[1fr_auto] grid-rows-1 gap-2">
+                    <Button size="sm" variant={globalState.selectedProject?.id === project.id ? "secondary" : "ghost"} class="min-w-0 rounded-full justify-start" onclick={() => onClickProject(project)}>
+                        <span title={project.id} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedProject?.id === project.id ? "font-semibold" : "")}>
+                            {project.id}
+                        </span>
+                    </Button>
+                    <Button title="Show Artefacts" variant="ghost" size="icon-sm" class="rounded-full" onclick={() => onShowArtefactClick(project)}>
+                        <LucideNewspaper />
+                    </Button>
+                </div>
             {:else}
                 <Empty.Root class="from-muted/50 to-background h-full bg-linear-to-b from-30% border border-dashed -pr-3">
                     <Empty.Header >
