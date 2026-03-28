@@ -7,13 +7,15 @@
     import FA2Layout from "graphology-layout-forceatlas2/worker";
     import forceAtlas2 from "graphology-layout-forceatlas2";
     import random from 'graphology-layout/random';
+    import { edgeTypes } from './GraphEdgeTypes.js'
 
     import ArtifactInfo from './ArtefactInfo.svelte'
     import EdgeInfo from './EdgeInfo.svelte'
-    import { edgeTypes } from './GraphEdgeTypes.js'
     import { Accordion, AccordionItem } from "$lib/components/ui/accordion";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
+
+    import { untrack } from 'svelte';
 
     let { types, document, children, rightPanel }: {
       types: any;
@@ -58,12 +60,17 @@
     }
 
     $effect(() => {
-      if (document != undefined && container != undefined) {
-        currentNode = null;
-        currentEdge = null;
-        if (fa2) { fa2.kill(); fa2 = null; fa2Running = false; }
-        if (renderer != null) renderer.kill();
-        createNetwork(document);
+      // capture dependencies
+      const doc = document;
+      const c = container;
+      if (doc != undefined && c != undefined) {
+        untrack(() => {
+          currentNode = null;
+          currentEdge = null;
+          if (fa2) { fa2.kill(); fa2 = null; fa2Running = false; }
+          if (renderer != null) renderer.kill();
+          createNetwork(doc);
+        });
       }
     });
 
@@ -90,8 +97,7 @@
       random.assign(graph);
 
       renderer = new Sigma(graph, container, {
-        enableEdgeClickEvents: true,
-        enableEdgeHoverEvents: true,
+        enableEdgeEvents: true,
         hideEdgesOnMove: true,
         renderEdgeLabels: false,
         labelRenderedSizeThreshold: 6,
@@ -438,7 +444,7 @@
 
     <!-- ── Right panel: optional slot + artefact or edge info ── -->
     <aside
-      class="shrink-0 overflow-y-auto max-h-[680px] pl-2"
+      class="shrink-0 overflow-y-auto min-w-50 max-h-[680px] pl-2"
       style="width: {rightPanelWidth}px"
     >
       {#if rightPanel}

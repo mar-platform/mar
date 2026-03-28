@@ -24,9 +24,7 @@ public class RawRepositoryDB implements AutoCloseable {
 
 	private Connection connection;
 
-
-	@Nonnull	
-	public RawRepositoryDB(File file) {					
+	public RawRepositoryDB(File file) {
 		String url = getConnectionString(file);
 		 
         try {

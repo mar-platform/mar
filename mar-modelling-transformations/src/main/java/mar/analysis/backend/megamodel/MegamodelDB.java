@@ -43,8 +43,7 @@ public class MegamodelDB implements Closeable {
 	private Connection connection;
 	private Map<String, Artefact> allArtefacts;
 	
-	@Nonnull	
-	public MegamodelDB(File file) {					
+	public MegamodelDB(File file) {
 		String url = getConnectionString(file);
 		 
         try {
@@ -224,7 +223,6 @@ public class MegamodelDB implements Closeable {
 		return artefact;
 	}
 
-	@Nonnull
 	public void getProjectArtefacts(String projectId, BiConsumer<String, Artefact> consumer) {
 		try {
 			PreparedStatement stm = connection.prepareStatement("SELECT id FROM artefacts WHERE project_id = ?");
