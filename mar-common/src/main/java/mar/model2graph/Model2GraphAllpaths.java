@@ -20,7 +20,6 @@ import mar.paths.PathNode;
 
 public class Model2GraphAllpaths extends AbstractModel2Graph {
 	
-	@Nonnull
 	private int defaultMaxLength;
 	@Nonnull
 	private Function<Integer, Integer> nodeSizeToMaxLength = (v) -> defaultMaxLength;

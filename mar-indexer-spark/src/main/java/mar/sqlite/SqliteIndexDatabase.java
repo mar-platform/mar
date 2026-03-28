@@ -18,7 +18,6 @@ public class SqliteIndexDatabase implements AutoCloseable {
 	private PreparedStatement stmInsert;
 	private PreparedStatement stmInsertMetadata;
 
-	@Nonnull	
 	public SqliteIndexDatabase(File file) {					
 		String url = getConnectionString(file);
 		 

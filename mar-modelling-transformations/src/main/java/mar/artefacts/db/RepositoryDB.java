@@ -30,7 +30,6 @@ public class RepositoryDB implements AutoCloseable {
 	private Connection connection;
 	private Path rootFolder;
 	
-	@Nonnull
 	public RepositoryDB(@Nonnull Path rootFolder, @Nonnull File file) throws SQLException {
 		String url = getConnectionString(file);
 		this.connection = DriverManager.getConnection(url);

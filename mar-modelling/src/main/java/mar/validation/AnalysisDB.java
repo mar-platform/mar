@@ -35,8 +35,7 @@ public class AnalysisDB implements Closeable {
 	@Nonnull
 	private Map<String, Status> alreadyChecked = new HashMap<>();
 	private boolean isReadOnly;
-	
-	@Nonnull	
+		
 	public AnalysisDB(File file) {					
 		String url = getConnectionString(file);
 		 
