@@ -166,7 +166,7 @@ public class DuplicateComputation {
 
 		@Override
 		public String toName(FileProgram p) {
-			return toName(p);
+			return this.toName(p);
 		}
 
 		@Override
@@ -176,7 +176,7 @@ public class DuplicateComputation {
 
 		@Override
 		public String toId(FileProgram p) {
-			return toId(p);
+			return this.toId(p);
 		}
 
 		@Override
