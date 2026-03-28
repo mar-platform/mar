@@ -51,23 +51,23 @@ public class DuplicateComputation {
 		
 		IDuplicateFinder<Metamodel, Resource> finder = metamodelConfiguration.toFinder();
 		Collection<RecoveryGraph> metamodelGraphs = miniGraphs.get(metamodelConfiguration.getType());
-		Set<String> consideredHashDuplicates = new HashSet<String>();
+		//Set<String> consideredHashDuplicates = new HashSet<String>();
 		for (RecoveryGraph recoveryGraph : metamodelGraphs) {
 			for (Metamodel metamodel : recoveryGraph.getMetamodels()) {
-				String id = metamodelConfiguration.toId(metamodel);
-				if (consideredHashDuplicates.contains(id))
-					continue;
+				// String id = metamodelConfiguration.toId(metamodel);
+				//if (consideredHashDuplicates.contains(id))
+				//	continue;
 				
 				try {
 					Resource r = metamodelConfiguration.toResource(metamodel);
 
-					Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup("ecore", metamodelConfiguration.toId(metamodel));
-					if (hashDuplicationGroup != null) {
-						consideredHashDuplicates.addAll(hashDuplicationGroup);
-						finder.addHashResource(metamodel, r, hashDuplicationGroup);
-					} else {
+					//Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup("ecore", metamodelConfiguration.toId(metamodel));
+					//if (hashDuplicationGroup != null) {
+					//	consideredHashDuplicates.addAll(hashDuplicationGroup);
+					//	finder.addHashResource(metamodel, r, hashDuplicationGroup);
+					//} else {
 						finder.addResource(metamodel, r);
-					}
+					//}
 					
 					r.unload();
 				} catch (Exception e) {
@@ -101,42 +101,53 @@ public class DuplicateComputation {
 		DuplicateFinderConfiguration<FileProgram, ?> conf = typeToConfiguration.get(type);
 		IDuplicateFinder<FileProgram, T> finder = (IDuplicateFinder<FileProgram, T>) conf.toFinder();
 		
-		Set<String> consideredHashDuplicates = new HashSet<String>();
-		for (RecoveryGraph graph : graphs) {			
-			for (FileProgram p : graph.getPrograms()) {
-				String id = conf.toId(p);
-				if (consideredHashDuplicates.contains(id))
-					continue;
-				
-				try {
-					T model = (T) conf.toResource(p);
+		if (finder instanceof HashSimpleDuplicateFinder) {
+			Set<String> consideredHashDuplicates = new HashSet<String>();
+			for (RecoveryGraph graph : graphs) {			
+				for (FileProgram p : graph.getPrograms()) {
+					String id = conf.toId(p);
+					if (consideredHashDuplicates.contains(id))
+						continue;
 
-					Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup(p.getKind(), conf.toId(p));
-					if (hashDuplicationGroup != null) {
-						consideredHashDuplicates.addAll(hashDuplicationGroup);
-						finder.addHashResource(p, model, hashDuplicationGroup);
-					} else {
-						finder.addResource(p, model);
+					try {
+						T model = (T) conf.toResource(p);
+	
+						Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup(p.getKind(), conf.toId(p));
+						if (hashDuplicationGroup != null) {
+							consideredHashDuplicates.addAll(hashDuplicationGroup);
+							finder.addHashResource(p, model, hashDuplicationGroup);
+						} else {
+							finder.addResource(p, model);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			}
-			
-			// Not anymore because it is done globally (see above)
-			/*
-			for (Metamodel metamodel : graph.getMetamodels()) {
-				try {
-					Resource r = metamodelConfiguration.toResource(metamodel);
-					metamodelDuplicateFinder.addResource(metamodel, r);
-					r.unload();
-				} catch (Exception e) {
-					e.printStackTrace();
+		} else {		
+			//Set<String> consideredHashDuplicates = new HashSet<String>();
+			for (RecoveryGraph graph : graphs) {			
+				for (FileProgram p : graph.getPrograms()) {
+					//String id = conf.toId(p);
+					//if (consideredHashDuplicates.contains(id))
+					//	continue;
+					
+					try {
+						T model = (T) conf.toResource(p);
+	
+						//Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup(p.getKind(), conf.toId(p));
+						//if (hashDuplicationGroup != null) {
+						//	consideredHashDuplicates.addAll(hashDuplicationGroup);
+						//	finder.addHashResource(p, model, hashDuplicationGroup);
+						//} else {
+							finder.addResource(p, model);
+						//}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			
-			}
-			*/
-		}		
+			}		
+		}
 
 		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(conf.default_t0(), conf.default_t1());
 		return duplicates;

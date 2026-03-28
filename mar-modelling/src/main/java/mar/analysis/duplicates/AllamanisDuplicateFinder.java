@@ -64,17 +64,17 @@ public abstract class AllamanisDuplicateFinder<I, T> extends DuplicateFinder<I, 
 				
 				DuplicationGroup<I> k1Group = new DuplicationGroup<I>(k1);
 				// If the resource comes from a hash
-				if (hashGroups.containsKey(k1)) {
-					k1Group.addHashDuplicates(hashGroups.get(k1));
-				}
+				//if (hashGroups.containsKey(k1)) {
+				//	k1Group.addHashDuplicates(hashGroups.get(k1));
+				//}
 				
 				fingerprints.forEach((k2, v2) -> {
 					if (k1 != k2 && ! groups.containsKey(k2)) {
 						if (areDuplicates(k1, k2, t0, t1)) {							
 							k1Group.addDuplicate(k2);
-							if (hashGroups.containsKey(k2)) {
-								k1Group.addHashDuplicates(hashGroups.get(k1));
-							}							
+							//if (hashGroups.containsKey(k2)) {
+							//	k1Group.addHashDuplicates(hashGroups.get(k1));
+							//}							
 						}					
 					}
 				});

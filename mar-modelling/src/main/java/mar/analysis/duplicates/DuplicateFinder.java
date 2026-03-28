@@ -19,6 +19,7 @@ public abstract class DuplicateFinder<I, T> implements IDuplicateFinder<I, T> {
 
 	@Override
 	public void addHashResource(I artefact, T resource, Set<? extends String> hashDuplicationGroup) {
+		hashGroups.put(artefact, hashDuplicationGroup);
 		addResource(artefact, resource);
 	}
 
