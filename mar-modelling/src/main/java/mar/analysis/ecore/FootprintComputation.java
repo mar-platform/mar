@@ -37,10 +37,37 @@ public class FootprintComputation {
 		}
 	}
 	
-	public Set<String> toClassNames(Resource resource) {
+	public Result toClassNames(Resource resource) {
 		Set<String> result = new HashSet<String>();
 		Set<Resource> visited = new HashSet<Resource>();
-		return toClassNames(resource, result, visited);		
+		Set<String> classNames = toClassNames(resource, result, visited);		
+		
+		String originalURI = resource.getURI().toString();
+		Set<String> externalResourceURIs = new HashSet<String>();
+		for (Resource external : visited) {
+			String uri = external.getURI().toString();
+			if (! uri.equals(originalURI))
+				externalResourceURIs.add(uri);
+		}
+		
+		return new Result(classNames, externalResourceURIs);
+	}
+	
+	public static final class Result {
+		Set<String> footprint; 
+		Set<String> external; 
+		public Result(Set<String> footprint, Set<String> external) {
+			this.footprint = footprint;
+			this.external = external;
+		}
+		
+		public Set<String> getFootprint() {
+			return footprint;
+		}
+		
+		public Set<String> getExternal() {
+			return external;
+		}
 	}
 	
 	private Set<String> toClassNames(Resource resource, Set<String> result, Set<Resource> visited) {

@@ -13,6 +13,7 @@ import anatlyzer.atl.model.ATLModel;
 import anatlyzer.atl.tests.api.AtlLoader;
 import mar.analysis.backend.megamodel.ArtefactType;
 import mar.analysis.duplicates.DuplicateComputation.DuplicateFinderConfiguration;
+import mar.analysis.duplicates.DuplicateComputation.HashFinderConfiguration;
 import mar.artefacts.FileProgram;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.artefacts.qvto.QvtoLoader;
@@ -29,9 +30,15 @@ public class DuplicateConfiguration {
 		this.toName = toName;
 	}
 	
-	public DuplicateComputation newComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs) {
-		DuplicateComputation computation = new DuplicateComputation(miniGraphs);
+	public DuplicateComputation newComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, HashDuplicates hashDuplicates) {
+		DuplicateComputation computation = new DuplicateComputation(miniGraphs, hashDuplicates);
 
+		computation.addType(ArtefactType.ACCELEO, new HashFinderConfiguration(ArtefactType.ACCELEO, toName, toId));
+		computation.addType(ArtefactType.OCL, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
+		computation.addType(ArtefactType.GMF, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
+		computation.addType(ArtefactType.EMFATIC, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
+		computation.addType(ArtefactType.EMFTEXT, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
+		
 		computation.addType(ArtefactType.ATL, new DuplicateFinderConfiguration<FileProgram, ATLModel>() {
 			@Override
 			public ATLModel toResource(FileProgram p) throws Exception {

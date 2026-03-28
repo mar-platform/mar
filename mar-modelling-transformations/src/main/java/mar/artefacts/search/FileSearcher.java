@@ -133,5 +133,21 @@ public class FileSearcher {
 	protected static int distance(String loosyPath, String projectFilePath) {
 		return DISTANCE_ALG.apply(loosyPath, projectFilePath);
 	}
-	
+
+	// Find a parent folder until a given root is reached
+	public Path findParentFolder(Path path, String folderName) {
+	    Path current = path;
+
+	    while (current != null) {
+	        Path fileName = current.getFileName();
+
+	        if (fileName != null && fileName.toString().equals(folderName)) {
+	            return current; 
+	        }
+
+	        current = current.getParent(); 
+	    }
+
+	    return null;
+	}
 }

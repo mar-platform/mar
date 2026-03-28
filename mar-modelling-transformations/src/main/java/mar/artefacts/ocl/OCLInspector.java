@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.annotation.CheckForNull;
 
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
@@ -33,7 +34,8 @@ public class OCLInspector extends ProjectInspector {
 		
 		Path filePathInRepo = getRepositoryPath(f);
 		OclProgram program = new OclProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
-		
+		program.setHash(HashDuplicates.toHash(f));
+
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		

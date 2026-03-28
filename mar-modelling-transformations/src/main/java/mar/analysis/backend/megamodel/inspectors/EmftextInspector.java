@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mar.analysis.backend.megamodel.inspectors.EmftextInspector.EmfTextParser.Result;
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
@@ -31,6 +32,7 @@ public class EmftextInspector extends ProjectInspector {
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		
 		EmftextProgram p = new EmftextProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));		
+		p.setHash(HashDuplicates.toHash(f));
 		graph.addProgram(p);
 		
 		Result result = EmfTextParser.parse(f.toPath());

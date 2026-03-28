@@ -28,7 +28,7 @@ public class XtextAnalysisDB extends AnalysisDB {
 		List<Model> results = new ArrayList<>();
 		PreparedStatement statement = connection.prepareStatement("select type, value from models join metadata on models.id = metadata.id where models.id = ?");
 		for (Model model : models) {
-			XtextModel xtext = new XtextModel(model.getId(), model.getRelativePath(), model.getFile(), model.getMetadata());
+			XtextModel xtext = new XtextModel(model.getId(), model.getRelativePath(), model.getFile(), model.getMetadata(), model.getHash());
 			results.add(xtext);
 			
 			statement.setString(1, model.getId());
@@ -56,8 +56,8 @@ public class XtextAnalysisDB extends AnalysisDB {
 		private Set<String> generatedMetamodels = new HashSet<>();
 		private Set<String> importedMetamodels  = new HashSet<>();
 		
-		public XtextModel(String id, Path relative, File file, String metadata) {
-			super(id, relative, file, metadata);
+		public XtextModel(String id, Path relative, File file, String metadata, String hash) {
+			super(id, relative, file, metadata, hash);
 		}
 
 		public void addImportedMetamodel(String... uris) {

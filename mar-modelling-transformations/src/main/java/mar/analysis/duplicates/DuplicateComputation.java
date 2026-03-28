@@ -1,15 +1,19 @@
 package mar.analysis.duplicates;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 import javax.annotation.CheckForNull;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
 import mar.analysis.backend.megamodel.ArtefactType;
-import mar.analysis.duplicates.DuplicateFinder.DuplicationGroup;
+import mar.analysis.duplicates.IDuplicateFinder.DuplicationGroup;
 import mar.artefacts.FileProgram;
 import mar.artefacts.Metamodel;
 import mar.artefacts.graph.RecoveryGraph;
@@ -20,11 +24,13 @@ public class DuplicateComputation {
 
 	private final Map<ArtefactType, DuplicateFinderConfiguration<FileProgram, ?>> typeToConfiguration = new HashMap<>();
 	private DuplicateFinderConfiguration<Metamodel, Resource> metamodelConfiguration;
+	private HashDuplicates hashDuplicates;
 	
-	public DuplicateComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs) {
+	public DuplicateComputation(Map<ArtefactType, Collection<RecoveryGraph>> miniGraphs, HashDuplicates hashDuplicate) {
 		this.miniGraphs = miniGraphs;
+		this.hashDuplicates = hashDuplicate;
 	}
-	
+
 	public void addType(ArtefactType type, DuplicateFinderConfiguration<FileProgram, ?> configuration) {
 		typeToConfiguration.put(type, configuration);
 	}
@@ -36,20 +42,33 @@ public class DuplicateComputation {
 	public DuplicationAnalysisResult run() {
 		DuplicationAnalysisResult result = new DuplicationAnalysisResult(typeToConfiguration, metamodelConfiguration);
 		
-		DuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder = metamodelConfiguration.toFinder();		
+		IDuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder = metamodelConfiguration.toFinder();		
 		for (ArtefactType type : typeToConfiguration.keySet()) {
 			Collection<DuplicationGroup<FileProgram>> groups = computeDuplicates(type, metamodelDuplicateFinder);
 			result.add(type, groups);
 		}
 		
 		
-		DuplicateFinder<Metamodel, Resource> finder = metamodelConfiguration.toFinder();
+		IDuplicateFinder<Metamodel, Resource> finder = metamodelConfiguration.toFinder();
 		Collection<RecoveryGraph> metamodelGraphs = miniGraphs.get(metamodelConfiguration.getType());
+		Set<String> consideredHashDuplicates = new HashSet<String>();
 		for (RecoveryGraph recoveryGraph : metamodelGraphs) {
 			for (Metamodel metamodel : recoveryGraph.getMetamodels()) {
+				String id = metamodelConfiguration.toId(metamodel);
+				if (consideredHashDuplicates.contains(id))
+					continue;
+				
 				try {
 					Resource r = metamodelConfiguration.toResource(metamodel);
-					finder.addResource(metamodel, r);
+
+					Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup("ecore", metamodelConfiguration.toId(metamodel));
+					if (hashDuplicationGroup != null) {
+						consideredHashDuplicates.addAll(hashDuplicationGroup);
+						finder.addHashResource(metamodel, r, hashDuplicationGroup);
+					} else {
+						finder.addResource(metamodel, r);
+					}
+					
 					r.unload();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -70,7 +89,7 @@ public class DuplicateComputation {
 	
 	@CheckForNull
 	@SuppressWarnings("unchecked")
-	private <T> Collection<DuplicationGroup<FileProgram>> computeDuplicates(ArtefactType type, DuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder) {
+	private <T> Collection<DuplicationGroup<FileProgram>> computeDuplicates(ArtefactType type, IDuplicateFinder<Metamodel, Resource> metamodelDuplicateFinder) {
 		System.out.println("Finding duplicates: " + type);
 		
 		Collection<RecoveryGraph> graphs = miniGraphs.get(type);
@@ -80,13 +99,25 @@ public class DuplicateComputation {
 		}
 		
 		DuplicateFinderConfiguration<FileProgram, ?> conf = typeToConfiguration.get(type);
-		DuplicateFinder<FileProgram, T> finder = (DuplicateFinder<FileProgram, T>) conf.toFinder();
+		IDuplicateFinder<FileProgram, T> finder = (IDuplicateFinder<FileProgram, T>) conf.toFinder();
 		
+		Set<String> consideredHashDuplicates = new HashSet<String>();
 		for (RecoveryGraph graph : graphs) {			
 			for (FileProgram p : graph.getPrograms()) {
+				String id = conf.toId(p);
+				if (consideredHashDuplicates.contains(id))
+					continue;
+				
 				try {
 					T model = (T) conf.toResource(p);
-					finder.addResource(p, model);
+
+					Set<? extends String> hashDuplicationGroup = hashDuplicates.getDuplicationGroup(p.getKind(), conf.toId(p));
+					if (hashDuplicationGroup != null) {
+						consideredHashDuplicates.addAll(hashDuplicationGroup);
+						finder.addHashResource(p, model, hashDuplicationGroup);
+					} else {
+						finder.addResource(p, model);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -106,7 +137,7 @@ public class DuplicateComputation {
 			}
 			*/
 		}		
-		
+
 		Collection<DuplicationGroup<FileProgram>> duplicates = finder.getDuplicates(conf.default_t0(), conf.default_t1());
 		return duplicates;
 	}
@@ -114,7 +145,7 @@ public class DuplicateComputation {
 	public static interface DuplicateFinderConfiguration<I, T> {
 		public T toResource(I p) throws Exception; 
 		public String toName(I p);
-		public DuplicateFinder<I, T> toFinder();
+		public IDuplicateFinder<I, T> toFinder();
 		public String toId(I p);
 		public default double default_t0() {
 			return 0.8;
@@ -124,7 +155,35 @@ public class DuplicateComputation {
 		}
 		
 		public ArtefactType getType();	
+	}
+	
+	public static record HashFinderConfiguration(ArtefactType type, Function<FileProgram, String> toId, Function<FileProgram, String> toName) implements DuplicateFinderConfiguration<FileProgram, Void> {
 
+		@Override
+		public Void toResource(FileProgram p) throws Exception {
+			return null;
+		}
+
+		@Override
+		public String toName(FileProgram p) {
+			return this.toName.apply(p);
+		}
+
+		@Override
+		public IDuplicateFinder<FileProgram, Void> toFinder() {
+			return new HashSimpleDuplicateFinder<FileProgram, Void>();
+		}
+
+		@Override
+		public String toId(FileProgram p) {
+			return this.toId.apply(p);
+		}
+
+		@Override
+		public ArtefactType getType() {
+			return type;
+		}
+		
 	}
 	
 }

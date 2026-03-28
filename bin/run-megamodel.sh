@@ -9,6 +9,7 @@ fi
 
 ORGANIZEDB=$1
 MEGAMODELDB=$2
+PREVIOUS_MEGAMODEL=$3
 DB_PATH="/data3/supergraph/$ORGANIZEDB"
 SKIP_STEP="n"
 
@@ -24,18 +25,26 @@ if [[ "$SKIP_STEP" =~ ^[Yy]$ ]]; then
 else
     echo ">>> Running organization step..."
     cd mining || { echo "Failure: Could not enter mining directory"; exit 1; }
-    python3 organize.py -d /data3/supergraph/repos:/data3/supergraph/repos-mps:/data3/supergraph/repos-spoofax \
+#    python3 organize.py -d /data3/supergraph/repos:/data3/supergraph/repos-mps:/data3/supergraph/repos-spoofax \
+    python3 organize.py -d /data3/supergraph/repos2 \
 	    -o "$DB_PATH" \
 	    -c configuration.yaml
     cd ..
 fi
 
+PREV_ARG=""
+if [ -n "$PREVIOUS_MEGAMODEL" ]; then
+    PREV_ARG="--prev-version \"$PREVIOUS_FILE\""
+    fi
+
 # Step 2: Java Transformations
 echo ">>> Starting Java transformations..."
 # Note: Using the second parameter $MEGAMODELDB for the output
 time java --add-opens java.base/java.lang=ALL-UNNAMED -jar mar-modelling-transformations/target/mar-modelling-transformations-1.0-SNAPSHOT-all.jar \
-     --repository /data3/supergraph/repos \
+     --repository /data3/supergraph/repos2 \
      --repoDB "$DB_PATH" \
      --cache /data3/supergraph/ \
      --output "$MEGAMODELDB" \
-     --analysis-ecore
+     --analysis-ecore \
+     $PREV_ARG | tee /tmp/megamodel.log
+

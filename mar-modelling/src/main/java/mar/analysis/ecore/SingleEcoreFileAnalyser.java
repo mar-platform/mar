@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+import mar.analysis.ecore.FootprintComputation.Result;
 import mar.analysis.smells.Smell;
 import mar.analysis.smells.ecore.EcoreSmellCatalog;
 import mar.modelling.loader.ILoader;
@@ -149,8 +150,10 @@ public class SingleEcoreFileAnalyser extends SingleEMFFileAnalyser {
 		if (extractClassifierFootprint) {
 			if (metadata == null) 
 				metadata = new HashMap<String, List<String>>();
-			Set<String> classNames = FootprintComputation.INSTANCE_CROSS_REFS.toClassNames(r);
+			Result result = FootprintComputation.INSTANCE_CROSS_REFS.toClassNames(r);
+			Set<String> classNames = result.footprint;
 			metadata.put("footprint", Collections.singletonList(String.join(",", classNames)));
+			metadata.put("externalURIs", Collections.singletonList(String.join(",", result.external)));			
 		}
 		
 		// Metadata as a document

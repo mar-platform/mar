@@ -23,7 +23,7 @@ import org.eclipse.epsilon.evl.parse.EvlLexer;
 import org.eclipse.epsilon.ewl.parse.EwlLexer;
 
 
-public class EpsilonDuplicateFinder<T> extends DuplicateFinder<T, File> {
+public class EpsilonDuplicateFinder<T> extends AllamanisDuplicateFinder<T, File> {
 
 	public EpsilonDuplicateFinder() {
 		super(new GenericEpsilonTokenizer());

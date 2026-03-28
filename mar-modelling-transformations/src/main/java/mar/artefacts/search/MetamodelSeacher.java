@@ -44,8 +44,8 @@ public class MetamodelSeacher {
 		this.analysisDb = analysisDb;
 		this.toProjectPathNormalizer = toProjectPathNormalizer;
 		
-		builtinMetamodelsFootprints.put(Metamodel.fromURI(EcorePackage.eINSTANCE.getName(), EcorePackage.eINSTANCE.getNsURI(), ArtefactStatus.BUILTIN), toClassNames(EcorePackage.eINSTANCE.eResource()));
-		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI(), ArtefactStatus.BUILTIN), toClassNames(UMLPackage.eINSTANCE.eResource()));
+		builtinMetamodelsFootprints.put(Metamodel.fromURI(EcorePackage.eINSTANCE.getName(), EcorePackage.eINSTANCE.getNsURI(), ArtefactStatus.BUILTIN), toClassNames(EcorePackage.eINSTANCE.eResource()).getFootprint());
+		builtinMetamodelsFootprints.put(Metamodel.fromURI(UMLPackage.eINSTANCE.getName(), UMLPackage.eINSTANCE.getNsURI(), ArtefactStatus.BUILTIN), toClassNames(UMLPackage.eINSTANCE.eResource()).getFootprint());
 	}
 
 	public void setCache(SearchCache cache) {
@@ -153,7 +153,7 @@ public class MetamodelSeacher {
 		return set;
 	}
 
-	private Set<String> toClassNames(Resource resource) {
+	private FootprintComputation.Result toClassNames(Resource resource) {
 		return FootprintComputation.INSTANCE_CROSS_REFS.toClassNames(resource);
 	}
 	

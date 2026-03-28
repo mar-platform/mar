@@ -5,12 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.CheckForNull;
 
-import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.Artefact.ArtefactStatus;
-import mar.artefacts.RecoveredPath.HeuristicPath;
+import mar.analysis.megamodel.model.Project;
 import mar.artefacts.RecoveredPath.MissingPath;
 import mar.artefacts.RecoveredPath.UnexpectedPath;
 import mar.artefacts.db.RepositoryDB;
@@ -50,6 +50,7 @@ public abstract class ProjectInspector {
 		return repoFolder.resolve(projectSubPath);
 	}
 
+	// Gets the path relative to the root folder with all repositories
 	protected Path getRepositoryPath(File f) {
 		return getRepositoryPath(f.toPath());
 	}

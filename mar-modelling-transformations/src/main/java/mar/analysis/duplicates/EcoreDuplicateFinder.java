@@ -8,7 +8,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 
-public class EcoreDuplicateFinder<T> extends DuplicateFinder<T, Resource> {
+public class EcoreDuplicateFinder<T> extends AllamanisDuplicateFinder<T, Resource> {
 
 	public EcoreDuplicateFinder() {
 		super(new EcoreTokenExtractor());

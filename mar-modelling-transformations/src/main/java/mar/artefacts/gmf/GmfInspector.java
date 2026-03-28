@@ -20,6 +20,7 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.base.Preconditions;
 
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.RecoveredPath;
@@ -66,6 +67,7 @@ public class GmfInspector extends XMLProjectInspector {
 		RecoveryGraph graph = new RecoveryGraph(getProject(), stats);
 		
 		GmfProgram program = new GmfProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));
+		program.setHash(HashDuplicates.toHash(f));
 		graph.addProgram(program);
 		
 		Document doc = loadDocument(stream);

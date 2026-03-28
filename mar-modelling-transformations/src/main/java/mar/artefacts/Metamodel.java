@@ -24,6 +24,7 @@ public class Metamodel {
 	private Set<Metamodel> dependents = new HashSet<>();
 	private Set<Metamodel> subpackages = new HashSet<>();
 	private ArtefactStatus status;
+	private String hash;
 	
 	private Metamodel(@Nonnull String  name) {
 		this.name = name;
@@ -122,6 +123,13 @@ public class Metamodel {
 	public String toString() {
 		return "Metamodel " + name + ":"+ (uri == null ? file.getPath().toString() : uri);
 	}
+
+	public void setHash(String hash) {
+		this.hash = hash;
+	}
 	
+	public String getHash() {
+		return hash;
+	}
 	
 }

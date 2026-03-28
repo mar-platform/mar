@@ -301,6 +301,7 @@ public class TransformationRelationshipsAnalysis {
 				*/
 				
 				// In addition, every artefact in the group that is not deemed as original, is a copy of the original
+				/*
 				for (String artefactId : g.getArtefacts()) {
 					if (! originalArtefacts.contains(artefactId)) {
 						Artefact copyOfOriginal = db.getArtefactById(artefactId);
@@ -310,6 +311,7 @@ public class TransformationRelationshipsAnalysis {
 						}
 					}
 				}
+				*/
 				
 			} else if (node instanceof ArtefactNode a) {
 				String sourceProjectId = a.getArtefact().getProject().getId();

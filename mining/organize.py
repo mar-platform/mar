@@ -34,7 +34,7 @@ class Configuration:
             filter_ = self.must_contain_filters[ext]
             #print("Checking filter", filter_)
             try:
-                with open(fullpath, 'r') as fp:
+                with open(fullpath, 'r', encoding='utf-8', errors='ignore') as fp:
                     for l_no, line in enumerate(fp):
                         if filter_ in line:
                             print("It's accepted: ", filepath)
@@ -165,14 +165,11 @@ def process_folder(input_folder, extension_map, file_map, cursor, processed_proj
 
         # Open (and cache) the git repo for this project
         if project_path not in repo_cache:
-            if GIT_AVAILABLE:
-                repo_abs = os.path.join(input_folder, project_path)
-                try:
-                    repo_cache[project_path] = gitpython.Repo(repo_abs)
-                except Exception as e:
-                    logging.warning("Could not open git repo at '%s': %s", repo_abs, e)
-                    repo_cache[project_path] = None
-            else:
+            repo_abs = os.path.join(input_folder, project_path)
+            try:
+                repo_cache[project_path] = gitpython.Repo(repo_abs)
+            except Exception as e:
+                logging.warning("Could not open git repo at '%s': %s", repo_abs, e)
                 repo_cache[project_path] = None
 
         repo = repo_cache[project_path]
@@ -261,12 +258,6 @@ def open_db(output_file):
         updated_at      TEXT,
         updated_commit  TEXT,
         updated_author  TEXT,
-        created_at      TEXT,
-        created_commit  TEXT,
-        created_author  TEXT,
-        updated_at      TEXT,
-        updated_commit  TEXT,
-        updated_author  TEXT,
         PRIMARY KEY (file_path)
     )''')
     # A file_path is used in used_file if its name appears in used_file
@@ -327,6 +318,8 @@ if __name__ == "__main__":
         '.mtl': 'acceleo',
         
         '.xtext': 'xtext',
+        '.xtend': 'xtend',
+        '.mwe2' : 'mwe2',
 
         '.launch': 'eclipse-launcher',        
 

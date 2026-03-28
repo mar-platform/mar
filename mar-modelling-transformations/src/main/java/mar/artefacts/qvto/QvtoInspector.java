@@ -15,6 +15,7 @@ import org.eclipse.m2m.internal.qvt.oml.cst.UnitCS;
 import org.eclipse.ocl.cst.PathNameCS;
 import org.eclipse.ocl.cst.SimpleNameCS;
 
+import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
@@ -45,7 +46,8 @@ public class QvtoInspector extends ProjectInspector {
 		
 		Path qvtoFilePath = getRepositoryPath(qvtoFile);
 		QvtoProgram program = new QvtoProgram(RecoveredPath.newExistingPath(qvtoFilePath, repoFolder));
-		
+		program.setHash(HashDuplicates.toHash(qvtoFile));
+
 		RecoveryGraph graph = new RecoveryGraph(getProject());
 		graph.addProgram(program);
 		

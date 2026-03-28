@@ -22,11 +22,22 @@ public abstract class FileProgram {
 	private final List<MetamodelReference> metamodels = new ArrayList<>();
 	
 	private final List<RecoveredPath> importedPrograms = new ArrayList<>();
+
+	private String hash;
 	
 	public FileProgram(@Nonnull RecoveredPath path) {
 		this.path = path;
 	}
 
+
+	public void setHash(String hash) {
+		this.hash = hash;
+	}
+	
+	public String getHash() {
+		return hash;
+	}
+	
 	public RecoveredPath getFilePath() {
 		return path;
 	}
