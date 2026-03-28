@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.CheckForNull;
@@ -153,7 +154,7 @@ public abstract class ProjectInspector {
 
 	@CheckForNull
 	protected Metamodel tryFindURI(String uriOrFile) {
-		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s);
+		List<Model> models = analysisDb.findByMetadata("nsURI", uriOrFile, s -> s, v -> Set.of(v.split(",")).contains(uriOrFile));
 		for(Model m : models) {
 			if (m.getRelativePath().startsWith(projectSubPath)) {
 				RecoveredPath p;

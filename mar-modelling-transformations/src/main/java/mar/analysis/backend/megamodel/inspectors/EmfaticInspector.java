@@ -21,6 +21,7 @@ import mar.artefacts.Metamodel;
 import mar.artefacts.MetamodelReference;
 import mar.artefacts.ProjectInspector;
 import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.ExistingPath;
 import mar.artefacts.db.RepositoryDB;
 import mar.artefacts.graph.RecoveryGraph;
 import mar.validation.AnalysisDB;
@@ -92,36 +93,28 @@ public class EmfaticInspector extends ProjectInspector {
 		p.setHash(HashDuplicates.toHash(f));
 
 		graph.addProgram(p);
+		
+		String filename = f.getName().replace(".emf", ".ecore");
+		File parent = f.getParentFile();
 
-		List<String> uris = getUris(f, p);
-						
-		if (uris.isEmpty()) {
-			// TODO: Is this even possible?
-			String filename = f.getName().replace(".emf", ".ecore");
-			File parent = f.getParentFile();
-
-			RecoveredPath rp = getFileSearcher().findPotentiallyGeneratedFile(parent.toPath(), filename);
+		RecoveredPath rp = getFileSearcher().findPotentiallyGeneratedFile(parent.toPath(), filename);
+		if (rp instanceof ExistingPath) {
 			Metamodel mm = Metamodel.fromFile(filename, rp);
 			graph.addMetamodel(mm);
-			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		
-		} else {			
+			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);				
+		} else {
 			// Assume that URIs between .ecore files match
-			// Assume that the root package URIs the main URI, and the rest are dependent meta-models
+			// Assume that the root package URIs the main URI, and the rest are dependent meta-models			
+			List<String> uris = getUris(f, p);
 			String rootURI = uris.get(0);
-			Metamodel metamodel = toMetamodelFromURI(f.getName().replace(".emf", ""), rootURI);
-			graph.addMetamodel(metamodel);
-			p.addMetamodel(metamodel, MetamodelReference.Kind.GENERATE);
-			
-			/*
-			String root = uris.get(0);
-			Metamodel rootPkg = Metamodel.fromURI(root, root);
-			for (int i = 1; i < uris.size(); i++) {
-				String uri = uris.get(i);
-				Metamodel mm = Metamodel.fromURI(uri, uri);
-				rootPkg.addSubpackage(mm);
-			}
-			graph.addMetamodel(rootPkg);
-			*/
+			Metamodel foundMetamodel = tryFindURI(rootURI);
+			if (foundMetamodel != null) {
+				p.addMetamodel(foundMetamodel, MetamodelReference.Kind.GENERATE);				
+			} else {
+				Metamodel mm = Metamodel.fromFile(filename, rp);
+				graph.addMetamodel(mm);
+				p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		
+			}			
 		}
 		
 		return graph;

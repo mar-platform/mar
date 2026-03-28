@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -27,7 +28,6 @@ public class AnalysisDB implements Closeable {
 
 	public enum Status {
 		NOT_PROCESSED, DUPLICATED, TOO_SMALL, VALID, CRASHED, TIMEOUT, NO_VALIDATE, NOT_HANDLED
-
 	}
 
 	@Nonnull
@@ -378,7 +378,7 @@ public class AnalysisDB implements Closeable {
 	
 	@Nonnull
 	public List<Model> findByMetadata(@Nonnull String key, @Nonnull String value, @Nonnull Function<String, String> relativePathTransformer) {
-		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, m.hash FROM models m, metadata mm WHERE m.id = mm.id AND m.status IN ('VALID', 'INVALID') AND mm.type = ? AND mm.value = ?")) {			
+		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, m.hash, m.status FROM models m, metadata mm WHERE m.id = mm.id AND mm.type = ? AND mm.value = ?")) {			
 			stm.setString(1, key);
 			stm.setString(2, value);
 			stm.execute();
@@ -390,6 +390,7 @@ public class AnalysisDB implements Closeable {
 				File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
 				String metadataDocument = rs.getString(3);
 				String hash = rs.getString(4);
+				String status = rs.getString(5);
 				result.add(new Model(id, Paths.get(rs.getString(2)), fullFile, metadataDocument, hash));
 			}
 			return result;
@@ -397,7 +398,33 @@ public class AnalysisDB implements Closeable {
 			throw new RuntimeException(e);
 		}		
 	}
-	
+
+	@Nonnull
+	public List<Model> findByMetadata(@Nonnull String key, @Nonnull String value, @Nonnull Function<String, String> relativePathTransformer, Predicate<String> filter) {
+		try (PreparedStatement stm = connection.prepareStatement("SELECT m.id, relative_file, metadata_document, m.hash, m.status, mm.value FROM models m, metadata mm WHERE m.id = mm.id AND mm.type = ? AND mm.value LIKE ?")) {			
+			stm.setString(1, key);
+			stm.setString(2, "%" + value + "%");
+			stm.execute();
+			
+			List<Model> result = new ArrayList<>();
+			ResultSet rs = stm.getResultSet();
+			while (rs.next()) {
+				String id = rs.getString(1);
+				File fullFile = new File(relativePathTransformer.apply(rs.getString(2)));
+				String metadataDocument = rs.getString(3);
+				String hash = rs.getString(4);
+				String status = rs.getString(5);
+				String metadataValue = rs.getString(6);
+				if (filter.test(metadataValue)) {
+					result.add(new Model(id, Paths.get(rs.getString(2)), fullFile, metadataDocument, hash));
+				}
+			}
+			return result;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}		
+	}
+
 	public static class Model {
 		@Nonnull
 		private String id;
