@@ -32,7 +32,7 @@ import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
 public class TransformationRelationshipsAnalysis {
 
-	private static Relationship[] MAIN_RELATIONSHIP_TYPES = { Relationship.TYPED_BY, Relationship.IMPORT };
+	private static Relationship[] MAIN_RELATIONSHIP_TYPES = { Relationship.TYPED_BY, Relationship.IMPORT, Relationship.GENERATE };
 	
 	private RawRepositoryDB raw;
 	private MegamodelDB db;

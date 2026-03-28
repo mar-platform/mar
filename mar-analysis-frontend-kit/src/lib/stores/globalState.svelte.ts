@@ -61,7 +61,7 @@ class GlobalState {
         "project-to-project": true,
         "input-type": true,
         "output-type": true,
-        "copy-from": true,
+        "generate": true,
     });
 
     private currentGraphRenderer: Sigma | null = null;

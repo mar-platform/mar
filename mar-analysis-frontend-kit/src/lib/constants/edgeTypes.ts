@@ -8,5 +8,6 @@ export const edgeTypes: Record<EdgeType, { label: string; color: string }> = {
 	'project-to-project': { label: 'Project to project', color: '--color-project-to-project' },
 	'input-type': { label: 'Input type', color: '--color-input-type' },
 	'output-type': { label: 'Output type', color: '--color-output-type' },
-	'copy-from': { label: 'Copy from', color: '--color-copy-from' },
+	'generate': { label: 'Generates', color: '--color-generate' },
+	// 'copy-from': { label: 'Copy from', color: '--color-copy-from' },
 };

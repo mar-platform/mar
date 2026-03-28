@@ -74,7 +74,7 @@
     --color-project-to-project: #a855f7;
     --color-input-type: #3b82f6;
     --color-output-type: #ef4444;
-	--color-copy-from: #14b8a6;
+	--color-generate: #14b8a6;
 }
 
 .dark {
@@ -146,7 +146,7 @@
     --color-project-to-project: #c084fc;
     --color-input-type: #60a5fa;
     --color-output-type: #f87171;
-	--color-copy-from: #2dd4bf;
+	--color-generate: #2dd4bf;
 }
 
 @theme inline {
@@ -228,7 +228,7 @@
 	--color-project-to-project: var(--color-project-to-project);
 	--color-input-type: var(--color-input-type);
 	--color-output-type: var(--color-output-type);
-	--color-copy-from: var(--color-copy-from);
+	--color-generate: var(--color-generate);
 }
 
 @layer base {
