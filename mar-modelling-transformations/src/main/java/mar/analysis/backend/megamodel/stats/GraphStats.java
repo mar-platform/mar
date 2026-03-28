@@ -1,8 +1,9 @@
 package mar.analysis.backend.megamodel.stats;
 
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.jgrapht.Graph;
@@ -14,13 +15,11 @@ import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.stats.ResultAnalyser.GraphLevelStats;
-import mar.analysis.backend.megamodel.stats.ResultAnalyser.Isolated;
-import mar.analysis.backend.megamodel.stats.ResultAnalyser.IsolatedFile;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.ComponentGraph;
-import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.ComponentGraph.SingleComponentGraph;
 import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
+import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
 import mar.analysis.megamodel.model.RelationshipsGraph.Node;
@@ -64,8 +63,8 @@ public class GraphStats {
 			int inDegree = impl.inDegreeOf(node);
 			totalOutDegree += outDegree;
 			totalInDegree += inDegree;
-			System.out.println(inDegree + " - " + outDegree);
-			System.out.println(totalInDegree + " - " + totalOutDegree);
+			//System.out.println(inDegree + " - " + outDegree);
+			//System.out.println(totalInDegree + " - " + totalOutDegree);
 			
 			if (inDegree == 0 && outDegree == 0) {
 				totalIsolatedArtefacts++;
@@ -82,14 +81,14 @@ public class GraphStats {
 		out.println("Isolated nodes:");
 		isolatedByType.asMap().forEach((type, artefacts) -> {
 			out.println("- Type: " + type + "  " + artefacts.size() + " isolated artefacts");
-			/*
-			List<Artefact> sorted = new ArrayList<>(artefacts);
-			Collections.sort(sorted, (a1, a2) -> a1.getId().compareTo(a2.getId()));
+			
+			List<String> sorted = new ArrayList<>(artefacts);
+			Collections.sort(sorted);
 			sorted.forEach(a -> {
-				graphStats.addIsolated(a);
-				out.println("   " + a.getId());
+				//graphStats.addIsolated(a);
+				out.println("   " + a);
 			});
-			*/
+			
 		});
 				
 		out.println();

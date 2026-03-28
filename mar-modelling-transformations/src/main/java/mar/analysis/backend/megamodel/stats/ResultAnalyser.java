@@ -219,8 +219,8 @@ public class ResultAnalyser implements Callable<Integer> {
 				int inDegree = impl.inDegreeOf(node);
 				totalOutDegree += outDegree;
 				totalInDegree += inDegree;
-				System.out.println(inDegree + " - " + outDegree);
-				System.out.println(totalInDegree + " - " + totalOutDegree);
+				//System.out.println(inDegree + " - " + outDegree);
+				//System.out.println(totalInDegree + " - " + totalOutDegree);
 				
 				if (inDegree == 0 && outDegree == 0) {
 					totalIsolatedArtefacts++;
