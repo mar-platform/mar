@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.agrona.SystemUtil;
+
 import mar.analysis.backend.megamodel.inspectors.EmftextInspector.EmfTextParser.Result;
 import mar.analysis.duplicates.HashDuplicates;
 import mar.artefacts.FileProgram;
@@ -129,13 +131,23 @@ public class EmftextInspector extends ProjectInspector {
 	            // --- import URI ---
 	            Matcher importMatcher = IMPORT_URI.matcher(trimmed);
 	            if (importMatcher.find()) {
-	                result.imports.add(importMatcher.group(1));
+	            	var imp = importMatcher.group(1);
+	            	if (imp != null) {
+	            		result.imports.add(imp);
+	            	} else {
+	            		System.out.println("Error parsing import in Emftext");
+	            	}
 	            }
 
 	            // --- syntax URI ---
 	            Matcher syntaxMatcher = SYNTAX_URI.matcher(trimmed);
 	            if (syntaxMatcher.find()) {
-	                result.syntaxUris.add(syntaxMatcher.group(1));
+	            	var imp = syntaxMatcher.group(1);
+	            	if (imp != null) {
+	            		result.syntaxUris.add(imp);
+	            	} else {
+	            		System.out.println("Error parsing syntax dependency in Emftext");
+	            	}
 	            }
 	        }
 
