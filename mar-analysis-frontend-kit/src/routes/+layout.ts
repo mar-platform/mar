@@ -4,6 +4,7 @@ import { globalState } from "$lib/stores/globalState.svelte";
 import type { LayoutLoad } from "./$types";
 
 export const ssr = false;
+export const prerender = true
 
 export const load: LayoutLoad = ({ fetch }) => {
     const projectData = allProjectsApi(fetch);

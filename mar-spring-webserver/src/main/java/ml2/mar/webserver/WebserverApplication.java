@@ -26,7 +26,7 @@ import ml2.mar.webserver.configuration.AnalysisFilterImpl;
 public class WebserverApplication {
 
 	public static void main(String[] args) {
-    	if (args.length != 2) {
+    	if (args.length < 2) {
     		System.out.println("Megamodel and raw repository database files required");
     		System.exit(-1);
     	}
