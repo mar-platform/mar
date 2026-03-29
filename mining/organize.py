@@ -83,7 +83,7 @@ def load_config(configuration_file):
     f.close()
     return Configuration(data)
 
-def get_git_info(repo_path, file_rel_path):
+def get_git_info_bad(repo_path, file_rel_path):
     """Return (created_at, created_commit, created_author, updated_at, updated_commit, updated_author).
     All values are None if git info cannot be retrieved."""
     try:
@@ -107,6 +107,32 @@ def get_git_info(repo_path, file_rel_path):
         logging.warning("Git error for '%s' in '%s': %s", file_rel_path, repo_path, e)
         return {}
 
+
+def get_git_info(repo_path, file_rel_path):
+    try:
+        repo = gitpython.Repo(repo_path)        
+        commits = repo.iter_commits(paths=file_rel_path)
+
+        latest = next(commits, None)
+        if latest is None:
+            return {}
+
+        oldest = latest
+        for c in commits:
+            oldest = c
+
+        return {
+            'created_at':     oldest.committed_datetime.isoformat(),
+            'created_commit': oldest.hexsha,
+            'created_author': str(oldest.author),
+            'updated_at':     latest.committed_datetime.isoformat(),
+            'updated_commit': latest.hexsha,
+            'updated_author': str(latest.author),
+        }
+
+    except Exception as e:
+        logging.warning("Git error for '%s': %s", file_rel_path, e)
+        return {}    
 
 def insert_project(dir, cursor):
     project_name = dir.split(os.path.sep)[1]
