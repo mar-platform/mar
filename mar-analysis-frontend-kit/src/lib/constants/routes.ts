@@ -1,6 +1,6 @@
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
-
-export const BASE_URL = PUBLIC_API_BASE_URL;
+import { PUBLIC_WEB_BASE_URL } from '$env/static/public';
+console.log('WEB:', PUBLIC_WEB_BASE_URL);
+export const BASE_URL = PUBLIC_WEB_BASE_URL;
 
 export const GITHUB_PATH = 'https://github.com/mar-platform/mar';
 

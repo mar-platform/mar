@@ -3,6 +3,7 @@ import type ApiResponse from "$lib/dto/ApiResponse";
 import type Stats from "$lib/dto/Stats";
 
 export const statsApi = async (fetch?: typeof window.fetch): Promise<ApiResponse<Stats>> => {
+    console.log('Fetching stats from API...', STATS_ENDPOINT);
     const request = await (fetch || window.fetch)(STATS_ENDPOINT, {
         method: 'GET',
         headers: {
