@@ -35,9 +35,9 @@ public class DuplicateConfiguration {
 
 		computation.addType(ArtefactType.ACCELEO, new HashFinderConfiguration(ArtefactType.ACCELEO, toName, toId));
 		computation.addType(ArtefactType.OCL, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
-		computation.addType(ArtefactType.GMF, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
-		computation.addType(ArtefactType.EMFATIC, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
-		computation.addType(ArtefactType.EMFTEXT, new HashFinderConfiguration(ArtefactType.OCL, toName, toId));
+		computation.addType(ArtefactType.GMF, new HashFinderConfiguration(ArtefactType.GMF, toName, toId));
+		computation.addType(ArtefactType.EMFATIC, new HashFinderConfiguration(ArtefactType.EMFATIC, toName, toId));
+		computation.addType(ArtefactType.EMFTEXT, new HashFinderConfiguration(ArtefactType.EMFTEXT, toName, toId));
 		
 		computation.addType(ArtefactType.ATL, new DuplicateFinderConfiguration<FileProgram, ATLModel>() {
 			@Override
@@ -149,6 +149,8 @@ public class DuplicateConfiguration {
 			}
 		});
 		
+		/*
+		 * Doesn't work
 		computation.addType(ArtefactType.OCL, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
 			public File toResource(FileProgram p) throws Exception {
@@ -175,6 +177,7 @@ public class DuplicateConfiguration {
 				return toName.apply(p);
 			}
 		});
+		*/
 		
 		computation.addType(ArtefactType.HENSHIN, new DuplicateFinderConfiguration<FileProgram, File>() {
 			@Override
