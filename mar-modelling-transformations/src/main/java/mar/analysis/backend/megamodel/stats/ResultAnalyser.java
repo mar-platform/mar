@@ -175,22 +175,24 @@ public class ResultAnalyser implements Callable<Integer> {
 			new GraphStats(megamodelDb, rawDb, artefactTypes);			
 			
 			
+			
 			/*
 			System.out.println("\nArtefact completion stats:");
 			CombinedStats stats = new CombinedStats(rawDb.getStats(), megamodelDb.getStats());
 			stats.getArtefactRecoveryCompletion().forEach((k, v) -> {
 				System.out.println("  " + String.format("%-8s", k) + " " + String.format("%.2f", v));
 			});
-
+			*/
+			
 			DuplicationStats duplicationInfo = new DuplicationStats(megamodelDb, rawDb);
 			ProjectStats projectStats = new ProjectStats(megamodelDb, rawDb);
 			
 			LatexTables.toArtefactTable(System.out, rawDb.getStats(), projectStats, duplicationInfo);
 			
 			showProjectInformation();
-			*/
+			
 
-			ProjectStats projectStats = new ProjectStats(megamodelDb, rawDb);
+			//ProjectStats projectStats = new ProjectStats(megamodelDb, rawDb);
 
 		};
 	}

@@ -168,7 +168,7 @@ public class DuplicateComputation {
 		public ArtefactType getType();	
 	}
 	
-	public static record HashFinderConfiguration(ArtefactType type, Function<FileProgram, String> toId, Function<FileProgram, String> toName) implements DuplicateFinderConfiguration<FileProgram, Void> {
+	public static record HashFinderConfiguration(ArtefactType type, Function<FileProgram, String> toName, Function<FileProgram, String> toId) implements DuplicateFinderConfiguration<FileProgram, Void> {
 
 		@Override
 		public Void toResource(FileProgram p) throws Exception {

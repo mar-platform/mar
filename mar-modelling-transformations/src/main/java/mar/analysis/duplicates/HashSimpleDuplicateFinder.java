@@ -23,7 +23,7 @@ public class HashSimpleDuplicateFinder<I, T> extends DuplicateFinder<I, T> {
 		for (I i : groupsByRepresentative) {
 			DuplicationGroup<I> group = new DuplicationGroup<I>(i);
 			Set<? extends String> groupElements = hashGroups.get(i);
-			if (groupElements != null) {
+			if (groupElements != null && groupElements.size() > 1) {
 				group.addHashDuplicates(Preconditions.checkNotNull(hashGroups.get(i)));
 				result.add(group);
 			}
