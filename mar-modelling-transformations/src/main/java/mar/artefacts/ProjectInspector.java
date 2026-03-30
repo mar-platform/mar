@@ -129,7 +129,7 @@ public abstract class ProjectInspector {
 						matchedStrategy = r;
 					
 					RecoveredPath rp = r.tryRecover(repoFolder, repoName, uriOrFile);
-					if (p != null) {
+					if (rp != null) {
 						return Metamodel.fromFile(uriOrFile, rp);
 					}
 				}
