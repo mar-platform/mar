@@ -128,7 +128,7 @@ public abstract class ProjectInspector {
 					if (matchedStrategy == null)
 						matchedStrategy = r;
 					
-					RecoveredPath rp = r.tryRecover(repoFolder, repoName, uriOrFile);
+					RecoveredPath rp = r.tryRecover(repoFolder, repoName, uriOrFile, getFileSearcher());
 					if (rp != null) {
 						return Metamodel.fromFile(uriOrFile, rp);
 					}
@@ -201,7 +201,7 @@ public abstract class ProjectInspector {
 
 	private static AbsolutePathResolutionStrategy[] EMPTY_RESOLUTION_STRATEGY = new AbsolutePathResolutionStrategy[0];
 	
-	public static enum AbsolutePathResolutionStrategy {
+	public enum AbsolutePathResolutionStrategy {
 		ABSOLUTE {
 			@Override
 			boolean match(String filePath) {				
@@ -209,7 +209,7 @@ public abstract class ProjectInspector {
 			}
 
 			@Override
-			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath) {
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath, FileSearcher fileSearcher) {
 				Path p = getExpectedPath(repoFolder, repoName, filePath);
 				Path absolute = repoFolder.resolve(p);
 				if (Files.exists(absolute)) {
@@ -224,6 +224,23 @@ public abstract class ProjectInspector {
 				return repoName.resolve(filePath.substring(1));
 			}
 		},
+		LOOSY {
+			@Override
+			boolean match(String filePath) {				
+				return filePath.startsWith("/");
+			}
+
+			@Override
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath, FileSearcher fileSearcher) {
+				RecoveredPath result = fileSearcher.findFile(getExpectedPath(repoFolder, repoName, filePath));
+				return result;				
+			}
+
+			@Override
+			Path getExpectedPath(Path repoFolder, Path repoName, String filePath) {
+				return repoName.resolve(filePath.substring(1));
+			}
+		},
 		RESOURCE_PREFIX {
 			@Override
 			boolean match(String uriOrFile) {
@@ -231,7 +248,7 @@ public abstract class ProjectInspector {
 			}
 
 			@Override
-			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath) {
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath, FileSearcher fileSearcher) {
 				Path p = getExpectedPath(repoFolder, repoName, filePath);
 				Path absolute = repoFolder.resolve(p);
 				if (Files.exists(absolute)) {
@@ -252,7 +269,7 @@ public abstract class ProjectInspector {
 			}
 
 			@Override
-			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath) {
+			RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath, FileSearcher fileSearcher) {
 				Path p = getExpectedPath(repoFolder, repoName, filePath);
 				Path absolute = repoFolder.resolve(p);
 				if (Files.exists(absolute)) {
@@ -270,6 +287,6 @@ public abstract class ProjectInspector {
 
 		abstract Path getExpectedPath(Path repoFolder, Path repoName, String uriOrFile);
 
-		abstract RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath);
+		abstract RecoveredPath tryRecover(Path repoFolder, Path repoName, String filePath, FileSearcher fileSearcher);
 	}
 }
