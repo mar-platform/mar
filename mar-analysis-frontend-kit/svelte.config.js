@@ -6,7 +6,7 @@ const config = {
 	    adapter: adapter(),
 	    paths: {
 		// SvelteKit will now automatically tell Vite to use this base
-		base: '/modelgraph'
+		base: '/modelgraph-ui'
 	    }
 	},
 	vitePlugin: {
