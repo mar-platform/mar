@@ -82,12 +82,14 @@ public class GraphStats {
 		isolatedByType.asMap().forEach((type, artefacts) -> {
 			out.println("- Type: " + type + "  " + artefacts.size() + " isolated artefacts");
 			
+			/*
 			List<String> sorted = new ArrayList<>(artefacts);
 			Collections.sort(sorted);
 			sorted.forEach(a -> {
 				//graphStats.addIsolated(a);
 				out.println("   " + a);
 			});
+			*/
 			
 		});
 				
@@ -103,9 +105,9 @@ public class GraphStats {
 		out.println("  " + String.format("%-8s", "Avg. in-degree") + " " + String.format("%.2f", 1.0 * totalInDegree / (totalArtefactNodes - totalIsolatedArtefacts)));
 
 		ComponentGraph component = new ComponentGraph(graph);
-		System.out.println("#connected components: " + component.getSubgraphs().size());
+		System.out.println("#connected components: " + component.getSubgraphsThatAreGroups().size());
 		for(int i = 0; i < 3; i++) {
-			SingleComponentGraph subgraph = component.getSubgraphs().get(i);
+			SingleComponentGraph subgraph = component.getSubgraphsThatAreGroups().get(i);
 			System.out.println(" - " + subgraph.getNodes().size());
 		}
 	}

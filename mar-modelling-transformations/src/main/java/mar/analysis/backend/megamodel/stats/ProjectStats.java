@@ -43,6 +43,9 @@ public class ProjectStats {
 		for (Node node : interProject.getNodes()) {
 			int inDegree = interProject.getGraph().inDegreeOf(node);
 			int outDegree = interProject.getGraph().outDegreeOf(node);
+			//if (inDegree > 1 || outDegree > 1) {
+			//	System.out.println("Node " + node.getId() + " " + inDegree + "  " + outDegree);
+			//}
 			totalInDegree += inDegree; 
 			totalOutDegree += outDegree; 
 			if (inDegree == 0 && outDegree == 0) {
@@ -51,7 +54,7 @@ public class ProjectStats {
 		}
 		
 		Preconditions.checkState(totalInDegree == totalOutDegree);
-		double avgDegree = totalInDegree / (totalProjects - totalIsolated);
+		double avgDegree = 1.0* totalInDegree / (totalProjects - totalIsolated);
 		
 		System.out.println();
 		System.out.println("Project general stats");
@@ -61,9 +64,9 @@ public class ProjectStats {
 		System.out.println("Avg. degree " + String.format("%.2f", avgDegree));
 	
 		ComponentGraph component = new ComponentGraph(interProject);
-		System.out.println("#connected components: " + component.getSubgraphs().size());
+		System.out.println("#connected components: " + component.getSubgraphsThatAreGroups().size());
 		for(int i = 0; i < 3; i++) {
-			SingleComponentGraph subgraph = component.getSubgraphs().get(i);
+			SingleComponentGraph subgraph = component.getSubgraphsThatAreGroups().get(i);
 			System.out.println(" - " + subgraph.getNodes().size());
 		}
 		

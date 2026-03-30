@@ -46,6 +46,10 @@ public class ComponentGraph {
 		return subgraphs;
 	}
 	
+	public List<SingleComponentGraph> getSubgraphsThatAreGroups() {
+		return subgraphs.stream().filter(s -> s.getNodes().size() > 1).toList();
+	}
+	
 	public static class SingleComponentGraph extends RelationshipsGraph {
 
 		@JsonProperty("name")
