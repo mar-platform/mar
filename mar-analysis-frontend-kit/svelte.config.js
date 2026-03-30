@@ -2,8 +2,12 @@ import adapter from '@sveltejs/adapter-static';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	kit: { 
-		adapter: adapter(),
+        kit: { 
+	    adapter: adapter(),
+	    paths: {
+		// SvelteKit will now automatically tell Vite to use this base
+		base: '/modelgraph'
+	    }
 	},
 	vitePlugin: {
 		dynamicCompileOptions: ({ filename }) =>
