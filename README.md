@@ -1,18 +1,13 @@
-# MAR - A search engine for models
+# ModelGraph
 
-A search engine of models built over Apache HBase.
-You can try it at http://mar-search.org
+This is an anonymised version of the repository that contains the code for the paper: "Connecting the Models: A Global Mega-model of MDE Projects on GitHub".
 
-## Features
+The project can be inspected but it is unlikely that it can be compiled and executed completely (especially the Java part) since it is part of a larger project and the anonymisation process likely is breaking the build.
 
-- Crawlers for GitHub, GenMyModel and AtlanMod Zoo
-- Loaders and validators for Ecore, UML, PNML, and more
-- Text-based queries 
-- Example-based queries 
-- Web-based user interface
+The relevant sub-projects for inspection are:
 
-## Installation
-
-The detailed instructions to compile and deploy MAR locally
-are available here: https://github.com/mar-platform/mar/wiki/Installation-instructions
+* mar-modelling-transformations
+* mar-spring-webserver
+* mar-analysis-frontend-kit
+* mining
 
