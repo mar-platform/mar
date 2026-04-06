@@ -44,7 +44,7 @@
     ] as const;
 
     let breadcrumbs = $derived.by(() => {
-        const path = page.url.pathname;
+        const path = page.url.href;
         const crumbs: { title: string; href: string }[] = [];
         
         for (const route of routes) {
@@ -169,11 +169,12 @@
             <NavigationMenu.List class="mx-5 gap-2 flex-col py-2">
                 {#each routes as route(route.title)}
                         {#if route.subList}
-                            {#each route.subList as subRoute(subRoute.title)}
+                            {@const subList = [route,...route.subList]}
+                            {#each subList as subRoute(subRoute.title)}
                                 <NavigationMenu.Item>
                                     <NavigationMenu.Link href={subRoute.href}>
                                         {#snippet child()}
-                                            <a href={subRoute.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
+                                            <a href={subRoute.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
                                         {/snippet}
                                     </NavigationMenu.Link>
                                 </NavigationMenu.Item>
@@ -182,7 +183,7 @@
                             <NavigationMenu.Item>   
                                 <NavigationMenu.Link href={route.href}>
                                     {#snippet child()}
-                                        <a href={route.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</a>
+                                        <a href={route.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
                                     {/snippet}
                                 </NavigationMenu.Link>
                             </NavigationMenu.Item>

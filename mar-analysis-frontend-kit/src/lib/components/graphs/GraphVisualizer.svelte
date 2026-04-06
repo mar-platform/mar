@@ -208,4 +208,4 @@
 	}
 </script>
 
-<div class="min-h-[calc(100svh-120px-40px-88px-8px)] w-full cursor-grab active:cursor-grabbing" bind:this={container}></div>
+<div class="flex-1 cursor-grab active:cursor-grabbing" bind:this={container}></div>

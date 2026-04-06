@@ -67,7 +67,7 @@
     <input
         bind:value={query}
         autocomplete="off"
-        class="text-sm outline-none w-[calc(100%-3.5rem)]"
+        class="text-sm outline-none w-[calc(100%-3.5rem)] min-w-30"
         oninput={handleInput}
         placeholder={placeholder}
         onkeydown={handleKeyDown}

@@ -64,7 +64,7 @@
 </script>
 
 <div class="flex flex-1 gap-8 min-[1100px]:gap-4 min-[1100px]:flex-row flex-col">
-    <div class="w-full h-[calc(100svh-120px-40px)] min-[1100px]:max-w-80">
+    <div class="w-full h-[calc(100svh-152px-40px)] min-[1100px]:max-w-80">
         {#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
             <ProjectList {onShowArtefactClick} />
         {:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
@@ -72,7 +72,7 @@
         {/if}
     </div>
     {#if graphMode !== null}
-        <div id="graph-view" class="flex-1 min-w-0 min-h-[calc(100svh-120px-40px)] flex flex-col gap-2" in:fade out:fade>
+        <div id="graph-view" class="flex-1 min-w-0 min-h-[calc(100svh-152px-40px)] flex flex-col gap-2" in:fade out:fade>
             <div class="w-full flex flex-col">
                 {#if globalState.selectedProject}
                     {#key globalState.selectedProject.id}
@@ -134,7 +134,7 @@
                 </ScrollArea>
             </div>
     
-            <div class="flex-1 bg-page-foreground rounded-lg shadow-sm">
+            <div class="relative flex-1 flex bg-page-foreground rounded-lg shadow-sm">
                 {#if selectedGraph !== null}
                     {#key selectedGraph}
                         <GraphVisualizer
@@ -144,10 +144,8 @@
                          />
                     {/key}
                 {:else}
-                    <div class="relative p-4 w-full h-full">
-                        <LucideLoaderCircle class="animate-spin absolute top-1/2 left-1/2 -mt-10 -ml-10 w-10 h-10 z-10 text-text-placeholder" />
-                        <Skeleton class="p-4 w-full h-full" />
-                    </div>
+                    <Skeleton class="m-4 flex-1" />
+                    <LucideLoaderCircle class="animate-spin absolute top-[calc((1/2*100%)+1.25rem)] left-[calc((1/2*100%)+1.25rem)] -mt-10 -ml-10 w-10 h-10 z-10 text-text-placeholder" />
                 {/if}
             </div>
         </div>
