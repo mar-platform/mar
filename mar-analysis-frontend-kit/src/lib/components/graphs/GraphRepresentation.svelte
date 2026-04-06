@@ -18,6 +18,8 @@
 	import type Project from '$lib/dto/Project';
 	import ArtefactList from '../lists/ArtefactList.svelte';
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
+	import { downloadGraph } from '$lib/utils/downloadGraph';
+    import LucideImage from '@lucide/svelte/icons/image';
 
     // List states
     let listState = $derived<'PROJECT' | 'ARTEFACTS'>(globalState.mode === 'PROJECT' ? 'PROJECT' : 'ARTEFACTS');
@@ -136,6 +138,10 @@
     
             <div class="relative flex-1 flex bg-page-foreground rounded-lg shadow-sm">
                 {#if selectedGraph !== null}
+                    <Button variant="secondary" size="sm" class="bg-accent border gap-2 border-input-border absolute z-10 top-2 right-2" onclick={downloadGraph}>
+                        <LucideImage />
+                        Export image
+                    </Button>
                     {#key selectedGraph}
                         <GraphVisualizer
                             bind:this={graphVisualizerRef} 
