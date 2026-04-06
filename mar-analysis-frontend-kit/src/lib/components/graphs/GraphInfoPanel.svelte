@@ -59,7 +59,7 @@
 {/snippet}
 
 {#if (selectedNode !== null || selectedEdge !== null) && graph !== null}
-    <div id="details" class="min-w-85 min-[1100px]:max-w-85 h-[calc(100svh-152px-40px)] rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
+    <div id="details" class="min-w-85 min-[1100px]:max-w-85 h-lvh min-[1100px]:h-[calc(100svh-152px-40px)] rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Details</h2>
             <Button size="icon-sm" variant="ghost" class="rounded-full" onclick={closePanel}>

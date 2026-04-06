@@ -64,7 +64,7 @@
 </script>
 
 <div class="flex flex-1 gap-8 min-[1100px]:gap-4 min-[1100px]:flex-row flex-col">
-    <div class="w-full h-[calc(100svh-152px-40px)] min-[1100px]:max-w-80">
+    <div class="w-full h-lvh min-[1100px]:h-[calc(100svh-152px-40px)] min-[1100px]:max-w-80">
         {#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
             <ProjectList {onShowArtefactClick} />
         {:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
@@ -72,7 +72,7 @@
         {/if}
     </div>
     {#if graphMode !== null}
-        <div id="graph-view" class="flex-1 min-w-0 min-h-[calc(100svh-152px-40px)] flex flex-col gap-2" in:fade out:fade>
+        <div id="graph-view" class="flex-1 min-w-0 min-h-lvh min-[1100px]:min-h-[calc(100svh-152px-40px)] flex flex-col gap-2" in:fade out:fade>
             <div class="w-full flex flex-col">
                 {#if globalState.selectedProject}
                     {#key globalState.selectedProject.id}

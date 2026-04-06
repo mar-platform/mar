@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Sigma from 'sigma';
-	import type { EdgeDisplayData, NodeDisplayData } from 'sigma/types';
+	import type { EdgeDisplayData, NodeDisplayData, PlainObject } from 'sigma/types';
 	import type Graph from 'graphology';
 	import UndirectedGraph from 'graphology';
 
@@ -12,6 +12,11 @@
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
 	import { globalState } from '$lib/stores/globalState.svelte';
+
+	interface NodeData extends NodeDisplayData {
+		labelColor: string;
+		hoverBgColor: string;
+	}
 
 	interface GraphVisualizerProps {
 		graph: UndirectedGraph;
@@ -58,7 +63,10 @@
 
 	function setNodeConfig() {
 		globalState.renderer?.setSetting('nodeReducer', (nodeId, data) => {
-			const res: Partial<NodeDisplayData> = { ...data };
+			const res: Partial<NodeData> = { ...data };
+			res.labelColor = getComputedStyle(document.documentElement).getPropertyValue("--color-text-primary");
+			res.hoverBgColor = getComputedStyle(document.documentElement).getPropertyValue("--color-page-background");
+
 			// Node visibility logic
 			if (nodeFilter !== '' && nodeId.toLowerCase()?.includes(nodeFilter.toLowerCase()) === false) {
 				res.hidden = true;
@@ -126,12 +134,63 @@
 		startLayout(globalState.numberOfIterations);
 	}
 
+	/** Controls the label rendered when hovering over a node */
+	const customHoverRenderer = (
+		context: CanvasRenderingContext2D,
+		data: PlainObject,
+		settings: PlainObject
+	): void => {
+		const size = settings.labelSize as number;
+		const font = settings.labelFont as string;
+		const weight = settings.labelWeight as string;
+		const label = data.label as string;
+
+		if (!label) return;
+
+		// Properties of the label
+		context.font = `${weight} ${size}px ${font}`;
+		const textWidth = context.measureText(label).width;
+		const boxWidth = textWidth + 26;
+		const boxHeight = size + 10;
+		
+		// Coordinates of the node
+		const nodeX = data.x as number;
+		const nodeY = data.y as number;
+		const nodeSize = data.size as number;
+
+		const boxX = nodeX - 9;
+    	const boxY = nodeY - (boxHeight / 2);
+
+		// Fill background
+		context.fillStyle = (data.hoverBgColor as string);
+		context.beginPath();
+		context.roundRect(boxX, boxY, boxWidth, boxHeight, boxHeight / 2);
+		context.fill();
+
+		// Paint the node on top of the label background
+		context.fillStyle = (data.color as string);
+		context.beginPath();
+		context.arc(nodeX, nodeY, nodeSize, 0, Math.PI * 2);
+		context.fill();
+
+		// Text
+		context.fillStyle = (data.labelColor as string);
+		const textX = nodeX + nodeSize + 8;
+    	context.fillText(label, textX, nodeY + size / 3);
+	};
+
 	function startRenderer(graph: Graph) {
 		globalState.renderer = new Sigma(graph, container, {
 			hideEdgesOnMove: true,
 			renderEdgeLabels: true,
 			enableEdgeEvents: true,
+			defaultDrawNodeHover: customHoverRenderer,
 			labelRenderedSizeThreshold: 6,
+			labelFont: "Noto Sans, sans-serif",
+			labelColor: {
+				attribute: "labelColor",
+				color: "red"
+			}
 		});
 		globalState.renderer.on('enterNode', () => {
 			container.style.cursor = 'pointer';
