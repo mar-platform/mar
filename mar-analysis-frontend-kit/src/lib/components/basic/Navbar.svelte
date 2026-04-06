@@ -77,13 +77,13 @@
                 {/if}
                 <span class="font-semibold">{APP_NAME}</span>
             </a>
-            <NavigationMenu.Root viewport={false} class="min-[920px]:block hidden">
+            <NavigationMenu.Root viewport={false} class="min-[1150px]:block hidden">
                 <NavigationMenu.List class="flex-wrap w-full">
                     {#each routes as route(route.title)}
                         <NavigationMenu.Item class="hidden md:block">
                             {#if route.subList}
                                 {#if showAsNestedMenus}
-                                    <NavigationMenu.Trigger class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</NavigationMenu.Trigger>
+                                    <NavigationMenu.Trigger class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</NavigationMenu.Trigger>
                                     <NavigationMenu.Content>
                                         <ul class="grid w-75 gap-4 p-2">
                                             {#each route.subList as subRoute(subRoute.title)}
@@ -98,13 +98,13 @@
                                 {:else}
                                     <NavigationMenu.Link href={route.href}>
                                         {#snippet child()}
-                                            <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</a>
+                                            <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
                                         {/snippet}
                                     </NavigationMenu.Link>
                                     {#each route.subList as subRoute(subRoute.title)}
                                         <NavigationMenu.Link href={subRoute.href}>
                                             {#snippet child()}
-                                                <a href={subRoute.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
+                                                <a href={subRoute.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
                                             {/snippet}
                                         </NavigationMenu.Link>
                                     {/each}
@@ -112,7 +112,7 @@
                             {:else}
                                 <NavigationMenu.Link href={route.href}>
                                     {#snippet child()}
-                                        <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.pathname === route.href ? "font-bold" : "")}>{route.title}</a>
+                                        <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
                                     {/snippet}
                                 </NavigationMenu.Link>
                             {/if}
@@ -151,7 +151,7 @@
                 {/if}
                 <Button
                     size="icon"
-                    class="min-[920px]:hidden"
+                    class="min-[1150px]:hidden"
                     variant="ghost"
                     onclick={() => isVerticalMenuOpen = !isVerticalMenuOpen}
                 >
@@ -165,7 +165,7 @@
             </div>
         </div>
     
-        <NavigationMenu.Root orientation="vertical" viewport={false} class={cn("min-[920px]:hidden flex flex-col w-full overflow-hidden transition-all duration-500 ease-in-out", isVerticalMenuOpen ? "max-h-120" : "max-h-0")}>
+        <NavigationMenu.Root orientation="vertical" viewport={false} class={cn("min-[1150px]:hidden flex flex-col w-full overflow-hidden transition-all duration-500 ease-in-out", isVerticalMenuOpen ? "max-h-120" : "max-h-0")}>
             <NavigationMenu.List class="mx-5 gap-2 flex-col py-2">
                 {#each routes as route(route.title)}
                         {#if route.subList}

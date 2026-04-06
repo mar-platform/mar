@@ -48,7 +48,7 @@
 
 <div class="min-h-svh w-full flex flex-col">
 	<Navbar />
-	<div class="m-5 mx-10 flex-1">
+	<div class="m-5 mx-7 min-w-0 flex-1">
 		{@render children()}
 	</div>
 </div>

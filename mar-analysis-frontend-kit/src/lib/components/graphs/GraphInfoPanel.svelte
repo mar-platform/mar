@@ -9,6 +9,7 @@
 	import type { Snippet } from 'svelte';
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 	import { edgeTypes } from '$lib/constants/edgeTypes';
+	import { fade } from 'svelte/transition';
 
     const selectedNode = $derived(globalState.selectedNode);
     const selectedEdge = $derived(globalState.selectedEdge);
@@ -58,11 +59,11 @@
 {/snippet}
 
 {#if (selectedNode !== null || selectedEdge !== null) && graph !== null}
-    <div class="min-w-85 max-w-85 bg-page-foreground rounded-lg shadow-sm p-4 flex flex-col">
+    <div id="details" class="min-w-85 min-[1100px]:max-w-85 max-h-[calc(100svh-120px-40px)] rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Details</h2>
             <Button size="icon-sm" variant="ghost" class="rounded-full" onclick={closePanel}>
-                <LucideX class="" />
+                <LucideX />
             </Button>
         </div>
 

@@ -201,9 +201,11 @@
 		});
 	}
 
+	
+
 	function selectEdgeType(checkedEdgeTypes: Record<string, boolean>, e: string[]): EdgeType | null {
 		return e.find((type) => checkedEdgeTypes[type]) as EdgeType || null;
 	}
 </script>
 
-<div class="h-full w-full cursor-grab active:cursor-grabbing" bind:this={container}></div>
+<div class="min-h-[calc(100svh-120px-40px-88px-8px)] w-full cursor-grab active:cursor-grabbing" bind:this={container}></div>

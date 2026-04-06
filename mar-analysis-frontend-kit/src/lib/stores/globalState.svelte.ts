@@ -10,6 +10,7 @@ import type ApiResponse from "$lib/dto/ApiResponse";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
+import { scrollToDetails, scrollToGraph } from "$lib/utils/scroll";
 import type Graph from "graphology";
 import { UndirectedGraph } from "graphology";
 import { random } from "graphology-layout";
@@ -87,7 +88,7 @@ class GlobalState {
 
     // —— Projects —————————————————————————————
 
-    async selectProject(project: Project) {
+    async selectProject(project: Project, autoScroll = true) {
         this.deselectNodeOrEdge(); // Deselect any selected node or edge when selecting a new project
 
         this.selectedProject = project;
@@ -101,6 +102,9 @@ class GlobalState {
             toast.error('Failed to load project graph. Please try again later.');
             this.selectedGraph = null;
             this.selectedUnprocessedGraph = null;
+        }
+        if (autoScroll) {
+            scrollToGraph();
         }
     }
 
@@ -140,7 +144,7 @@ class GlobalState {
                 break;
             case 'PROJECT':
                 if (this.projects.length > 0) {
-                    await this.selectProject(this.projects[0]);
+                    await this.selectProject(this.projects[0], false);
                 }
                 return; // Exit early since selectProject will handle graph loading
             case 'INTER_PROJECT':
@@ -249,6 +253,7 @@ class GlobalState {
         await tick();
         // Important to refresh the graph after selecting a node
         this.refreshGraph();
+        scrollToDetails();
     }
 
     // —— Edges —————————————————————————————
@@ -259,6 +264,7 @@ class GlobalState {
         await tick();
         // Important to refresh the graph after selecting an edge
         this.refreshGraph();
+        scrollToDetails();
     }
 
     async deselectNodeOrEdge() {

@@ -28,7 +28,7 @@
     }
 </script>
 
-<div class="min-w-80 max-w-80 rounded-lg h-full bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
+<div class="w-full h-full rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
 	<div class="flex gap-3 items-center">
         <LucideFile />
         <h2 class="text-lg font-semibold">Projects</h2>
@@ -36,10 +36,10 @@
 
     <Searchbar class="bg-page-background mt-3 mb-5" placeholder="Filter projects..." {onSearch} />
 
-	<ScrollArea class="flex-1 h-10 pr-3 overflow-x-hidden">
-		{#if globalState.state === 'LOADING'}
+    <ScrollArea orientation="vertical" class="flex-1 min-h-0 pr-3 overflow-x-hidden">
+        {#if globalState.state === 'LOADING'}
             {#each Array.from({ length: 8 }, (_, i) => i) as _(_)}
-                <Skeleton class="h-6 mt-2 w-full" />
+                <Skeleton class="h-5.5 mt-2 w-full" />
             {/each}
         {:else}
             {#each globalState.searchProjects as project(project.id)}
@@ -54,7 +54,7 @@
                     </Button>
                 </div>
             {:else}
-                <Empty.Root class="from-muted/50 to-background h-full bg-linear-to-b from-30% border border-dashed -pr-3">
+                <Empty.Root class="min-h-60 h-full from-muted/50 to-background bg-linear-to-b from-30% border border-dashed -pr-3">
                     <Empty.Header >
                         <Empty.Media variant="icon">
                             <LucideFolder />
@@ -67,5 +67,5 @@
                 </Empty.Root>
             {/each}
         {/if}
-	</ScrollArea>
+    </ScrollArea>
 </div>

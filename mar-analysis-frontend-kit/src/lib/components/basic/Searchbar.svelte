@@ -11,9 +11,10 @@
         onSearch: (query: string) => Promise<void> | void;
         placeholder: string;
         class?: string;
+        disabled?: boolean;
     }
 
-    let { onSearch, placeholder, class: className }: SearchbarProps = $props();
+    let { onSearch, placeholder, class: className, disabled }: SearchbarProps = $props();
 
     // Apply a debounce to the search function to avoid excessive calls
     let timeout = $state<NodeJS.Timeout | null>(null);
@@ -66,10 +67,11 @@
     <input
         bind:value={query}
         autocomplete="off"
-        class="text-sm outline-none"
+        class="text-sm outline-none w-[calc(100%-3.5rem)]"
         oninput={handleInput}
         placeholder={placeholder}
         onkeydown={handleKeyDown}
+        {disabled}
     >
     {#if query !== ''}
         <div in:fade out:fade class="absolute right-2 top-1.5">
