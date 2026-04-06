@@ -9,7 +9,6 @@ import org.jgrapht.Graph;
 import org.jgrapht.alg.clustering.LabelPropagationClustering;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,55 +42,46 @@ public class MegamodelController {
 	private ObjectMapper objectMapper;
 
 	@GetMapping(value = "/stats", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String stats() throws JsonProcessingException {
         return objectMapper.writeValueAsString(new CombinedStats(raw.getStats(), db.getStats()));
     }
 
 	@GetMapping(value = "/graph", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String index() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getRelationships());    	
     }
 
 	@GetMapping(value = "/duplication-graph", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String duplicationGraph() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getDuplicationGraph());
     }
 
 	@GetMapping(value = "/megamodel-graph", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String megamodelGraph() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getMegamodelGraph());
     }
 	
 	@GetMapping(value = "/interproject-graph", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String interProjectGraph() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getInterProjectGraph());
     }
 
 	@GetMapping(value = "/component-graph", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String componentGraph() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getComponentGraph());
     }
 	
 	@GetMapping(value = "/project-graph", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
 	public RelationshipsGraph getProjectGraph(@RequestParam("projectId") String projectId) {
 		return analysis.getProjectRelationship(projectId);
 	}
 
 	@GetMapping(value = "/graph-from-sql", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
 	public RelationshipsGraph getGraphFromSQL(@RequestParam("sql") String sql) {
 		return analysis.getRelationshipsFromSQL(sql);
 	}
 	
 	@GetMapping(value = "/search-project", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public List<Project> searchProject(@RequestParam("value") String value) throws JsonProcessingException {
 		if (value.length() < 3)
 			return Collections.emptyList();
@@ -99,7 +89,6 @@ public class MegamodelController {
 	}
 	
 	@GetMapping(value = "/all-projects", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public List<Project> allProjects() throws JsonProcessingException {
 		List<Project> projects = db.allProjects();
 		projects.sort((p1, p2) -> p1.getId().compareTo(p2.getId()));
@@ -107,7 +96,6 @@ public class MegamodelController {
 	}
 	
 	@GetMapping(value = "/clustering/label-propagation", produces="application/json")
-	@CrossOrigin(origins = "http://localhost:5173, http://localhost:5174")
     public String clusteringLabelPropagation() throws JsonProcessingException {
         Graph<Node, Edge> graph = analysis.getRelationships().getGraph();
         Graph<Node, Edge> undirected = toUndirected(graph);
