@@ -59,7 +59,7 @@
 {/snippet}
 
 {#if (selectedNode !== null || selectedEdge !== null) && graph !== null}
-    <div id="details" class="min-w-85 min-[1100px]:max-w-85 max-h-[calc(100svh-120px-40px)] rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
+    <div id="details" class="min-w-85 min-[1100px]:max-w-85 h-[calc(100svh-120px-40px)] rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Details</h2>
             <Button size="icon-sm" variant="ghost" class="rounded-full" onclick={closePanel}>
@@ -67,7 +67,7 @@
             </Button>
         </div>
 
-        <ScrollArea type="hover" class="flex-1 h-10 pr-4">
+        <ScrollArea type="hover" class="flex-1 min-h-0 pr-4">
             <Accordion.Root type="multiple" value={['artefact', 'project', 'duplication', 'members', 'dependencies', 'relationship']} >
                 {#if selectedNode !== null}
                     <!-- Artefact details -->
