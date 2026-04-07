@@ -20,6 +20,7 @@
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 	import { downloadGraph } from '$lib/utils/downloadGraph';
     import LucideImage from '@lucide/svelte/icons/image';
+    import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
 
     // List states
     let listState = $derived<'PROJECT' | 'ARTEFACTS'>(globalState.mode === 'PROJECT' ? 'PROJECT' : 'ARTEFACTS');
@@ -138,10 +139,16 @@
     
             <div class="relative flex-1 flex bg-page-foreground rounded-lg shadow-sm">
                 {#if selectedGraph !== null}
-                    <Button variant="secondary" size="sm" class="bg-accent border gap-2 border-input-border absolute z-10 top-2 right-2" onclick={downloadGraph}>
+                    <!-- Graph overlay -->
+                    <Button title="Export Image" variant="secondary" size="icon-sm" class="bg-accent border gap-2 border-input-border absolute z-10 top-2 right-2" onclick={downloadGraph}>
                         <LucideImage />
-                        Export image
                     </Button>
+                    {#if globalState.selectedProject}
+                        <Button title="Open project in GitHub" size="icon-sm" class="absolute z-10 top-2 right-12 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={globalState.selectedProject.URL} target="_blank">
+                            <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                        </Button>
+                    {/if}
+
                     {#key selectedGraph}
                         <GraphVisualizer
                             bind:this={graphVisualizerRef} 
