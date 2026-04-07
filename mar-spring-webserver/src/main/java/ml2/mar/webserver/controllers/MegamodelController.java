@@ -9,6 +9,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.alg.clustering.LabelPropagationClustering;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
+import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.backend.megamodel.stats.CombinedStats;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
@@ -44,6 +46,15 @@ public class MegamodelController {
 	@GetMapping(value = "/stats", produces="application/json")
     public String stats() throws JsonProcessingException {
         return objectMapper.writeValueAsString(new CombinedStats(raw.getStats(), db.getStats()));
+    }
+
+	@GetMapping(value = "/artefacts", produces="application/json")
+    public ResponseEntity<RawFile> getArtefactInfo(@RequestParam("q") String artefactId) throws JsonProcessingException {
+        RawFile artefact = raw.getArtefactInfo(artefactId);
+        if (artefact == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(artefact);
     }
 
 	@GetMapping(value = "/graph", produces="application/json")

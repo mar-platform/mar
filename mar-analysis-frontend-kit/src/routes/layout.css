@@ -240,6 +240,12 @@
 	}
 }
 
+@layer utilities {
+	a {
+		@apply no-underline!;
+	}
+}
+
 @custom-variant data-open {
 	&:where([data-state="open"]), &:where([data-open]:not([data-open="false"])) {
 		@slot;

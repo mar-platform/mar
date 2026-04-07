@@ -1,4 +1,5 @@
 <script lang="ts">
+    /* eslint-disable svelte/no-navigation-without-resolve */
     import { Button } from '$lib/components/ui/button/index.js';
 	import { globalState } from '$lib/stores/globalState.svelte';
     import LucideX from '@lucide/svelte/icons/x';
@@ -10,17 +11,24 @@
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { fade } from 'svelte/transition';
+    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+	import { getArtefactGithubLink } from '$lib/utils/links';
+    import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
 
-    const selectedNode = $derived(globalState.selectedNode);
-    const selectedEdge = $derived(globalState.selectedEdge);
-    const graph = $derived(globalState.selectedGraph);
-    
     interface Dependency {
         source: Node;
         target: Node;
         targetName: string;
         type: string;
     }
+    const selectedNode = $derived(globalState.selectedNode);
+    const selectedEdge = $derived(globalState.selectedEdge);
+    const graph = $derived(globalState.selectedGraph);
+    
+    const artefactExtraInfo = $derived.by(() => {
+        if (!selectedNode || selectedNode._type !== 'artefact') return null;
+        return globalState.getArtefactInfo(selectedNode.id);
+    })
 
     const dependencies = $derived.by(() => {
         const deps: Array<Dependency> = [];
@@ -47,11 +55,15 @@
     }
 </script>
 
-{#snippet entry(title: string, content: string | Snippet)}
+{#snippet entry(title: string, content: string | Snippet, link: string | null = null)}
     <div class="flex flex-col">
         <span class="select-none text-sm text-text-secondary">{title}</span>
         {#if typeof content === 'string'}
-            <p class="text-sm wrap-anywhere font-medium">{content}</p>
+            {#if link}
+                <a href={link} target="_blank" class="text-sm wrap-anywhere font-medium no-underline hover:font-semibold">{content}</a>
+            {:else}
+                <p class="text-sm wrap-anywhere font-medium">{content}</p>
+            {/if}
         {:else}
             {@render content()}
         {/if}
@@ -86,6 +98,22 @@
                             <Accordion.Content class="flex flex-col gap-4">
                                 {@render entry('Id', selectedNode.id)}
                                 {@render entry('Name', selectedNode.artefact.name)}
+                                {#await artefactExtraInfo}
+                                    {#each Array.from({ length: 4 }, (_, i) => i) as _(_)}
+                                        <Skeleton class="h-10 w-full" />  
+                                    {/each}
+                                {:then resolvedInfo}
+                                    {#if resolvedInfo !== null}
+                                        {@render entry('Author', resolvedInfo.createdAuthor)}
+                                        {@render entry('Last Updated By', resolvedInfo.updatedAuthor)}
+                                        {@render entry('Created At', new Date(resolvedInfo.createdAt).toLocaleString())}
+                                        {@render entry('Last Updated At', new Date(resolvedInfo.updatedAt).toLocaleString())}
+                                        <Button class="gap-3 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={getArtefactGithubLink(resolvedInfo.project, selectedNode.id)} target="_blank" size="default">
+                                            View on GitHub
+                                            <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                                        </Button>
+                                    {/if}
+                                {/await}
                             </Accordion.Content>
                         </Accordion.Item>
                     {/if}

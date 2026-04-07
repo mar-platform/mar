@@ -1,4 +1,5 @@
 import { getAllGraphsApi } from "$lib/api/allGraphs";
+import { getArtefactInfoApi } from "$lib/api/artefacts";
 import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
@@ -7,6 +8,7 @@ import type { edgeTypes } from "$lib/constants/edgeTypes";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
 import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from "$lib/constants/values";
 import type ApiResponse from "$lib/dto/ApiResponse";
+import type ArtefactInfo from "$lib/dto/ArtefactInfo";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
@@ -290,6 +292,9 @@ class GlobalState {
         return filteredNodes;
     }
 
+    async getArtefactInfo(artefactId: string): Promise<ArtefactInfo | null> {
+        return (await getArtefactInfoApi(artefactId)).data;
+    }
 }
 
 export const globalState = new GlobalState();
