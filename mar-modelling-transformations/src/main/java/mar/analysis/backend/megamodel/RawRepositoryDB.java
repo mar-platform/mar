@@ -61,6 +61,34 @@ public class RawRepositoryDB implements AutoCloseable {
 		}
 	}
 
+	@CheckForNull
+	public RawProject getProjectInfo(String projectId) {
+		try {
+			PreparedStatement files = connection.prepareStatement("select id, description, created_at, updated_at from repo_info where id = ?");
+			files.setString(1, projectId);
+			ResultSet rs = files.executeQuery();
+			if (! rs.next()) 
+				return null;
+			
+			RawProject rawFile = toRawProject(rs);			
+			return rawFile;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private RawProject toRawProject(ResultSet rs) throws SQLException {
+		String id = rs.getString(1);
+		String description = rs.getString(2);
+		String created_at = rs.getString(3);
+		String updated_at = rs.getString(4);
+				
+		OffsetDateTime createdAt = created_at != null ? OffsetDateTime.parse(created_at) : null;
+		OffsetDateTime updatedAt = created_at != null ? OffsetDateTime.parse(updated_at) : null;
+		RawProject rawFile = new RawProject(id, description, createdAt, updatedAt);
+		return rawFile;
+	}	
+
 	
 	public Map<String, RawFile> getFiles() {
 		try {
@@ -195,6 +223,43 @@ public class RawRepositoryDB implements AutoCloseable {
 		
 		public String getUpdatedAuthor() {
 			return updatedAuthor;
+		}
+	}
+
+
+	public static class RawProject {
+		private final String id;
+		private final String author;
+		private final String description;
+		private OffsetDateTime createdAt;
+		private OffsetDateTime updatedAt;
+
+		public RawProject(String id, String description, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
+			this.id = id;
+			this.author = id.split("/")[0];
+			this.description = description;
+			this.createdAt = createdAt;
+			this.updatedAt = updatedAt;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+		public String getAuthor() {
+			return author;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public OffsetDateTime getCreatedAt() {
+			return createdAt;
+		}
+
+		public OffsetDateTime getUpdatedAt() {
+			return updatedAt;
 		}
 	}
 

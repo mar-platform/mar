@@ -4,4 +4,8 @@ export function getArtefactGithubLink(projectId: string, artefactId: string): st
     cleanFilePath = cleanFilePath.substring(cleanProject.length).replace(/^\/+|\/+$/g, '');
 
     return `https://github.com/${cleanProject}/blob/HEAD/${cleanFilePath}`;
-}       
+}
+
+export function getProjectGithubLink(projectId: string): string {
+    return `https://github.com/${projectId}`;
+}

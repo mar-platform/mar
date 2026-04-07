@@ -22,6 +22,7 @@ import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
+import mar.analysis.backend.megamodel.RawRepositoryDB.RawProject;
 import mar.analysis.backend.megamodel.stats.CombinedStats;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
@@ -55,6 +56,15 @@ public class MegamodelController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(artefact);
+    }
+
+	@GetMapping(value = "/projects", produces="application/json")
+    public ResponseEntity<RawProject> getProjectInfo(@RequestParam("q") String projectId) throws JsonProcessingException {
+        RawProject project = raw.getProjectInfo(projectId);
+        if (project == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(project);
     }
 
 	@GetMapping(value = "/graph", produces="application/json")

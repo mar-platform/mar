@@ -3,7 +3,7 @@ import { getArtefactInfoApi } from "$lib/api/artefacts";
 import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
-import { getProjectGraphApi, searchProjectsApi } from "$lib/api/projects";
+import { getProjectGraphApi, getProjectInfoApi, searchProjectsApi } from "$lib/api/projects";
 import type { edgeTypes } from "$lib/constants/edgeTypes";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
 import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from "$lib/constants/values";
@@ -12,6 +12,7 @@ import type ArtefactInfo from "$lib/dto/ArtefactInfo";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
 import type Project from "$lib/dto/Project";
+import type ProjectInfo from "$lib/dto/ProjectInfo";
 import { scrollToDetails, scrollToGraph } from "$lib/utils/scroll";
 import type Graph from "graphology";
 import { UndirectedGraph } from "graphology";
@@ -122,6 +123,10 @@ class GlobalState {
         if (result.status !== 200) {
             toast.error('Failed to search projects. Please try again later.');
         }
+    }
+
+    async getProjectInfo(projectId: string): Promise<ProjectInfo | null> {
+        return (await getProjectInfoApi(projectId)).data;
     }
 
     // —— Graph —————————————————————————————

@@ -12,8 +12,9 @@
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { fade } from 'svelte/transition';
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
-	import { getArtefactGithubLink } from '$lib/utils/links';
+	import { getArtefactGithubLink, getProjectGithubLink } from '$lib/utils/links';
     import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
+	import type GithubUser from '$lib/dto/GithubUser';
 
     interface Dependency {
         source: Node;
@@ -28,7 +29,12 @@
     const artefactExtraInfo = $derived.by(() => {
         if (!selectedNode || selectedNode._type !== 'artefact') return null;
         return globalState.getArtefactInfo(selectedNode.id);
-    })
+    });
+
+    const projectExtraInfo = $derived.by(() => {
+        if (!selectedNode || selectedNode._type !== 'virtual' || selectedNode.kind !== 'project') return null;
+        return globalState.getProjectInfo(selectedNode.id);
+    });
 
     const dependencies = $derived.by(() => {
         const deps: Array<Dependency> = [];
@@ -70,6 +76,16 @@
     </div>
 {/snippet}
 
+{#snippet githubUser(userData: GithubUser)}
+    <Button class="flex gap-1 justify-start items-center h-12 px-1" variant="ghost" href={userData.url} target="_blank">
+        <img src={userData.photoUrl} alt={userData.name} class="h-8 w-8 rounded-full mr-2 border border-input-border" />
+        <div class="flex flex-col items-start">
+            <span class="text-sm font-medium">{userData.name}</span>
+            <span class="text-xs text-text-secondary">{userData.id}</span>
+        </div>
+    </Button>
+{/snippet}
+
 {#if (selectedNode !== null || selectedEdge !== null) && graph !== null}
     <div id="details" class="min-w-85 min-[1100px]:max-w-85 h-lvh min-[1100px]:h-[calc(100svh-152px-40px)] rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
         <div class="flex items-center justify-between">
@@ -99,12 +115,15 @@
                                 {@render entry('Id', selectedNode.id)}
                                 {@render entry('Name', selectedNode.artefact.name)}
                                 {#await artefactExtraInfo}
-                                    {#each Array.from({ length: 4 }, (_, i) => i) as _(_)}
+                                    {#each Array.from({ length: 5 }, (_, i) => i) as _(_)}
                                         <Skeleton class="h-10 w-full" />  
                                     {/each}
                                 {:then resolvedInfo}
                                     {#if resolvedInfo !== null}
-                                        {@render entry('Author', resolvedInfo.createdAuthor)}
+                                        {#snippet author()}
+                                            {@render githubUser(resolvedInfo.createdAuthorData!)}
+                                        {/snippet}
+                                        {@render entry('Author', resolvedInfo.createdAuthorData ? author: resolvedInfo.createdAuthor)}
                                         {@render entry('Last Updated By', resolvedInfo.updatedAuthor)}
                                         {@render entry('Created At', new Date(resolvedInfo.createdAt).toLocaleString())}
                                         {@render entry('Last Updated At', new Date(resolvedInfo.updatedAt).toLocaleString())}
@@ -127,6 +146,25 @@
                                 </Accordion.Trigger>
                                 <Accordion.Content class="flex flex-col gap-4">
                                     {@render entry('Id', selectedNode.id)}
+                                    {#await projectExtraInfo}
+                                        {#each Array.from({ length: 5 }, (_, i) => i) as _(_)}
+                                            <Skeleton class="h-10 w-full" />  
+                                        {/each}
+                                    {:then resolvedInfo}
+                                        {#if resolvedInfo !== null}
+                                            {#snippet author()}
+                                                {@render githubUser(resolvedInfo.authorData!)}
+                                            {/snippet}
+                                            {@render entry('Description', resolvedInfo.description || 'No description available')}
+                                            {@render entry('Author', resolvedInfo.authorData ? author: resolvedInfo.author)}
+                                            {@render entry('Created At', new Date(resolvedInfo.createdAt).toLocaleString())}
+                                            {@render entry('Last Updated At', new Date(resolvedInfo.updatedAt).toLocaleString())}
+                                            <Button class="gap-3 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={getProjectGithubLink(resolvedInfo.id)} target="_blank" size="default">
+                                                View on GitHub
+                                                <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                                            </Button>
+                                        {/if}
+                                    {/await}
                                 </Accordion.Content>
                             </Accordion.Item>
                         {:else if selectedNode.kind === 'duplication'}

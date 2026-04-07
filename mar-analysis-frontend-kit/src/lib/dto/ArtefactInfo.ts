@@ -1,3 +1,5 @@
+import type GithubUser from "./GithubUser";
+
 export default interface ArtefactInfo {
     project: string;
     filepath: string;
@@ -5,6 +7,7 @@ export default interface ArtefactInfo {
     type: string;
     createdAt: Date;
     createdAuthor: string;
+    createdAuthorData: GithubUser | null;
     updatedAt: Date;
     updatedAuthor: string;
 }
