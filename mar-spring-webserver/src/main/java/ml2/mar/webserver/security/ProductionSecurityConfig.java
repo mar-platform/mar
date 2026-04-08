@@ -33,7 +33,9 @@ public class ProductionSecurityConfig {
         // CORS configuration (ALLOW ALL TRAFFIC)
 		http.cors(corsConfig -> corsConfig.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(Arrays.asList("http://localhost:4173"));
+            //config.setAllowedOrigins(Arrays.asList("http://localhost:4173"));            
+            config.setAllowedOrigins(Arrays.asList("*"));
+            
             config.setAllowedMethods(Arrays.asList("*"));
             config.setAllowCredentials(true);
             config.setAllowedHeaders(Collections.singletonList("*"));
@@ -45,7 +47,10 @@ public class ProductionSecurityConfig {
         http.csrf(csrf -> csrf.disable());
         http.httpBasic(hbc -> hbc.disable());
         http.formLogin(flc -> flc.disable());
-
+        
+        // While in peer-review
+        http.headers(headers -> headers .frameOptions(frameOptions -> frameOptions.disable()) );
+        
         return http.build();
     }
 }
