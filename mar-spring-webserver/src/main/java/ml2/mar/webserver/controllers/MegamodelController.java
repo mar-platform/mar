@@ -87,6 +87,11 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getInterProjectGraph());
     }
 
+	@GetMapping(value = "/all-components", produces="application/json")
+	public List<String> allComponents() throws JsonProcessingException {
+		return analysis.getComponentGraph().getSubgraphs().stream().map(s -> s.getName()).toList();
+	}
+
 	@GetMapping(value = "/component-graph", produces="application/json")
     public String componentGraph() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getComponentGraph());

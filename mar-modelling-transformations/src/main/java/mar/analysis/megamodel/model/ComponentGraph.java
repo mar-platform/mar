@@ -61,6 +61,10 @@ public class ComponentGraph {
 			this.name = proposedName;
 			this.nodeCount = nodeCount;
 		}
+
+		public String getName() {
+			return name;
+		}
 		
 	}
 

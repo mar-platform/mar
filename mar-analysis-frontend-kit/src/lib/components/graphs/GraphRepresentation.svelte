@@ -21,9 +21,10 @@
     import LucideImage from '@lucide/svelte/icons/image';
     import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
 	import { getProjectGithubLink } from '$lib/utils/links';
+	import ComponentList from '../lists/ComponentList.svelte';
 
     // List states
-    let listState = $derived.by<'PROJECT' | 'ARTEFACTS' | null>(() => {
+    let listState = $derived.by<'PROJECT' | 'ARTEFACTS' | 'COMPONENTS' | null>(() => {
         switch (globalState.mode) {
             case 'PROJECT':
                 return 'PROJECT';
@@ -31,6 +32,8 @@
             case 'DUPLICATION':
             case 'MEGAMODEL':
                 return 'ARTEFACTS';
+            case 'COMPONENT':
+                return 'COMPONENTS';
             default:
                 return null;
         }
@@ -80,8 +83,10 @@
 <div class="flex flex-1 gap-8 min-[1100px]:gap-4 min-[1100px]:flex-row flex-col">
     {#if listState !== null}
         <div class="w-full h-lvh min-[1100px]:h-[calc(100svh-152px-40px)] min-[1100px]:max-w-80">
-            {#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
+            {#if listState === 'PROJECT'}
                 <ProjectList {onShowArtefactClick} />
+            {:else if listState === 'COMPONENTS'}
+                <ComponentList />
             {:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
                 <ArtefactList onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
             {/if}

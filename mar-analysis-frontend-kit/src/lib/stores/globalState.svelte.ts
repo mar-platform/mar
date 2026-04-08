@@ -23,12 +23,13 @@ import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 import { SvelteURLSearchParams } from "svelte/reactivity";
 
-type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION';
+type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION' | 'COMPONENT';
 
 class GlobalState {
     state: 'LOADING' | 'LOADING_GRAPH' | 'OK' | 'ERROR' = $state('LOADING');
     mode: GraphMode | null = $state(null);
     projects: string[] = $state([]);
+    components: string[] = $state([]);
     searchProjects = $state<string[]>([]);
     selectedProject: string | null = $state(null);
     selectedUnprocessedGraph: GraphDTO | null = $state(null);
@@ -72,8 +73,9 @@ class GlobalState {
 
     private currentGraphRenderer: Sigma | null = null;
 
-    initialize(projects: string[]) {
+    initialize(projects: string[], components: string[]) {
         this.projects = projects;
+        this.components = components;
         this.state = 'OK';
         this.searchProjects = projects;
         this.selectedProject = null;
@@ -172,6 +174,8 @@ class GlobalState {
             case 'DUPLICATION':
                 apiResponse = await getDuplicationGraphApi();
                 break;
+            case 'COMPONENT':
+                return; // Exit early since selectComponent will handle graph loading
             default:
                 toast.error('Invalid graph mode selected.');
         }
