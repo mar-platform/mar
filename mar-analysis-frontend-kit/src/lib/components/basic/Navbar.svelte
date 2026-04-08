@@ -2,7 +2,7 @@
     /* eslint-disable svelte/no-navigation-without-resolve */
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
 	import { navigationMenuTriggerStyle } from '$lib/components/ui/navigation-menu/navigation-menu-trigger.svelte';
-	import { COMPONENT_GRAPHS_EXPLORATION_PATH, DUPLICATION_GRAPHS_EXPLORATION_PATH, GITHUB_PATH, ALL_GRAPHS_PATH, INTERPROJECT_GRAPHS_EXPLORATION_PATH, MEGAMODEL_GRAPHS_EXPLORATION_PATH, PROJECT_GRAPHS_EXPLORATION_PATH, STATS_PATH } from '$lib/constants/routes';
+	import { COMPONENT_GRAPHS_EXPLORATION_PATH, GITHUB_PATH, INTERPROJECT_GRAPHS_EXPLORATION_PATH, MEGAMODEL_GRAPHS_EXPLORATION_PATH, PROJECT_GRAPHS_EXPLORATION_PATH, STATS_PATH } from '$lib/constants/routes';
     import Logo from '$lib/assets/logo.png';
 	import { Button } from "$lib/components/ui/button/index.js";
     import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
@@ -21,7 +21,7 @@
 
     type RouteItem = {
         title: string;
-        href: string;
+        href: string | null;
         subList?: Omit<RouteItem, 'subList'>[];
     }
 
@@ -31,10 +31,9 @@
     const routes: RouteItem[] = [
         { title: "Stats", href: STATS_PATH },
         { 
-            title: "All graphs",
-            href: ALL_GRAPHS_PATH,
+            title: "Graphs",
+            href: null,
             subList: [
-                { title: "Duplication", href: DUPLICATION_GRAPHS_EXPLORATION_PATH },
                 { title: "Megamodel", href: MEGAMODEL_GRAPHS_EXPLORATION_PATH },
                 { title: "Inter-project", href: INTERPROJECT_GRAPHS_EXPLORATION_PATH },
                 { title: "Projects", href: PROJECT_GRAPHS_EXPLORATION_PATH },
@@ -45,7 +44,7 @@
 
     let breadcrumbs = $derived.by(() => {
         const path = page.url.href;
-        const crumbs: { title: string; href: string }[] = [];
+        const crumbs: { title: string; href: string | null }[] = [];
         
         for (const route of routes) {
             if (route.subList) {
@@ -96,11 +95,13 @@
                                         </ul>
                                     </NavigationMenu.Content>
                                 {:else}
-                                    <NavigationMenu.Link href={route.href}>
-                                        {#snippet child()}
-                                            <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
-                                        {/snippet}
-                                    </NavigationMenu.Link>
+                                    {#if route.href}
+                                        <NavigationMenu.Link href={route.href}>
+                                            {#snippet child()}
+                                                <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
+                                            {/snippet}
+                                        </NavigationMenu.Link>
+                                    {/if}
                                     {#each route.subList as subRoute(subRoute.title)}
                                         <NavigationMenu.Link href={subRoute.href}>
                                             {#snippet child()}
@@ -169,7 +170,7 @@
             <NavigationMenu.List class="mx-5 gap-2 flex-col py-2">
                 {#each routes as route(route.title)}
                         {#if route.subList}
-                            {@const subList = [route,...route.subList]}
+                            {@const subList = route.href ? [route, ...route.subList] : route.subList}
                             {#each subList as subRoute(subRoute.title)}
                                 <NavigationMenu.Item>
                                     <NavigationMenu.Link href={subRoute.href}>
@@ -201,7 +202,11 @@
                         {#if i === breadcrumbs.length - 1}
                             <Breadcrumb.Page class="text-2xl font-semibold">{crumb.title}</Breadcrumb.Page>
                         {:else}
-                            <Breadcrumb.Link class="text-2xl font-medium" href={crumb.href}>{crumb.title}</Breadcrumb.Link>
+                            {#if crumb.href}
+                                <Breadcrumb.Link class="text-2xl font-medium" href={crumb.href}>{crumb.title}</Breadcrumb.Link>
+                            {:else}
+                                <Breadcrumb.Page class="text-2xl">{crumb.title}</Breadcrumb.Page>
+                            {/if}
                         {/if}
                     </Breadcrumb.Item>
                     {#if i < breadcrumbs.length - 1}

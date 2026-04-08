@@ -12,6 +12,8 @@
 	import { edgeTypes } from '$lib/constants/edgeTypes';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
 	import { globalState } from '$lib/stores/globalState.svelte';
+	import { NodePointProgram, EdgeLineProgram } from "sigma/rendering";
+	import { mode } from 'mode-watcher';
 
 	interface NodeData extends NodeDisplayData {
 		labelColor: string;
@@ -115,10 +117,12 @@
 			if (hoveredEdge === edge) {
 				res.size = 3;
 				res.zIndex = 1;
+				res.color = mode.current === 'dark' ? 'white' : 'black';
 			}
 			if (currentEdge?.key === edge) {
 				res.size = 4;
 				res.zIndex = 2;
+				res.color = mode.current === 'dark' ? 'white' : 'black';
 			}
 			return res;
 		});
@@ -150,16 +154,19 @@
 		// Properties of the label
 		context.font = `${weight} ${size}px ${font}`;
 		const textWidth = context.measureText(label).width;
-		const boxWidth = textWidth + 26;
-		const boxHeight = size + 10;
 		
 		// Coordinates of the node
 		const nodeX = data.x as number;
 		const nodeY = data.y as number;
 		const nodeSize = data.size as number;
 
-		const boxX = nodeX - 9;
-    	const boxY = nodeY - (boxHeight / 2);
+		const padding = 8;
+
+		const boxX = nodeX - nodeSize - padding;
+    	const boxWidth = (nodeSize * 2) + textWidth + (padding * 3);
+    
+		const boxHeight = Math.max(size + 10, (nodeSize * 2) + padding);
+		const boxY = nodeY - (boxHeight / 2);
 
 		// Fill background
 		context.fillStyle = (data.hoverBgColor as string);
@@ -190,7 +197,17 @@
 			labelColor: {
 				attribute: "labelColor",
 				color: "red"
-			}
+			},
+
+			// Use most efficient programs for nodes and edges
+			nodeProgramClasses: {
+				point: NodePointProgram
+			},
+			edgeProgramClasses: {
+				line: EdgeLineProgram
+			},
+			defaultNodeType: "point",
+  			defaultEdgeType: "line",
 		});
 		globalState.renderer.on('enterNode', () => {
 			container.style.cursor = 'pointer';
@@ -206,8 +223,8 @@
 		});
 		globalState.renderer.on('enterEdge', (e) => {
 			hoveredEdge = e.edge;
-			container.style.cursor = 'pointer';
 			globalState.refreshGraph();
+			container.style.cursor = 'pointer';
 		});
 		globalState.renderer.on('leaveEdge', () => {
 			hoveredEdge = null;
@@ -229,7 +246,7 @@
 		}
 		const settings = forceAtlas2.inferSettings(graph);
 
-		fa2 = new FA2Layout(graph, { settings });
+		fa2 = new FA2Layout(graph, { settings: { ...settings, barnesHutOptimize: true } });
 		fa2.start();
 		fa2Running = true;
 		setTimeout(() => stopLayout(), numberOfIterations * 1000);

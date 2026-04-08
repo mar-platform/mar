@@ -23,7 +23,18 @@
     import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
 
     // List states
-    let listState = $derived<'PROJECT' | 'ARTEFACTS'>(globalState.mode === 'PROJECT' ? 'PROJECT' : 'ARTEFACTS');
+    let listState = $derived.by<'PROJECT' | 'ARTEFACTS' | null>(() => {
+        switch (globalState.mode) {
+            case 'PROJECT':
+                return 'PROJECT';
+            case 'ALL':
+            case 'DUPLICATION':
+            case 'MEGAMODEL':
+                return 'ARTEFACTS';
+            default:
+                return null;
+        }
+    });
     
     // Graph states
     let graphMode = $derived(globalState.mode);
@@ -67,13 +78,15 @@
 </script>
 
 <div class="flex flex-1 gap-8 min-[1100px]:gap-4 min-[1100px]:flex-row flex-col">
-    <div class="w-full h-lvh min-[1100px]:h-[calc(100svh-152px-40px)] min-[1100px]:max-w-80">
-        {#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
-            <ProjectList {onShowArtefactClick} />
-        {:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
-            <ArtefactList onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
-        {/if}
-    </div>
+    {#if listState !== null}
+        <div class="w-full h-lvh min-[1100px]:h-[calc(100svh-152px-40px)] min-[1100px]:max-w-80">
+            {#if globalState.mode === 'PROJECT' && listState === 'PROJECT'}
+                <ProjectList {onShowArtefactClick} />
+            {:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
+                <ArtefactList onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
+            {/if}
+        </div>
+    {/if}
     {#if graphMode !== null}
         <div id="graph-view" class="flex-1 min-w-0 min-h-lvh min-[1100px]:min-h-[calc(100svh-152px-40px)] flex flex-col gap-2" in:fade out:fade>
             <div class="w-full flex flex-col">
