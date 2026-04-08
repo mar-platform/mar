@@ -15,6 +15,8 @@
 	import { getArtefactGithubLink, getProjectGithubLink } from '$lib/utils/links';
     import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
 	import type GithubUser from '$lib/dto/GithubUser';
+	import { SELECTED_PROJECT_GRAPHS_EXPLORATION_PATH } from '$lib/constants/routes';
+    import LucideGitCompare from '@lucide/svelte/icons/git-compare';
 
     interface Dependency {
         source: Node;
@@ -147,7 +149,7 @@
                                 <Accordion.Content class="flex flex-col gap-4">
                                     {@render entry('Id', selectedNode.id)}
                                     {#await projectExtraInfo}
-                                        {#each Array.from({ length: 5 }, (_, i) => i) as _(_)}
+                                        {#each Array.from({ length: 6 }, (_, i) => i) as _(_)}
                                             <Skeleton class="h-10 w-full" />  
                                         {/each}
                                     {:then resolvedInfo}
@@ -159,10 +161,16 @@
                                             {@render entry('Author', resolvedInfo.authorData ? author: resolvedInfo.author)}
                                             {@render entry('Created At', new Date(resolvedInfo.createdAt).toLocaleString())}
                                             {@render entry('Last Updated At', new Date(resolvedInfo.updatedAt).toLocaleString())}
-                                            <Button class="gap-3 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={getProjectGithubLink(resolvedInfo.id)} target="_blank" size="default">
-                                                View on GitHub
-                                                <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
-                                            </Button>
+                                            <div class="flex flex-col gap-1">
+                                                <Button class="gap-3 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={getProjectGithubLink(resolvedInfo.id)} target="_blank" size="default">
+                                                    View on GitHub
+                                                    <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
+                                                </Button>
+                                                <Button class="gap-3 border border-input-border" variant="secondary" href={SELECTED_PROJECT_GRAPHS_EXPLORATION_PATH(resolvedInfo.id)} size="default">
+                                                    Inspect project
+                                                    <LucideGitCompare />
+                                                </Button>
+                                            </div>
                                         {/if}
                                     {/await}
                                 </Accordion.Content>

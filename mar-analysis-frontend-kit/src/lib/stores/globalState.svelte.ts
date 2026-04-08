@@ -1,3 +1,5 @@
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
 import { getAllGraphsApi } from "$lib/api/allGraphs";
 import { getArtefactInfoApi } from "$lib/api/artefacts";
 import { getDuplicationGraphApi } from "$lib/api/duplication";
@@ -20,6 +22,7 @@ import { random } from "graphology-layout";
 import type { Sigma } from "sigma";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
+import { SvelteURLSearchParams } from "svelte/reactivity";
 
 type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION';
 
@@ -101,6 +104,16 @@ class GlobalState {
         
         if (graph.status === 200 && graph.data) {
             await this.selectGraph(graph.data);
+
+            // Update the URL with the selected project as a query parameter
+            const params = new SvelteURLSearchParams(page.url.searchParams);
+            params.set('q', project.id);
+            // eslint-disable-next-line svelte/no-navigation-without-resolve
+            goto(`?${params.toString()}`, {
+                keepFocus: true,
+                replaceState: true,
+                noScroll: true
+            });
         } else {
             toast.error('Failed to load project graph. Please try again later.');
             this.selectedGraph = null;
@@ -150,9 +163,6 @@ class GlobalState {
                 apiResponse = await getAllGraphsApi();
                 break;
             case 'PROJECT':
-                if (this.projects.length > 0) {
-                    await this.selectProject(this.projects[0], false);
-                }
                 return; // Exit early since selectProject will handle graph loading
             case 'INTER_PROJECT':
                 apiResponse = await getInterProjectGraphApi();

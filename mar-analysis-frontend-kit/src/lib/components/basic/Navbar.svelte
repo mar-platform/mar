@@ -18,6 +18,7 @@
 	import { page } from '$app/state';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { APP_NAME, SHOW_LOGOS_AND_REPO } from '$lib/constants/values';
+	import { globalState } from '$lib/stores/globalState.svelte';
 
     type RouteItem = {
         title: string;
@@ -128,7 +129,11 @@
                     size="icon"
                     class="ml-auto"
                     variant="ghost"
-                    onclick={toggleMode}
+                    onclick={() => {
+                        toggleMode();
+                        // Update the graph so that the new colors are applied to nodes and edges immediately
+                        globalState.refreshGraph();
+                    }}
                 >
                     <LucideSun
                         class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all! dark:-rotate-90 dark:scale-0"
