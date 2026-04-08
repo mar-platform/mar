@@ -110,10 +110,9 @@ public class MegamodelController {
 	}
 	
 	@GetMapping(value = "/all-projects", produces="application/json")
-    public List<Project> allProjects() throws JsonProcessingException {
+    public List<String> allProjects() throws JsonProcessingException {
 		List<Project> projects = db.allProjects();
-		projects.sort((p1, p2) -> p1.getId().compareTo(p2.getId()));
-		return projects;
+		return projects.stream().sorted((p1, p2) -> p1.getId().compareTo(p2.getId())).map(p -> p.getId()).toList();
 	}
 	
 	@GetMapping(value = "/clustering/label-propagation", produces="application/json")

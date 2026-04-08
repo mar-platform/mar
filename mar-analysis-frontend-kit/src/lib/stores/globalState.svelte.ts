@@ -13,7 +13,6 @@ import type ApiResponse from "$lib/dto/ApiResponse";
 import type ArtefactInfo from "$lib/dto/ArtefactInfo";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
-import type Project from "$lib/dto/Project";
 import type ProjectInfo from "$lib/dto/ProjectInfo";
 import { scrollToDetails, scrollToGraph } from "$lib/utils/scroll";
 import type Graph from "graphology";
@@ -29,9 +28,9 @@ type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATIO
 class GlobalState {
     state: 'LOADING' | 'LOADING_GRAPH' | 'OK' | 'ERROR' = $state('LOADING');
     mode: GraphMode | null = $state(null);
-    projects: Project[] = $state([]);
-    searchProjects = $state<Project[]>([]);
-    selectedProject: Project | null = $state(null);
+    projects: string[] = $state([]);
+    searchProjects = $state<string[]>([]);
+    selectedProject: string | null = $state(null);
     selectedUnprocessedGraph: GraphDTO | null = $state(null);
     selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
@@ -73,7 +72,7 @@ class GlobalState {
 
     private currentGraphRenderer: Sigma | null = null;
 
-    initialize(projects: Project[]) {
+    initialize(projects: string[]) {
         this.projects = projects;
         this.state = 'OK';
         this.searchProjects = projects;
@@ -94,20 +93,20 @@ class GlobalState {
 
     // —— Projects —————————————————————————————
 
-    async selectProject(project: Project, autoScroll = true) {
+    async selectProject(project: string, autoScroll = true) {
         this.deselectNodeOrEdge(); // Deselect any selected node or edge when selecting a new project
 
         this.selectedProject = project;
 
         // Start loading the project graph
-        const graph = await getProjectGraphApi(project.id);
+        const graph = await getProjectGraphApi(project);
         
         if (graph.status === 200 && graph.data) {
             await this.selectGraph(graph.data);
 
             // Update the URL with the selected project as a query parameter
             const params = new SvelteURLSearchParams(page.url.searchParams);
-            params.set('q', project.id);
+            params.set('q', project);
             // eslint-disable-next-line svelte/no-navigation-without-resolve
             goto(`?${params.toString()}`, {
                 keepFocus: true,

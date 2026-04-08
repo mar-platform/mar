@@ -15,12 +15,12 @@
 	import { toast } from 'svelte-sonner';
 	import GraphInfoPanel from './GraphInfoPanel.svelte';
 	import ProjectList from '../lists/ProjectList.svelte';
-	import type Project from '$lib/dto/Project';
 	import ArtefactList from '../lists/ArtefactList.svelte';
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 	import { downloadGraph } from '$lib/utils/downloadGraph';
     import LucideImage from '@lucide/svelte/icons/image';
     import GithubWhiteLogo from '$lib/assets/github-white-icon.svg';
+	import { getProjectGithubLink } from '$lib/utils/links';
 
     // List states
     let listState = $derived.by<'PROJECT' | 'ARTEFACTS' | null>(() => {
@@ -42,12 +42,12 @@
     const selectedGraph = $derived(globalState.selectedGraph);
     let fa2Running = $state(false);
 
-    function onShowArtefactClick(project: Project) {
+    function onShowArtefactClick(project: string) {
         if (globalState.mode !== 'PROJECT') {
             return;
         }
         // Select the project if it's not already selected
-        if (globalState.selectedProject?.id !== project.id) {
+        if (globalState.selectedProject !== project) {
             globalState.selectProject(project);
         }
         listState = 'ARTEFACTS';
@@ -91,8 +91,8 @@
         <div id="graph-view" class="flex-1 min-w-0 min-h-lvh min-[1100px]:min-h-[calc(100svh-152px-40px)] flex flex-col gap-2" in:fade out:fade>
             <div class="w-full flex flex-col">
                 {#if globalState.selectedProject}
-                    {#key globalState.selectedProject.id}
-                        <span title={globalState.selectedProject.id} class="mb-3 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject.id}</span>   
+                    {#key globalState.selectedProject}
+                        <span title={globalState.selectedProject} class="mb-3 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject}</span>   
                     {/key}
                 {/if}
                 
@@ -157,7 +157,7 @@
                         <LucideImage />
                     </Button>
                     {#if globalState.selectedProject}
-                        <Button title="Open project in GitHub" size="icon-sm" class="absolute z-10 top-2 right-12 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={globalState.selectedProject.URL} target="_blank">
+                        <Button title="Open project in GitHub" size="icon-sm" class="absolute z-10 top-2 right-12 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={getProjectGithubLink(globalState.selectedProject)} target="_blank">
                             <img src={GithubWhiteLogo} alt="GitHub" class="h-4 aspect-square w-auto" />
                         </Button>
                     {/if}

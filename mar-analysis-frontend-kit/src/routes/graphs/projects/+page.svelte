@@ -18,7 +18,7 @@
         // If the graph is loaded, try to select the project specified in the query parameter
         if (data.q) {
             // Verify that data.q is a valid project ID before selecting it
-            const project = globalState.projects.find(p => p.id === data.q);
+            const project = globalState.projects.find(p => p === data.q);
             
             if (project) {
                 globalState.selectProject(project);

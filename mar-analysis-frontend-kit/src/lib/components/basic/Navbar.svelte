@@ -99,14 +99,14 @@
                                     {#if route.href}
                                         <NavigationMenu.Link href={route.href}>
                                             {#snippet child()}
-                                                <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
+                                                <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href.startsWith(route.href!) ? "font-bold" : "")}>{route.title}</a>
                                             {/snippet}
                                         </NavigationMenu.Link>
                                     {/if}
                                     {#each route.subList as subRoute(subRoute.title)}
                                         <NavigationMenu.Link href={subRoute.href}>
                                             {#snippet child()}
-                                                <a href={subRoute.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
+                                                <a href={subRoute.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href.startsWith(subRoute.href!) ? "font-bold" : "")}>{subRoute.title}</a>
                                             {/snippet}
                                         </NavigationMenu.Link>
                                     {/each}
@@ -114,7 +114,7 @@
                             {:else}
                                 <NavigationMenu.Link href={route.href}>
                                     {#snippet child()}
-                                        <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
+                                        <a href={route.href} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href.startsWith(route.href!) ? "font-bold" : "")}>{route.title}</a>
                                     {/snippet}
                                 </NavigationMenu.Link>
                             {/if}
@@ -180,7 +180,7 @@
                                 <NavigationMenu.Item>
                                     <NavigationMenu.Link href={subRoute.href}>
                                         {#snippet child()}
-                                            <a href={subRoute.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === subRoute.href ? "font-bold" : "")}>{subRoute.title}</a>
+                                            <a href={subRoute.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href.startsWith(subRoute.href!) ? "font-bold" : "")}>{subRoute.title}</a>
                                         {/snippet}
                                     </NavigationMenu.Link>
                                 </NavigationMenu.Item>
@@ -189,7 +189,7 @@
                             <NavigationMenu.Item>   
                                 <NavigationMenu.Link href={route.href}>
                                     {#snippet child()}
-                                        <a href={route.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href === route.href ? "font-bold" : "")}>{route.title}</a>
+                                        <a href={route.href} onclick={() => isVerticalMenuOpen = false} class={cn("dark:bg-page-foreground", navigationMenuTriggerStyle(), page.url.href.startsWith(route.href!) ? "font-bold" : "")}>{route.title}</a>
                                     {/snippet}
                                 </NavigationMenu.Link>
                             </NavigationMenu.Item>

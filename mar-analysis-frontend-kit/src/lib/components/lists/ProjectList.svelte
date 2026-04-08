@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type Project from '$lib/dto/Project';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import { globalState } from '$lib/stores/globalState.svelte';
@@ -13,13 +12,13 @@
 	import { fade } from 'svelte/transition';
 
     interface ProjectListProps {
-        onShowArtefactClick: (project: Project) => void;
+        onShowArtefactClick: (project: string) => void;
     }
 
     let { onShowArtefactClick } : ProjectListProps = $props();
 
-    function onClickProject(project: Project) {
-        if (globalState.selectedProject?.id === project.id) return;
+    function onClickProject(project: string) {
+        if (globalState.selectedProject === project) return;
         globalState.selectProject(project);
     }
 
@@ -42,11 +41,11 @@
                 <Skeleton class="h-5.5 mt-2 w-full" />
             {/each}
         {:else}
-            {#each globalState.searchProjects as project(project.id)}
+            {#each globalState.searchProjects as project(project)}
                 <div class="grid grid-cols-[1fr_auto] grid-rows-1 gap-2">
-                    <Button size="sm" variant={globalState.selectedProject?.id === project.id ? "secondary" : "ghost"} class="min-w-0 rounded-full justify-start" onclick={() => onClickProject(project)}>
-                        <span title={project.id} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedProject?.id === project.id ? "font-semibold" : "")}>
-                            {project.id}
+                    <Button size="sm" variant={globalState.selectedProject === project ? "secondary" : "ghost"} class="min-w-0 rounded-full justify-start" onclick={() => onClickProject(project)}>
+                        <span title={project} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedProject === project ? "font-semibold" : "")}>
+                            {project}
                         </span>
                     </Button>
                     <Button title="Show Artefacts" variant="ghost" size="icon-sm" class="rounded-full" onclick={() => onShowArtefactClick(project)}>

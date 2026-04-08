@@ -1,11 +1,8 @@
-import type Project from "./Project";
-
 export type Node = ArtefactNode | VirtualNode;
 
 export interface BaseNode {
     _type: 'artefact' | 'virtual' | 'duplication';
     id: string;
-    attributes: string[];
 }
 
 export type ArtefactType = "qvto" | "ocl" | "ecore" | "xtext" | "emfatic" | "epsilon" | "acceleo" | "atl" | "sirius" | "henshin" | "gmf";
@@ -15,9 +12,8 @@ export interface ArtefactNode extends BaseNode {
     artefact: {
         id: string;
         category: string;
-        fileStatus: 'EXISTS' | 'MISSING' | 'UNRESOLVED' | 'GENERATED' | 'HEURISTIC' | 'BUILTIN' | 'UNEXPECTED' | 'ERROR';
         name: string;
-        project: Project['id'];
+        project: string;
         type: ArtefactType;
     };
 }

@@ -2,11 +2,10 @@ import { ALL_PROJECTS_ENDPOINT, PROJECT_GRAPH_ENDPOINT, PROJECT_INFO_ENDPOINT, S
 import type ApiResponse from "$lib/dto/ApiResponse";
 import type GithubUser from "$lib/dto/GithubUser";
 import type Graph from "$lib/dto/Graph";
-import type Project from "$lib/dto/Project";
 import type ProjectInfo from "$lib/dto/ProjectInfo";
 import { getGithubUserInfoApi } from "./github";
 
-export const allProjectsApi = async (fetch?: typeof window.fetch): Promise<ApiResponse<Project[]>> => {
+export const allProjectsApi = async (fetch?: typeof window.fetch): Promise<ApiResponse<string[]>> => {
     const request = await (fetch || window.fetch)(ALL_PROJECTS_ENDPOINT, {
         method: 'GET',
         headers: {
@@ -15,10 +14,10 @@ export const allProjectsApi = async (fetch?: typeof window.fetch): Promise<ApiRe
     });
 
     const status = request.status;
-    let response: Project[] | null = null;
+    let response: string[] | null = null;
 
     if (request.ok) {
-        response = await request.json() as Project[];
+        response = await request.json() as string[];
     }
 
     return {
@@ -27,7 +26,7 @@ export const allProjectsApi = async (fetch?: typeof window.fetch): Promise<ApiRe
     };
 };
 
-export const searchProjectsApi = async (query: string): Promise<ApiResponse<Project[]>> => {
+export const searchProjectsApi = async (query: string): Promise<ApiResponse<string[]>> => {
     const request = await (fetch || window.fetch)(SEARCH_PROJECT_ENDPOINT(query), {
         method: 'GET',
         headers: {
@@ -36,10 +35,10 @@ export const searchProjectsApi = async (query: string): Promise<ApiResponse<Proj
     });
 
     const status = request.status;
-    let response: Project[] | null = null;
+    let response: string[] | null = null;
 
     if (request.ok) {
-        response = await request.json() as Project[];
+        response = await request.json() as string[];
     }
 
     return {
@@ -48,7 +47,7 @@ export const searchProjectsApi = async (query: string): Promise<ApiResponse<Proj
     };
 };
 
-export const getProjectGraphApi = async (projectId: Project['id']): Promise<ApiResponse<Graph>> => {
+export const getProjectGraphApi = async (projectId: string): Promise<ApiResponse<Graph>> => {
     const request = await (fetch || window.fetch)(PROJECT_GRAPH_ENDPOINT(projectId), {
         method: 'GET',
         headers: {
