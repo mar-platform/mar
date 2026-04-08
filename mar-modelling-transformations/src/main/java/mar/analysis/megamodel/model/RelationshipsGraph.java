@@ -16,6 +16,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -37,6 +38,7 @@ public class RelationshipsGraph {
 		this.projects.add(project);
 	}
 	
+	@JsonIgnore
 	public Set<? extends Project> getProjects() {
 		return projects;
 	}
@@ -101,7 +103,7 @@ public class RelationshipsGraph {
 		@JsonProperty
 		private final String id;
 
-		@JsonProperty
+		@JsonIgnore
 		private final List<Attribute> attributes; 
 		
 		public Node(@Nonnull String id, Attribute... attributes) {
@@ -126,12 +128,23 @@ public class RelationshipsGraph {
 	@JsonTypeName("artefact")
 	public static class ArtefactNode extends Node {
 		@Nonnull
-		@JsonProperty
+		@JsonIgnore
 		private final Artefact artefact;
+
+		@JsonProperty
+		private final String id;
+		@JsonProperty
+		private final String type;
+		@JsonProperty
+		private final String name;
+
 
 		public ArtefactNode(@Nonnull String id, @Nonnull Artefact artefact) {
 			super(id);
 			this.artefact = artefact;
+			this.id = artefact.getId();
+			this.type = artefact.getType();
+			this.name = artefact.getName();
 		}
 		
 		@Nonnull
@@ -213,6 +226,7 @@ public class RelationshipsGraph {
 		public static final IsInBuildFolderAttribute INSTANCE = new IsInBuildFolderAttribute();  
 	}
 	
+	@JsonIgnore
 	public Graph<Node, Edge> getGraph() {
 		return impl;
 	}

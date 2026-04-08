@@ -206,8 +206,8 @@ class GlobalState {
 
             switch(node._type) {
                 case 'artefact':
-                    type = node.artefact.type;
-                    name = node.artefact.name;
+                    type = node.type;
+                    name = node.name;
                     break;
                 case 'virtual':
                     type = node.kind === 'duplication' ? node.artefactType! : node.kind;
@@ -298,10 +298,10 @@ class GlobalState {
         const q = query.trim().toLowerCase();
         let filteredNodes = nodes
             .filter(node => node._type === 'artefact')
-            .filter(node => filterNodes[node.artefact.type]);
+            .filter(node => filterNodes[node.type]);
 
         if (q != '') {
-            filteredNodes = filteredNodes.filter(node => node.artefact.name.toLowerCase().includes(q));
+            filteredNodes = filteredNodes.filter(node => node.name.toLowerCase().includes(q));
         }
         return filteredNodes;
     }

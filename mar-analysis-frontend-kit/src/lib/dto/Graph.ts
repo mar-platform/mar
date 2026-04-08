@@ -9,13 +9,8 @@ export type ArtefactType = "qvto" | "ocl" | "ecore" | "xtext" | "emfatic" | "eps
 
 export interface ArtefactNode extends BaseNode {
     _type: 'artefact';
-    artefact: {
-        id: string;
-        category: string;
-        name: string;
-        project: string;
-        type: ArtefactType;
-    };
+    name: string;
+    type: ArtefactType;
 }
 
 export interface VirtualNode extends BaseNode {

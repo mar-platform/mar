@@ -108,14 +108,14 @@
                                 <NodeOrEdgeItem
                                     type="node"
                                     class="w-fit mt-1"
-                                    name={selectedNode.artefact.type}
+                                    name={selectedNode.type}
                                     checked={false}
-                                    color={`var(${nodeTypes[selectedNode.artefact.type as keyof typeof nodeTypes].color})`}
+                                    color={`var(${nodeTypes[selectedNode.type as keyof typeof nodeTypes].color})`}
                                 />
                             </Accordion.Trigger>
                             <Accordion.Content class="flex flex-col gap-4">
                                 {@render entry('Id', selectedNode.id)}
-                                {@render entry('Name', selectedNode.artefact.name)}
+                                {@render entry('Name', selectedNode.name)}
                                 {#await artefactExtraInfo}
                                     {#each Array.from({ length: 5 }, (_, i) => i) as _(_)}
                                         <Skeleton class="h-10 w-full" />  

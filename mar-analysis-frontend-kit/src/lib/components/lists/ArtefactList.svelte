@@ -72,9 +72,9 @@
         {:else} 
             {#each nodes as node(node.id)}
                 <Button size="sm" variant={globalState.selectedNode?.id === node.id ? "secondary" : "ghost"} class="gap-2 rounded-full justify-start w-full" onclick={() => onClickArtefact(node)}>
-                    <div class="min-w-2 min-h-2 rounded-full" style={`background-color: ${`var(${nodeTypes[node.artefact.type as keyof typeof nodeTypes].color})`};`}></div>
-                    <span title={node.artefact.name} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedNode?.id === node.id ? "font-semibold" : "")}>
-                        {node.artefact.name}
+                    <div class="min-w-2 min-h-2 rounded-full" style={`background-color: ${`var(${nodeTypes[node.type as keyof typeof nodeTypes].color})`};`}></div>
+                    <span title={node.name} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedNode?.id === node.id ? "font-semibold" : "")}>
+                        {node.name}
                     </span>
                 </Button>
             {:else}
