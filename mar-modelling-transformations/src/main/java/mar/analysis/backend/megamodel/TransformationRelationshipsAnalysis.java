@@ -18,6 +18,7 @@ import edu.emory.mathcs.backport.java.util.Collections;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.ComponentGraph;
+import mar.analysis.megamodel.model.ComponentGraph.SingleComponentGraph;
 import mar.analysis.megamodel.model.DuplicationGraph;
 import mar.analysis.megamodel.model.DuplicationGraph.ArtefactGroup;
 import mar.analysis.megamodel.model.DuplicationRelationships;

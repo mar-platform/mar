@@ -41,7 +41,7 @@
 
     function onClickComponent(component: string) {
         if (globalState.selectedProject === component) return;
-        globalState.selectProject(component);
+        globalState.selectComponent(component);
     }
 
     function onSearch(q: string) {
@@ -91,8 +91,8 @@
         >
             {#each items as component(component)}
                 <div class="grid grid-cols-[1fr_auto] grid-rows-1 gap-2">
-                    <Button size="sm" variant={globalState.selectedProject === component ? "secondary" : "ghost"} class="min-w-0 rounded-full justify-start" onclick={() => onClickComponent(component)}>
-                        <span title={component} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedProject === component ? "font-semibold" : "")}>
+                    <Button size="sm" variant={globalState.selectedComponent === component ? "secondary" : "ghost"} class="min-w-0 rounded-full justify-start" onclick={() => onClickComponent(component)}>
+                        <span title={component} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedComponent === component ? "font-semibold" : "")}>
                             {component}
                         </span>
                     </Button>

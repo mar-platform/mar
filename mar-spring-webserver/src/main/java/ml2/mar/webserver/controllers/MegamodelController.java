@@ -1,14 +1,8 @@
 package ml2.mar.webserver.controllers;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-import org.jgrapht.Graph;
-import org.jgrapht.alg.clustering.LabelPropagationClustering;
-import org.jgrapht.graph.DefaultUndirectedGraph;
-import org.springframework.beans.factory.annotation.Autowired;
+import mar.analysis.megamodel.model.ComponentGraph;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,25 +18,27 @@ import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawProject;
 import mar.analysis.backend.megamodel.stats.CombinedStats;
-import mar.analysis.megamodel.model.Artefact;
 import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.RelationshipsGraph;
-import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
-import mar.analysis.megamodel.model.RelationshipsGraph.Edge;
-import mar.analysis.megamodel.model.RelationshipsGraph.Node;
 
 @RestController
 @RequestMapping(path = "/modelgraph")
 public class MegamodelController {
 
-	@Autowired
 	private MegamodelDB db;
-	@Autowired
 	private RawRepositoryDB raw;
-	@Autowired
 	private TransformationRelationshipsAnalysis analysis;
-	@Autowired
 	private ObjectMapper objectMapper;
+
+	private ComponentGraph componentGraphCache = null;
+
+	public MegamodelController(TransformationRelationshipsAnalysis analysis, RawRepositoryDB raw, MegamodelDB db, ObjectMapper objectMapper) {
+		this.analysis = analysis;
+		this.raw = raw;
+		this.db = db;
+		this.objectMapper = objectMapper;
+		componentGraphCache = analysis.getComponentGraph();
+	}
 
 	@GetMapping(value = "/stats", produces="application/json")
     public String stats() throws JsonProcessingException {
@@ -72,10 +68,10 @@ public class MegamodelController {
         return objectMapper.writeValueAsString(analysis.getRelationships());    	
     }
 
-	@GetMapping(value = "/duplication-graph", produces="application/json")
+	/*@GetMapping(value = "/duplication-graph", produces="application/json")
     public String duplicationGraph() throws JsonProcessingException {
         return objectMapper.writeValueAsString(analysis.getDuplicationGraph());
-    }
+    }*/
 
 	@GetMapping(value = "/megamodel-graph", produces="application/json")
     public String megamodelGraph() throws JsonProcessingException {
@@ -89,12 +85,16 @@ public class MegamodelController {
 
 	@GetMapping(value = "/all-components", produces="application/json")
 	public List<String> allComponents() throws JsonProcessingException {
-		return analysis.getComponentGraph().getSubgraphs().stream().map(s -> s.getName()).toList();
+		return componentGraphCache.getSubgraphs().stream().map(c -> c.getName().trim()).toList();
 	}
 
 	@GetMapping(value = "/component-graph", produces="application/json")
-    public String componentGraph() throws JsonProcessingException {
-        return objectMapper.writeValueAsString(analysis.getComponentGraph());
+    public ResponseEntity<RelationshipsGraph> componentGraph(@RequestParam("componentId") String componentId) throws JsonProcessingException {
+		var componentGraph = componentGraphCache.getSubgraphs().stream().filter(s -> s.getName().equals(componentId)).findFirst().orElse(null);
+		if (componentGraph == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(componentGraph);
     }
 	
 	@GetMapping(value = "/project-graph", produces="application/json")
@@ -102,17 +102,17 @@ public class MegamodelController {
 		return analysis.getProjectRelationship(projectId);
 	}
 
-	@GetMapping(value = "/graph-from-sql", produces="application/json")
+	/*@GetMapping(value = "/graph-from-sql", produces="application/json")
 	public RelationshipsGraph getGraphFromSQL(@RequestParam("sql") String sql) {
 		return analysis.getRelationshipsFromSQL(sql);
-	}
+	}*/
 	
-	@GetMapping(value = "/search-project", produces="application/json")
+	/*@GetMapping(value = "/search-project", produces="application/json")
     public List<Project> searchProject(@RequestParam("value") String value) throws JsonProcessingException {
 		if (value.length() < 3)
 			return Collections.emptyList();
 		return db.searchProjects(value);
-	}
+	}*/
 	
 	@GetMapping(value = "/all-projects", produces="application/json")
     public List<String> allProjects() throws JsonProcessingException {
@@ -120,7 +120,7 @@ public class MegamodelController {
 		return projects.stream().sorted((p1, p2) -> p1.getId().compareTo(p2.getId())).map(p -> p.getId()).toList();
 	}
 	
-	@GetMapping(value = "/clustering/label-propagation", produces="application/json")
+	/*@GetMapping(value = "/clustering/label-propagation", produces="application/json")
     public String clusteringLabelPropagation() throws JsonProcessingException {
         Graph<Node, Edge> graph = analysis.getRelationships().getGraph();
         Graph<Node, Edge> undirected = toUndirected(graph);
@@ -155,6 +155,6 @@ public class MegamodelController {
 			undirected.addEdge(graph.getEdgeSource(edge), graph.getEdgeTarget(edge), edge);
 		}
 		return undirected;
-	}
+	}*/
 	
 }

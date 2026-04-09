@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;

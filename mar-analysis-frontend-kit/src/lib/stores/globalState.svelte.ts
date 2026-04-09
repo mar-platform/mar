@@ -2,6 +2,7 @@ import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { getAllGraphsApi } from "$lib/api/allGraphs";
 import { getArtefactInfoApi } from "$lib/api/artefacts";
+import { getComponentGraphApi } from "$lib/api/components";
 import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
@@ -329,7 +330,7 @@ class GlobalState {
         this.selectedComponent = component;
 
         // Start loading the component graph
-        const graph = await getProjectGraphApi(component);
+        const graph = await getComponentGraphApi(component);
         
         if (graph.status === 200 && graph.data) {
             await this.selectGraph(graph.data);
