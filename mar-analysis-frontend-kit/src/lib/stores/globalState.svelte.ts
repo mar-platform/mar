@@ -148,6 +148,7 @@ class GlobalState {
         
         // Reset selected project, nodes...
         this.selectedProject = null;
+        this.selectedComponent = null;
         this.selectedGraph = null;
         this.selectedNode = null;
         this.selectedUnprocessedGraph = null;
@@ -243,7 +244,6 @@ class GlobalState {
         this.selectedGraph = graph;
         this.selectedUnprocessedGraph = dto;
         this.state = 'OK';
-
     }
 
     // —— Graph renderer —————————————————————————————

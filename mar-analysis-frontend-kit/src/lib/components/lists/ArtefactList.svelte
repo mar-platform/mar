@@ -1,7 +1,6 @@
 <script lang="ts">
 	import LucideArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import { globalState } from '$lib/stores/globalState.svelte';
 	import { cn } from '$lib/utils';
 	import Searchbar from '../basic/Searchbar.svelte';
@@ -11,6 +10,10 @@
 	import { fade } from 'svelte/transition';
 	import { nodeTypes } from '$lib/constants/graphNodeTypes';
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+	import { DEFAULT_PAGE_SIZE, MIN_WAIT_TIME_MS } from '$lib/constants/values';
+	import { paginateArray } from '$lib/utils/pagination';
+	import List from '../basic/List.svelte';
+	import { untrack } from 'svelte';
 
     interface ArtefactListProps {
         onClickBackButton?: () => void;
@@ -18,30 +21,73 @@
 
     let { onClickBackButton } : ArtefactListProps = $props();
 
-    let query = $state('');
+    let items = $state<ArtefactNode[]>([]);
+    let isLoading = $state(false);
+    let hasMore = $state(true);
+    let loadingStyle = $state<'skeleton' | 'spinner'>('skeleton');
+    let totalItems = $state<number | null>(null);
 
-    const nodes = $derived.by(() => {
-        if (globalState.mode === 'PROJECT' && !globalState.selectedProject || globalState.state === 'LOADING_GRAPH' && !globalState.selectedUnprocessedGraph) {
-            return [];
-        }
-        return globalState.getArtefactsFromNodes(globalState.selectedUnprocessedGraph?.nodes || [], globalState.selectedNodeTypes, query);
-    });
+    let currentPage = 1;
+    let query = $state("");
+
+    async function loadData() {
+        if (isLoading || !hasMore || nodes === 'LOADING') return;
+
+        isLoading = true;
+
+        // Fetch next items
+        const minWaitTime = new Promise((resolve) => setTimeout(resolve, MIN_WAIT_TIME_MS));
+        const result = paginateArray(nodes as ArtefactNode[], currentPage, DEFAULT_PAGE_SIZE);
+        await minWaitTime;
+        console.log("Fetched items:", result);
+
+        items.push(...result.data);
+        hasMore = result.hasMore;
+        totalItems = result.total;
+        currentPage++;
+        loadingStyle = 'spinner'; // Switch to spinner for subsequent loads
+
+        isLoading = false;
+    }
+
+    let nodes = $state<ArtefactNode[] | 'LOADING'>('LOADING');
 
     function onClickArtefact(node: ArtefactNode) {
         if (globalState.selectedNode?.id === node.id) return;
         globalState.selectNode(node);
     }
 
-    function onSearch(newQuery: string) {
-        query = newQuery;
+    function onSearch(q: string) {
+        items = [];
+        currentPage = 1;
+        hasMore = true;
+        query = q;
+        totalItems = null;
+        loadingStyle = 'skeleton'; // Use skeleton for new searches
+        // NOTE: Data will be loaded from the effect when nodes update!
     }
 
     function handleBackButton() {
         if (onClickBackButton) {
             onClickBackButton();
             query = '';
+            nodes = 'LOADING';
         }
     }
+
+    // Initial load when nodes change
+    $effect(() => {
+        if ((globalState.mode === 'PROJECT' && !globalState.selectedProject) || globalState.state === 'LOADING_GRAPH' || !globalState.selectedUnprocessedGraph) {
+            nodes = 'LOADING';
+            return;
+        }
+        const artefacts = globalState.getArtefactsFromNodes(globalState.selectedUnprocessedGraph?.nodes || [], globalState.selectedNodeTypes, query);
+        nodes = artefacts;
+
+        untrack(() => {
+            loadData();
+        });
+    });
 </script>
 
 <div class="w-full h-full rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
@@ -53,24 +99,30 @@
         {/if}
         <LucideNewspaper />
         <h2 class="text-lg font-semibold">Artefacts</h2>
-        {#if globalState.state === 'LOADING_GRAPH'}
+        {#if totalItems === null}
             <Skeleton class="min-w-6 min-h-6 rounded-full" />
         {:else} 
             <div class="py-0.5 min-w-6 px-2 flex items-center justify-center bg-accent rounded-full text-sm">
-                {nodes.length}
+                {totalItems}
             </div>
         {/if}
     </div>
 
-    <Searchbar class="bg-page-background mt-3 mb-5" placeholder="Filter artefacts..." {onSearch} />
+    <Searchbar disabled={nodes === 'LOADING'} class="bg-page-background mt-3 mb-5" placeholder="Filter artefacts..." {onSearch} />
 
-	<ScrollArea class="flex-1 min-h-0 pr-3">
-        {#if globalState.state === 'LOADING_GRAPH'}
-            {#each Array.from({ length: 8 }, (_, i) => i) as _(_)}
-                <Skeleton class="h-5.5 mt-2 w-full" />
-            {/each}
-        {:else} 
-            {#each nodes as node(node.id)}
+    {#if nodes === 'LOADING'}
+        {#each Array.from({ length: 3 }, (_, i) => i) as _(_)}
+            <Skeleton class="h-5.5 mt-2 w-full" />
+        {/each}
+    {:else}
+        <List
+            {isLoading}
+            {hasMore}
+            {loadingStyle}
+            showNoMore={false}
+            onLoadMore={loadData}
+        >
+            {#each items as node(node.id)}
                 <Button size="sm" variant={globalState.selectedNode?.id === node.id ? "secondary" : "ghost"} class="gap-2 rounded-full justify-start w-full" onclick={() => onClickArtefact(node)}>
                     <div class="min-w-2 min-h-2 rounded-full" style={`background-color: ${`var(${nodeTypes[node.type as keyof typeof nodeTypes].color})`};`}></div>
                     <span title={node.name} class={cn("whitespace-nowrap overflow-hidden text-ellipsis font-normal", globalState.selectedNode?.id === node.id ? "font-semibold" : "")}>
@@ -78,18 +130,20 @@
                     </span>
                 </Button>
             {:else}
-                <Empty.Root class="min-h-60 h-full from-muted/50 to-background bg-linear-to-b from-30% border border-dashed -pr-3">
-                    <Empty.Header >
-                        <Empty.Media variant="icon">
-                            <LucideNewspaper />
-                        </Empty.Media>
-                        <Empty.Title>No artefacts found</Empty.Title>
-                        <Empty.Description>
-                            Try adjusting your search or filter to find what you're looking for.
-                        </Empty.Description>
-                    </Empty.Header>
-                </Empty.Root>
+                {#if !isLoading}
+                    <Empty.Root class="min-h-60 h-full from-muted/50 to-background bg-linear-to-b from-30% border border-dashed -pr-3">
+                        <Empty.Header >
+                            <Empty.Media variant="icon">
+                                <LucideNewspaper />
+                            </Empty.Media>
+                            <Empty.Title>No artefacts found</Empty.Title>
+                            <Empty.Description>
+                                Try adjusting your search or filter to find what you're looking for.
+                            </Empty.Description>
+                        </Empty.Header>
+                    </Empty.Root>
+                {/if}
             {/each}
-        {/if}
-	</ScrollArea>
+        </List>
+    {/if}
 </div>

@@ -14,6 +14,7 @@
         onLoadMore: () => void;
         children: Snippet;
         class?: string;
+        showNoMore?: boolean;
     }
 
     let {
@@ -24,14 +25,15 @@
         onLoadMore,
         children,
         class: className = "",
+        showNoMore = true,
     } : ListProps = $props();
 </script>
 
 <ScrollArea {orientation} class={cn("flex-1 min-h-0 pr-3 overflow-x-hidden", className)}>
   {@render children()}
 
-  {#if hasMore}
-    <div use:infiniteScroll={onLoadMore} class="w-full mt-2"></div>
+  {#if hasMore && !isLoading}
+    <div use:infiniteScroll={onLoadMore} class="h-1 w-full mt-2"></div>
   {/if}
 
   {#if isLoading}
@@ -46,7 +48,7 @@
     {/if}
   {/if}
 
-  {#if !hasMore}
+  {#if !hasMore && showNoMore}
     <div class="py-4 text-center text-xs text-muted-foreground select-none">
         No more results
     </div>

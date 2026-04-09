@@ -76,7 +76,7 @@
         {/if}
     </div>
 
-    <Searchbar class="bg-page-background mt-3 mb-5" placeholder="Filter components..." {onSearch} />
+    <Searchbar disabled={globalState.state === 'LOADING'} class="bg-page-background mt-3 mb-5" placeholder="Filter components..." {onSearch} />
 
     {#if globalState.state === 'LOADING'}
         {#each Array.from({ length: 3 }, (_, i) => i) as _(_)}

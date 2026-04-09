@@ -52,13 +52,13 @@
     const selectedGraph = $derived(globalState.selectedGraph);
     let fa2Running = $state(false);
 
-    function onShowArtefactClick(project: string) {
+    async function onShowArtefactClick(project: string) {
         if (globalState.mode !== 'PROJECT') {
             return;
         }
         // Select the project if it's not already selected
         if (globalState.selectedProject !== project) {
-            globalState.selectProject(project);
+            await globalState.selectProject(project);
         }
         listState = 'ARTEFACTS';
     }
@@ -94,8 +94,10 @@
                 <ProjectList {onShowArtefactClick} />
             {:else if listState === 'COMPONENTS'}
                 <ComponentList />
-            {:else if globalState.state !== 'LOADING' && listState === 'ARTEFACTS'}
-                <ArtefactList onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
+            {:else if listState === 'ARTEFACTS'}
+                {#key globalState.mode} <!-- IMPORTANT: Reloads the component when transitioning from project -> arteact to megamodel -->
+                    <ArtefactList onClickBackButton={globalState.mode === 'PROJECT' ? goBackToProjectList : undefined} />
+                {/key}
             {/if}
         </div>
     {/if}
