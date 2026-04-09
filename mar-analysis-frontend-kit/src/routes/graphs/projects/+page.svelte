@@ -35,4 +35,4 @@
     setGraphMode();
 </script>
 
-<GraphRepresentation />
+<GraphRepresentation mode="PROJECT" />

@@ -23,7 +23,7 @@ import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 import { SvelteURLSearchParams } from "svelte/reactivity";
 
-type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION' | 'COMPONENT';
+export type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUPLICATION' | 'COMPONENT';
 
 class GlobalState {
     state: 'LOADING' | 'LOADING_GRAPH' | 'OK' | 'ERROR' = $state('LOADING');

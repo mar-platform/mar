@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { globalState } from '$lib/stores/globalState.svelte';
+	import { globalState, type GraphMode } from '$lib/stores/globalState.svelte';
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { fade } from 'svelte/transition';
 	import Searchbar from '../basic/Searchbar.svelte';
@@ -23,9 +23,17 @@
 	import { getProjectGithubLink } from '$lib/utils/links';
 	import ComponentList from '../lists/ComponentList.svelte';
 
+    interface GraphRepresentationProps {
+        mode: GraphMode;
+    }
+
+    let {
+        mode,
+    }: GraphRepresentationProps = $props();
+
     // List states
     let listState = $derived.by<'PROJECT' | 'ARTEFACTS' | 'COMPONENTS' | null>(() => {
-        switch (globalState.mode) {
+        switch (mode) {
             case 'PROJECT':
                 return 'PROJECT';
             case 'ALL':
@@ -40,7 +48,6 @@
     });
     
     // Graph states
-    let graphMode = $derived(globalState.mode);
     let graphVisualizerRef: GraphVisualizer | null = $state(null);
     const selectedGraph = $derived(globalState.selectedGraph);
     let fa2Running = $state(false);
@@ -92,7 +99,7 @@
             {/if}
         </div>
     {/if}
-    {#if graphMode !== null}
+    {#if mode !== null}
         <div id="graph-view" class="flex-1 min-w-0 min-h-lvh min-[1100px]:min-h-[calc(100svh-152px-40px)] flex flex-col gap-2" in:fade out:fade>
             <div class="w-full flex flex-col">
                 {#if globalState.selectedProject}

@@ -13,4 +13,4 @@
     setGraphMode();
 </script>
 
-<GraphRepresentation />
+<GraphRepresentation mode="COMPONENT" />

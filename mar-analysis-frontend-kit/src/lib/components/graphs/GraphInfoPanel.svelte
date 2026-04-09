@@ -126,7 +126,8 @@
                                             {@render githubUser(resolvedInfo.createdAuthorData!)}
                                         {/snippet}
                                         {@render entry('Author', resolvedInfo.createdAuthorData ? author: resolvedInfo.createdAuthor)}
-                                        {@render entry('Last Updated By', resolvedInfo.updatedAuthor)}
+                                        <!-- If the author and the last updated user matches render it with the same github data -->
+                                        {@render entry('Last Updated By', resolvedInfo.createdAuthor === resolvedInfo.updatedAuthor ? author: resolvedInfo.updatedAuthor)}
                                         {@render entry('Created At', new Date(resolvedInfo.createdAt).toLocaleString())}
                                         {@render entry('Last Updated At', new Date(resolvedInfo.updatedAt).toLocaleString())}
                                         <Button class="gap-3 border border-input-border text-white bg-black hover:text-white! hover:bg-black/85" href={getArtefactGithubLink(resolvedInfo.project, selectedNode.id)} target="_blank" size="default">
