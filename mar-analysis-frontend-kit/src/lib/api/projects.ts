@@ -1,4 +1,4 @@
-import { ALL_PROJECTS_ENDPOINT, PROJECT_GRAPH_ENDPOINT, PROJECT_INFO_ENDPOINT, SEARCH_PROJECT_ENDPOINT } from "$lib/constants/api-routes";
+import { ALL_PROJECTS_ENDPOINT, PROJECT_GRAPH_ENDPOINT, PROJECT_INFO_ENDPOINT } from "$lib/constants/api-routes";
 import type ApiResponse from "$lib/dto/ApiResponse";
 import type GithubUser from "$lib/dto/GithubUser";
 import type Graph from "$lib/dto/Graph";
@@ -7,27 +7,6 @@ import { getGithubUserInfoApi } from "./github";
 
 export const allProjectsApi = async (fetch?: typeof window.fetch): Promise<ApiResponse<string[]>> => {
     const request = await (fetch || window.fetch)(ALL_PROJECTS_ENDPOINT, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-    });
-
-    const status = request.status;
-    let response: string[] | null = null;
-
-    if (request.ok) {
-        response = await request.json() as string[];
-    }
-
-    return {
-        data: response,
-        status,
-    };
-};
-
-export const searchProjectsApi = async (query: string): Promise<ApiResponse<string[]>> => {
-    const request = await (fetch || window.fetch)(SEARCH_PROJECT_ENDPOINT(query), {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'

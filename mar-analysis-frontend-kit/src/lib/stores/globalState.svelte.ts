@@ -5,10 +5,10 @@ import { getArtefactInfoApi } from "$lib/api/artefacts";
 import { getDuplicationGraphApi } from "$lib/api/duplication";
 import { getInterProjectGraphApi } from "$lib/api/interproject";
 import { getMegamodelGraphApi } from "$lib/api/megamodel";
-import { getProjectGraphApi, getProjectInfoApi, searchProjectsApi } from "$lib/api/projects";
+import { getProjectGraphApi, getProjectInfoApi } from "$lib/api/projects";
 import type { edgeTypes } from "$lib/constants/edgeTypes";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
-import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES } from "$lib/constants/values";
+import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES, MIN_WAIT_TIME_MS } from "$lib/constants/values";
 import type ApiResponse from "$lib/dto/ApiResponse";
 import type ArtefactInfo from "$lib/dto/ArtefactInfo";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
@@ -29,11 +29,13 @@ export type GraphMode = 'ALL' | 'PROJECT' | 'INTER_PROJECT' | 'MEGAMODEL' | 'DUP
 class GlobalState {
     state: 'LOADING' | 'LOADING_GRAPH' | 'OK' | 'ERROR' = $state('LOADING');
     mode: GraphMode | null = $state(null);
+    
     projects: string[] = $state([]);
-    components: string[] = $state([]);
-    searchProjects = $state<string[]>([]);
     selectedProject: string | null = $state(null);
+    
+    components: string[] = $state([]);
     selectedComponent: string | null = $state(null);
+    
     selectedUnprocessedGraph: GraphDTO | null = $state(null);
     selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
@@ -72,14 +74,12 @@ class GlobalState {
         "output-type": true,
         "generate": true,
     });
-
     private currentGraphRenderer: Sigma | null = null;
 
     initialize(projects: string[], components: string[]) {
         this.projects = projects;
         this.components = components;
         this.state = 'OK';
-        this.searchProjects = projects;
         this.selectedProject = null;
         this.selectedComponent = null;
         this.selectedGraph = null; // Reset the graph when initializing with new projects
@@ -97,6 +97,15 @@ class GlobalState {
     }
 
     // —— Projects —————————————————————————————
+
+    async fetchProjects(query: string, page: number, pageSize: number): Promise<PaginationResult<string>> {
+        const projects = this.projects.filter(project => project.toLowerCase().includes(query.toLowerCase()));
+        const minWaitTime = new Promise((resolve) => setTimeout(resolve, MIN_WAIT_TIME_MS));
+        const result = paginateArray(projects, page, pageSize);
+        await minWaitTime;
+
+        return result;
+    }
 
     async selectProject(project: string, autoScroll = true) {
         this.deselectNodeOrEdge(); // Deselect any selected node or edge when selecting a new project
@@ -125,20 +134,6 @@ class GlobalState {
         }
         if (autoScroll) {
             scrollToGraph();
-        }
-    }
-
-    async searchProject(query: string) {
-        if (!query) {
-            this.searchProjects = this.projects;
-            return;
-        }
-
-        const result = await searchProjectsApi(query);
-        this.searchProjects = result.data || [];
-
-        if (result.status !== 200) {
-            toast.error('Failed to search projects. Please try again later.');
         }
     }
 
@@ -318,10 +313,14 @@ class GlobalState {
     }
 
     // —— Components —————————————————————————————
+    
     async fetchComponents(query: string, page: number, pageSize: number): Promise<PaginationResult<string>> {
         const components = this.components.filter(component => component.toLowerCase().includes(query.toLowerCase()));
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return paginateArray(components, page, pageSize);
+        const minWaitTime = new Promise((resolve) => setTimeout(resolve, MIN_WAIT_TIME_MS));
+        const result = paginateArray(components, page, pageSize);
+        await minWaitTime;
+
+        return result;
     }
 
     async selectComponent(component: string, autoScroll = true) {

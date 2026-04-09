@@ -16,11 +16,12 @@
     let hasMore = $state(true);
     let loadingStyle = $state<'skeleton' | 'spinner'>('skeleton');
     let totalItems = $state<number | null>(null);
+
     let currentPage = 1;
     let query = "";
+    let initialLoadDone = false;
 
     async function loadData() {
-        console.log("Loading data for page", currentPage);
         if (isLoading || !hasMore) return;
 
         isLoading = true;
@@ -54,7 +55,12 @@
     }
 
     // Initial load
-    loadData();
+    $effect(() => {
+        if (globalState.state !== 'LOADING' && !initialLoadDone) {
+            initialLoadDone = true;
+            loadData();
+        }
+    });
 </script>
 
 <div class="w-full h-full rounded-lg bg-page-foreground p-4 shadow-sm flex flex-col" in:fade>
@@ -73,7 +79,7 @@
     <Searchbar class="bg-page-background mt-3 mb-5" placeholder="Filter components..." {onSearch} />
 
     {#if globalState.state === 'LOADING'}
-        {#each Array.from({ length: 8 }, (_, i) => i) as _(_)}
+        {#each Array.from({ length: 3 }, (_, i) => i) as _(_)}
             <Skeleton class="h-5.5 mt-2 w-full" />
         {/each}
     {:else}

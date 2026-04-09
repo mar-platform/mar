@@ -106,6 +106,8 @@
                     {#key globalState.selectedProject}
                         <span title={globalState.selectedProject} class="mb-3 text-text-secondary text-base font-medium whitespace-nowrap overflow-hidden text-ellipsis" in:fade>{globalState.selectedProject}</span>   
                     {/key}
+                {:else if globalState.state === 'LOADING' && (mode === 'PROJECT' || mode === 'COMPONENT')}
+                    <Skeleton class="bg-page-foreground h-6 w-1/3 mb-3" />
                 {/if}
                 
                 <ScrollArea orientation="horizontal" class="flex-1 min-w-0 pb-3">
