@@ -1,5 +1,6 @@
 <script lang="ts">
 	import GraphRepresentation from "$lib/components/graphs/GraphRepresentation.svelte";
+	import { INITIAL_LABEL_SIZE_LARGE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE_LARGE } from "$lib/constants/values";
 	import { globalState } from "$lib/stores/globalState.svelte";
 	import type { PageProps } from "./$types";
 
@@ -7,6 +8,12 @@
 
     async function setGraphMode() {
         await data.promise;
+
+        // Apply some properties so that project graphs (whick are usually smaller than megamodels) are more readable by default, but allow users to change them in the toolbar
+        globalState.labelThreshold = INITIAL_LABEL_THRESHOLD;
+        globalState.nodeSize = INITIAL_NODE_SIZE_LARGE;
+        globalState.labelSize = INITIAL_LABEL_SIZE_LARGE;
+        
         await globalState.setGraphMode('PROJECT');
 
         // If no parameter is provided, we can select the first project by default
