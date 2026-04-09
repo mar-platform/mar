@@ -1,6 +1,6 @@
 <script lang="ts">
 	import GraphRepresentation from "$lib/components/graphs/GraphRepresentation.svelte";
-	import { INITIAL_LABEL_THRESHOLD_MEDIUM } from "$lib/constants/values";
+	import { INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD_MEDIUM, INITIAL_NODE_SIZE_MEDIUM } from "$lib/constants/values";
 	import { globalState } from "$lib/stores/globalState.svelte";
 	import type { PageProps } from "./$types";
 
@@ -10,6 +10,9 @@
         await data.promise;
         // Set a high label threshold for megamodels to avoid clutter, but allow users to change it in the toolbar
         globalState.labelThreshold = INITIAL_LABEL_THRESHOLD_MEDIUM;
+        globalState.nodeSize = INITIAL_NODE_SIZE_MEDIUM;
+        globalState.labelSize = INITIAL_LABEL_SIZE;
+
         globalState.setGraphMode('COMPONENT');
 
         // If no parameter is provided, we can select the first component by default
