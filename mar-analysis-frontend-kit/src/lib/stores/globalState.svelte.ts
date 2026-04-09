@@ -14,6 +14,7 @@ import type ArtefactInfo from "$lib/dto/ArtefactInfo";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
 import type GraphDTO from "$lib/dto/Graph";
 import type ProjectInfo from "$lib/dto/ProjectInfo";
+import { paginateArray, type PaginationResult } from "$lib/utils/pagination";
 import { scrollToDetails, scrollToGraph } from "$lib/utils/scroll";
 import type Graph from "graphology";
 import { UndirectedGraph } from "graphology";
@@ -32,6 +33,7 @@ class GlobalState {
     components: string[] = $state([]);
     searchProjects = $state<string[]>([]);
     selectedProject: string | null = $state(null);
+    selectedComponent: string | null = $state(null);
     selectedUnprocessedGraph: GraphDTO | null = $state(null);
     selectedGraph: Graph | null = $state(null);
     selectedNode: Node | null = $state(null);
@@ -79,6 +81,7 @@ class GlobalState {
         this.state = 'OK';
         this.searchProjects = projects;
         this.selectedProject = null;
+        this.selectedComponent = null;
         this.selectedGraph = null; // Reset the graph when initializing with new projects
         this.selectedUnprocessedGraph = null;
         this.selectedNode = null;
@@ -312,6 +315,43 @@ class GlobalState {
 
     async getArtefactInfo(artefactId: string): Promise<ArtefactInfo | null> {
         return (await getArtefactInfoApi(artefactId)).data;
+    }
+
+    // —— Components —————————————————————————————
+    async fetchComponents(query: string, page: number, pageSize: number): Promise<PaginationResult<string>> {
+        const components = this.components.filter(component => component.toLowerCase().includes(query.toLowerCase()));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return paginateArray(components, page, pageSize);
+    }
+
+    async selectComponent(component: string, autoScroll = true) {
+        this.deselectNodeOrEdge(); // Deselect any selected node or edge when selecting a new component
+
+        this.selectedComponent = component;
+
+        // Start loading the component graph
+        const graph = await getProjectGraphApi(component);
+        
+        if (graph.status === 200 && graph.data) {
+            await this.selectGraph(graph.data);
+
+            // Update the URL with the selected component as a query parameter
+            const params = new SvelteURLSearchParams(page.url.searchParams);
+            params.set('q', component);
+            // eslint-disable-next-line svelte/no-navigation-without-resolve
+            goto(`?${params.toString()}`, {
+                keepFocus: true,
+                replaceState: true,
+                noScroll: true
+            });
+        } else {
+            toast.error('Failed to load component graph. Please try again later.');
+            this.selectedGraph = null;
+            this.selectedUnprocessedGraph = null;
+        }
+        if (autoScroll) {
+            scrollToGraph();
+        }
     }
 }
 

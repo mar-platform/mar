@@ -4,6 +4,9 @@ export const SHOW_LOGOS_AND_REPO = false;
 
 export const SEARCHBAR_DEBOUNCE_MS = 300;
 
+// PAGINATION
+export const DEFAULT_PAGE_SIZE = 40;
+
 // GRAPHS
 export const DEFAULT_NUMBER_OF_ITERATIONS = 20;
 export const INITIAL_LABEL_SIZE = 14;
