@@ -1,6 +1,7 @@
 package mar.analysis.backend.megamodel.stats;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,10 +60,21 @@ public class InMemoryResultAnalyser {
     private final RawRepositoryDB rawDb;
     private final Set<String> artefactTypes;
 
-    public InMemoryResultAnalyser(MegamodelDB megamodelDb, RawRepositoryDB rawDb, Set<String> artefactTypes) {
+    private Set<String> toAllTypes() {
+        Set<String> artefactTypes;
+        artefactTypes = new HashSet<>();
+        for (ArtefactType artefactType : ArtefactType.values()) {
+                if (artefactType.isArtefactFile)
+                        artefactTypes.add(artefactType.id);
+        }
+        artefactTypes.add("ecore");
+        return artefactTypes;
+}
+
+    public InMemoryResultAnalyser(MegamodelDB megamodelDb, RawRepositoryDB rawDb) {
         this.megamodelDb = megamodelDb;
         this.rawDb = rawDb;
-        this.artefactTypes = artefactTypes;
+        this.artefactTypes = toAllTypes();
     }
 
     public MegamodelAnalysisStats compute() {

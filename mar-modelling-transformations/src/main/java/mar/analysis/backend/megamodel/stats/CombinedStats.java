@@ -6,6 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import mar.analysis.backend.megamodel.ArtefactType;
+import mar.analysis.backend.megamodel.stats.InMemoryResultAnalyser.MegamodelAnalysisStats;
 
 public class CombinedStats {
 
@@ -21,10 +22,13 @@ public class CombinedStats {
 	private double totalCompletion;
 	@JsonProperty
 	private final Map<String, Double> artefactRecoveryCompletion;
+	@JsonProperty
+	MegamodelAnalysisStats megamodelAnalysisStats;
 
-	public CombinedStats(RawRepositoryStats raw, MegamodelStats mega) {
+	public CombinedStats(RawRepositoryStats raw, MegamodelStats mega, MegamodelAnalysisStats megamodelAnalysisStats) {
 		this.raw = raw;
 		this.mega = mega;
+		this.megamodelAnalysisStats = megamodelAnalysisStats;
 		this.artefactRecoveryCompletion = new HashMap<>();
 		computeStats();
 	}

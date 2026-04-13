@@ -55,6 +55,7 @@ class GlobalState {
         duplication: true,
         ecore: true,
         emfatic: true,
+        emftext: true,
         epsilon: true,
         henshin: true,
         ocl: true,

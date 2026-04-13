@@ -19,6 +19,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
+import mar.analysis.backend.megamodel.stats.InMemoryResultAnalyser;
 import ml2.mar.webserver.configuration.AnalysisConfiguration;
 import ml2.mar.webserver.configuration.AnalysisFilterImpl;
 
@@ -50,13 +51,13 @@ public class WebserverApplication {
 	}
 	
 	@Bean
-	public ObjectMapper getMapper() {
+	ObjectMapper getMapper() {
 		return new ObjectMapper();
 	}
 	
 	@Bean
 	@Scope("application")
-	public AnalysisConfiguration getConfiguration(@Autowired ApplicationArguments args) throws IOException {
+	AnalysisConfiguration getConfiguration(@Autowired ApplicationArguments args) throws IOException {
 		String configuration;
 		if (args.getNonOptionArgs().size() <= 2) {
 		    File file = ResourceUtils.getFile("classpath:configuration.yaml");
@@ -71,7 +72,7 @@ public class WebserverApplication {
 	
 	@Bean
 	@Scope("application")
-	public TransformationRelationshipsAnalysis getRelationshipAnalysis(
+	TransformationRelationshipsAnalysis getRelationshipAnalysis(
 			@Autowired MegamodelDB db, 
 			@Autowired RawRepositoryDB rawRepository,
 			AnalysisConfiguration configuration) {    	
@@ -80,7 +81,7 @@ public class WebserverApplication {
 	
 	@Bean
 	@Scope("application")
-	public MegamodelDB getMegamodelDB(@Autowired ApplicationArguments args) {
+	MegamodelDB getMegamodelDB(@Autowired ApplicationArguments args) {
 		String fileName = args.getNonOptionArgs().get(0);
     	MegamodelDB db = new MegamodelDB(new File(fileName));
     	return db;
@@ -88,10 +89,18 @@ public class WebserverApplication {
 
 	@Bean
 	@Scope("application")
-	public RawRepositoryDB getRawRepositoryDB(@Autowired ApplicationArguments args) {
+	RawRepositoryDB getRawRepositoryDB(@Autowired ApplicationArguments args) {
 		String fileName = args.getNonOptionArgs().get(1);
 		RawRepositoryDB db = new RawRepositoryDB(new File(fileName));
     	return db;
+	}
+
+	@Bean
+	@Scope("application")
+	InMemoryResultAnalyser getInMemoryResultAnalyser(
+			@Autowired MegamodelDB db, 
+			@Autowired RawRepositoryDB rawRepository) {    	
+		return new InMemoryResultAnalyser(db, rawRepository);
 	}
 	
 }

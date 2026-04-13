@@ -18,17 +18,19 @@ import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.backend.megamodel.RawRepositoryDB.RawProject;
 import mar.analysis.backend.megamodel.stats.CombinedStats;
+import mar.analysis.backend.megamodel.stats.InMemoryResultAnalyser;
+import mar.analysis.backend.megamodel.stats.InMemoryResultAnalyser.MegamodelAnalysisStats;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 
 @RestController
 @RequestMapping(path = "/modelgraph")
 public class MegamodelController {
 
-	private MegamodelDB db;
 	private RawRepositoryDB raw;
 	private TransformationRelationshipsAnalysis analysis;
 	private ObjectMapper objectMapper;
 
+	private CombinedStats cachedStats = null;
 	private ComponentGraph componentGraphCache = null;
 	private RelationshipsGraph megamodelCache = null;
 	private RelationshipsGraph interProjectGraphCache = null;
@@ -36,24 +38,25 @@ public class MegamodelController {
 	private List<String> allProjectsCache = null;
 	private List<String> allComponentsCache = null;
 
-	public MegamodelController(TransformationRelationshipsAnalysis analysis, RawRepositoryDB raw, MegamodelDB db, ObjectMapper objectMapper) {
+	public MegamodelController(TransformationRelationshipsAnalysis analysis, RawRepositoryDB raw, MegamodelDB db, InMemoryResultAnalyser resultAnalyser, ObjectMapper objectMapper) {
 		this.analysis = analysis;
 		this.raw = raw;
-		this.db = db;
 		this.objectMapper = objectMapper;
 
 		// Cache the graphs on startup to avoid expensive recomputation on each request
+		cachedStats = new CombinedStats(raw.getStats(), db.getStats(), resultAnalyser.compute());
 		componentGraphCache = analysis.getComponentGraph();
 		megamodelCache = analysis.getMegamodelGraph();
 		interProjectGraphCache = analysis.getInterProjectGraph();
+
 
 		allProjectsCache = db.allProjects().stream().sorted((p1, p2) -> p1.getId().compareTo(p2.getId())).map(p -> p.getId()).toList();
 		allComponentsCache = componentGraphCache.getSubgraphs().stream().map(c -> c.getName()).toList();
 	}
 
 	@GetMapping(value = "/stats", produces="application/json")
-    public String stats() throws JsonProcessingException {
-        return objectMapper.writeValueAsString(new CombinedStats(raw.getStats(), db.getStats()));
+    public CombinedStats stats() {
+		return cachedStats;
     }
 
 	@GetMapping(value = "/artefacts", produces="application/json")

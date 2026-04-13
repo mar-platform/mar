@@ -4,29 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 
-import org.apache.commons.io.IOUtils;
-import org.eclipse.epsilon.egl.internal.EglModule;
-import org.eclipse.epsilon.eol.AbstractModule;
-import org.eclipse.epsilon.eol.EolModule;
-import org.eclipse.epsilon.etl.EtlModule;
 import org.jgrapht.Graph;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,15 +33,11 @@ import com.google.common.io.Files;
 
 import mar.analysis.backend.megamodel.AnalyserConfiguration;
 import mar.analysis.backend.megamodel.ArtefactType;
-import mar.analysis.backend.megamodel.Error;
 import mar.analysis.backend.megamodel.MegamodelDB;
 import mar.analysis.backend.megamodel.RawRepositoryDB;
 import mar.analysis.backend.megamodel.TransformationRelationshipsAnalysis;
 import mar.analysis.backend.megamodel.stats.ArtefactAnalysis.Result;
-import mar.analysis.backend.megamodel.RawRepositoryDB.RawFile;
 import mar.analysis.megamodel.model.Artefact;
-import mar.analysis.megamodel.model.DuplicationRelationships;
-import mar.analysis.megamodel.model.Project;
 import mar.analysis.megamodel.model.RelationshipsGraph;
 import mar.analysis.megamodel.model.RelationshipsGraph.ArtefactNode;
 import mar.analysis.megamodel.model.RelationshipsGraph.Edge;

@@ -10,6 +10,7 @@ import LucideCheck from '@lucide/svelte/icons/check';
         color: string;
         onClick?: () => void;
         class?: string;
+        leaveEmptySpaceWhenUnchecked?: boolean;
     }
 
     let {
@@ -19,6 +20,7 @@ import LucideCheck from '@lucide/svelte/icons/check';
         color,
         onClick,
         class: className,
+        leaveEmptySpaceWhenUnchecked = true,
     }: NodeOrEdgeItemProps = $props();
 </script>
 
@@ -36,7 +38,7 @@ import LucideCheck from '@lucide/svelte/icons/check';
     {/if}
     {name}
     {#key checked}
-        <div class="w-3" in:fade>
+        <div class={leaveEmptySpaceWhenUnchecked ? "w-3" : "w-0"} in:fade>
             {#if checked}
                 <LucideCheck class="size-3" strokeWidth={3} color={color} />
             {/if}

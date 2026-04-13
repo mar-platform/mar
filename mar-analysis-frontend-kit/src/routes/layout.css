@@ -57,6 +57,7 @@
     --color-ecore: #0369a1;
     --color-xtext: #6d28d9;
     --color-emfatic: #be185d;
+	--color-emftext: #65a30d;
     --color-epsilon: #991b1b;
     --color-acceleo: #15803d;
     --color-atl: #064e3b;
@@ -129,6 +130,7 @@
     --color-ecore: #38bdf8;
     --color-xtext: #a78bfa;
     --color-emfatic: #f472b6;
+	--color-emftext: #a3e635;
     --color-epsilon: #fca5a5;
     --color-acceleo: #4ade80;
     --color-atl: #6ee7b7;
@@ -211,6 +213,7 @@
 	--color-ecore: var(--color-ecore);
 	--color-xtext: var(--color-xtext);
 	--color-emfatic: var(--color-emfatic);
+	--color-emftext: var(--color-emftext);
 	--color-epsilon: var(--color-epsilon);
 	--color-acceleo: var(--color-acceleo);
 	--color-atl: var(--color-atl);

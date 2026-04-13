@@ -37,7 +37,7 @@ public class ProductionSecurityConfig {
             config.setAllowedOrigins(Arrays.asList("*"));
             
             config.setAllowedMethods(Arrays.asList("*"));
-            config.setAllowCredentials(true);
+            config.setAllowCredentials(false);
             config.setAllowedHeaders(Collections.singletonList("*"));
             config.setExposedHeaders(Collections.emptyList());
             config.setMaxAge(3600L);

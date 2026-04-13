@@ -218,7 +218,7 @@
                                                     </span>
                                                 </Button>
                                             {:else}
-                                                <span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{nodeId}</span>
+                                                <span title={nodeId} class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{nodeId}</span>
                                             {/if}
                                         {:else}
                                             <span class="text-text-secondary">No members found</span>
