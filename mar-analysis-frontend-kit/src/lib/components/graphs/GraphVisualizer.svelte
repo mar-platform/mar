@@ -33,9 +33,6 @@
 	let currentEdge = $derived<Edge | null>(globalState.selectedEdge);
 	let hoveredEdge: string | null = $state(null);
 
-	const nodeFilter = $derived(globalState.nodeFilter);
-
-
 	let fa2: InstanceType<typeof FA2Layout> | null = null;
 
 	onMount(() => {
@@ -70,7 +67,7 @@
 			res.hoverBgColor = getComputedStyle(document.documentElement).getPropertyValue("--color-page-background");
 
 			// Node visibility logic
-			if (nodeFilter !== '' && nodeId.toLowerCase()?.includes(nodeFilter.toLowerCase()) === false) {
+			if (globalState.nodeFilter !== '' && nodeId.toLowerCase()?.includes(globalState.nodeFilter.toLowerCase()) === false) {
 				res.hidden = true;
 			} else if (!globalState.selectedNodeTypes[data.nodeType as keyof typeof nodeTypes]) {
 				res.hidden = true;
@@ -135,7 +132,7 @@
 		setNodeConfig();
 		setEdgeConfig();
 
-		startLayout(globalState.numberOfIterations);
+		startLayout(globalState.numberOfSeconds);
 	}
 
 	/** Controls the label rendered when hovering over a node */

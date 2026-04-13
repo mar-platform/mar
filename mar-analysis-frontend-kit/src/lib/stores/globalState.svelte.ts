@@ -9,7 +9,7 @@ import { getMegamodelGraphApi } from "$lib/api/megamodel";
 import { getProjectGraphApi, getProjectInfoApi } from "$lib/api/projects";
 import type { edgeTypes } from "$lib/constants/edgeTypes";
 import type { nodeTypes } from "$lib/constants/graphNodeTypes";
-import { DEFAULT_NUMBER_OF_ITERATIONS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES, MIN_WAIT_TIME_MS } from "$lib/constants/values";
+import { DEFAULT_NUMBER_OF_SECONDS, INITIAL_LABEL_SIZE, INITIAL_LABEL_THRESHOLD, INITIAL_NODE_SIZE, INITIAL_SHOW_UNCONNECTED_NODES, MIN_WAIT_TIME_MS } from "$lib/constants/values";
 import type ApiResponse from "$lib/dto/ApiResponse";
 import type ArtefactInfo from "$lib/dto/ArtefactInfo";
 import type { ArtefactNode, Edge, Node } from "$lib/dto/Graph";
@@ -48,7 +48,7 @@ class GlobalState {
     showUnconnectedNodes: boolean = $state(INITIAL_SHOW_UNCONNECTED_NODES);
     labelSize: number = $state(INITIAL_LABEL_SIZE);
     labelThreshold: number = $state(INITIAL_LABEL_THRESHOLD);
-    numberOfIterations: number | undefined = $state(DEFAULT_NUMBER_OF_ITERATIONS);
+    numberOfSeconds: number | undefined = $state(DEFAULT_NUMBER_OF_SECONDS);
     selectedNodeTypes = $state<Record<keyof typeof nodeTypes, boolean>>({
         acceleo: true,
         atl: true,
@@ -258,11 +258,12 @@ class GlobalState {
         this.currentGraphRenderer = renderer;
     }
 
-    refreshGraph() {
+    async refreshGraph() {
         if (!this.currentGraphRenderer) {
             return;
         }
-        this.currentGraphRenderer = this.currentGraphRenderer.refresh();
+        await tick(); // Ensure that any reactive updates related to graph changes are processed before refreshing the graph
+        this.currentGraphRenderer.refresh();
     }
 
     // —— Nodes —————————————————————————————

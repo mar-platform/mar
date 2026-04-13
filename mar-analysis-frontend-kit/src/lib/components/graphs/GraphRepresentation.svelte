@@ -69,9 +69,9 @@
 
     function onNumberOfIterationsChange(value: string) {
         if (!value || isNaN(Number(value)) || Number(value) < 1) {
-            globalState.numberOfIterations = undefined;
+            globalState.numberOfSeconds = undefined;
         } else {
-            globalState.numberOfIterations = Number(value);
+            globalState.numberOfSeconds = Number(value);
         }
     }
 
@@ -84,6 +84,12 @@
 
     function onLabelThresholdChange() {
         graphVisualizerRef?.updateLabelThreshold();
+    }
+
+    async function onSearchNodes(query: string) {
+        console.log("Filtering nodes with query:", query);
+        globalState.nodeFilter = query;
+        await globalState.refreshGraph();
     }
 </script>
 
@@ -116,8 +122,8 @@
                     <div class="flex flex-col min-[700px]:flex-row min-[700px]:gap-4 gap-2 min-[700px]:items-center" in:fade>
                         <div class="flex gap-2">
                             <div class={`relative flex flex-col ${fa2Running ? 'bg-transparent' : 'bg-input-background'} rounded-md px-2 w-20 h-10 border border-input-border`}>
-                                <label for="number-iterations" class="select-none text-text-placeholder absolute top-0.75 left-1 text-[0.65rem] px-1">Iterations</label>
-                                <input id="number-iterations" value={globalState.numberOfIterations} oninput={(e) => onNumberOfIterationsChange((e.target as HTMLInputElement).value)} min={1} disabled={fa2Running || selectedGraph === null} type="number" class="h-full pt-3 text-sm outline-none"/>
+                                <label for="number-seconds" class="select-none text-text-placeholder absolute top-0.75 left-1 text-[0.65rem] px-1">Time (s)</label>
+                                <input id="number-seconds" value={globalState.numberOfSeconds} oninput={(e) => onNumberOfIterationsChange((e.target as HTMLInputElement).value)} min={1} disabled={fa2Running || selectedGraph === null} type="number" class="h-full pt-3 text-sm outline-none"/>
                             </div>
                             {#key fa2Running}
                                 <div in:fade class="gap-2 flex items-center">
@@ -129,13 +135,13 @@
                                     {:else}
                                         <Button
                                             class="bg-blue-400 hover:bg-blue-400/80 text-white"
-                                            disabled={!globalState.numberOfIterations || selectedGraph === null}
+                                            disabled={!globalState.numberOfSeconds || selectedGraph === null}
                                             onclick={() => {
-                                                if (!globalState.numberOfIterations) {
+                                                if (!globalState.numberOfSeconds) {
                                                     toast.error('Please enter a valid number of iterations');
                                                     return;
                                                 }
-                                                graphVisualizerRef?.startLayout(globalState.numberOfIterations);
+                                                graphVisualizerRef?.startLayout(globalState.numberOfSeconds);
                                             }}
                                         >
                                             Start layout
@@ -160,7 +166,7 @@
                                     <GraphToolbar {onLabelSizeChange} {onLabelThresholdChange} />
                                 </Popover.Content>
                             </Popover.Root>
-                            <Searchbar disabled={selectedGraph === null} placeholder="Filter nodes..." onSearch={(query) => { globalState.nodeFilter = query }} />
+                            <Searchbar disabled={selectedGraph === null} placeholder="Filter nodes..." onSearch={onSearchNodes} />
                         </div>
                     </div>
                 </ScrollArea>
