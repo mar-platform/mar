@@ -1,6 +1,7 @@
 import json
 import sqlite3
 from typing import Optional
+from functools import lru_cache
 
 from git import Repo
 from ollama import chat
@@ -13,6 +14,9 @@ from termcolor import colored
 
 from analysis_common import get_repos, get_repo, find_readme_file
 
+# Module-level connection (initialized in process())
+_db_conn = None
+
 @dataclass
 class RepoClasification:
     id: str
@@ -24,7 +28,7 @@ class RepoClasification:
     readme_ok: bool = True
 
 
-#Common meta-tools organized by category: 
+#Common meta-tools organized by category:
 #- EMF (Eclipse Modeling Framework): Meta-modeling framework
 #- Xtext, EMFText, TCS: For creating textual DSLs
 #- Sirius, GMF, GEF, Graphitti, Eugenia: For creating graphical DSLs
@@ -35,7 +39,7 @@ Your task is to help me classify a Model-Driven Engineering (MDE) project into a
 I will give you a README.md file from a project. Tell me to which category the project belongs to:
 
 * Meta-tool: A tool whose aim is the construction of MDE tools. A meta-tool can be used to build DSLs, editors, transformations, code generators, etc. This also includes tools and extensions to support other meta-tools (e.g., an static analyser, a testing tool, et.).
-* Domain tool: A tool intended to automate or help the development in some application domain. Typically based on a DSL or a modeling language (ej., UML) and provides associated facilities like generators, validators, simulators, etc.  
+* Domain tool: A tool intended to automate or help the development in some application domain. Typically based on a DSL or a modeling language (ej., UML) and provides associated facilities like generators, validators, simulators, etc.
 * Example repository: A repository of examples rather than a real tool.
 * Research data repository: A repository containing data produced by some research, instead of a real tool.
 * Other. When the tool doesn't fit in the previous categories. If the README doesn't provide enough information, use this category. Provide a suggestion for the category.
@@ -62,7 +66,7 @@ Contents of the README.md file:
 
 """
 
-#Common meta-tools organized by category: 
+#Common meta-tools organized by category:
 #- Meta-modeling frameworks: EMF (Eclipse Modeling Framework)
 #- For creating textual DSLs: Xtext, EMFText, TCS
 #- For creating graphical DSLs: Sirius, GMF, GEF, Graphitti, Eugenia
@@ -111,7 +115,7 @@ def invoke_llm(readme_file, description, model, attempts = 0):
 
     if is_openai(model):
         from openai import OpenAI
-        
+
         client = OpenAI()
         resp = client.chat.completions.create(model=model,  # cheaper and faster than GPT-4
         messages=[ { 'role': 'user', 'content': prompt, } ],
@@ -212,8 +216,10 @@ def insert_data(conn, repo):
     conn.commit()
     c.close()
 
-def already_processed(repo_id, target_db):
-    c = target_db.cursor()
+@lru_cache(maxsize=1_000_000)
+def already_processed(repo_id):
+    """Check if repo has already been processed using cached lookup"""
+    c = _db_conn.cursor()
     c.execute('SELECT id FROM repo_classification WHERE id = ?', (repo_id,))
     r = c.fetchone() is not None
     c.close()
@@ -221,14 +227,16 @@ def already_processed(repo_id, target_db):
 
 
 def process(root, repo_db_file, target_db_file, model):
+    global _db_conn
     repo_db = sqlite3.connect(repo_db_file)
     target_db = create_target_db(target_db_file)
+    _db_conn = target_db
 
     repos = get_repos(repo_db)
     for repo_id, description in repos:
         try:
             # Main program code here
-            if already_processed(repo_id, target_db):
+            if already_processed(repo_id):
                 print("Already processed", repo_id)
                 continue
 
@@ -240,7 +248,7 @@ def process(root, repo_db_file, target_db_file, model):
           print("Ctrl-C pressed!")
           import sys
           sys.exit(0)
-            
+
 
     repo_db.close()
     target_db.close()
