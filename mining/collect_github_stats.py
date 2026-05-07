@@ -3,12 +3,15 @@ import json
 import sqlite3
 import os
 from dataclasses import dataclass
+from functools import lru_cache
 
 from github import Github
 from typing import Dict, Any
 
 from common import get_repos_by_type
 
+# Module-level connection (initialized in process())
+_db_conn = None
 
 def get_repo_stats(repo_id: int | str, *, token: str | None = None) -> Dict[str, Any]:
     """
@@ -122,8 +125,10 @@ def insert_data(id, repo_type, data, conn):
     conn.commit()
     c.close()
 
-def repo_already_inserted(id, conn):
-    c = conn.cursor()
+@lru_cache(maxsize=1_000_000)
+def repo_already_inserted(id):
+    global _db_conn
+    c = _db_conn.cursor()
     c.execute('SELECT id FROM repo_info WHERE id = ?', (id,))
     r = c.fetchone() is not None
     c.close()
@@ -159,8 +164,9 @@ def all_repos_from_organize_db(db_file):
     return result
 
 def process(db, all_repos):
-    target_db_conn = sqlite3.connect(db)
-    create_table(target_db_conn)
+    global _db_conn
+    _db_conn = sqlite3.connect(db)
+    create_table(_db_conn)
 
     token = os.environ.get('GH_TOKEN')
     if token is None:
@@ -176,7 +182,7 @@ def process(db, all_repos):
             print("Already checked ", id)
             continue
 
-        if repo_already_inserted(id, target_db_conn):
+        if repo_already_inserted(id):
             print("Already inserted ", id)
             continue
 
@@ -191,9 +197,9 @@ def process(db, all_repos):
         if data["private"]:
             continue
 
-        insert_data(id, 'any', data, target_db_conn)
+        insert_data(id, 'any', data, _db_conn)
 
-    target_db_conn.close()
+    _db_conn.close()
 
 def create_table(conn):
     sql = """

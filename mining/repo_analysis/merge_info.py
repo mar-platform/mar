@@ -1,12 +1,16 @@
 import argparse
 import os
 import sys
+from functools import lru_cache
 # add ".." to path
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from collect_repository_stats import create_table as create_info_table
 from collect_git_stats import create_table as create_git_table
 from common import get_repos_by_type
+
+# Module-level connection (initialized in process())
+_db_conn = None
 
 def create_artefact_type_tables(conn):
     sql = """
@@ -30,14 +34,16 @@ def create_classification_table(conn):
       error integer,
       readme_ok integer,
       llm varchar(255),
-      PRIMARY KEY(id, llm) 
+      PRIMARY KEY(id, llm)
     );
     """
     conn.cursor().execute(sql)
     conn.commit()
 
-def repo_exists(id, conn):
-    c = conn.cursor()
+@lru_cache(maxsize=1_000_000)
+def repo_exists(id):
+    """Check if repo exists in the database using cached lookup"""
+    c = _db_conn.cursor()
     c.execute('SELECT full_name FROM repo_info WHERE full_name = ?', (id,))
     r = c.fetchone() is not None
     c.close()
@@ -105,9 +111,11 @@ def process(db_root: str, crawler_root: str):
         db_file = os.path.join(crawler_root, r, 'crawler.db')
         print("Opening ", db_file)
         conn_repo = sqlite3.connect(db_file)
+        global _db_conn
+        _db_conn = conn_repo
 
         for (id,) in conn.execute('SELECT id FROM repo_info'):
-            if repo_exists(id, conn_repo):
+            if repo_exists(id):
                 print(id, " found")
                 conn.execute("INSERT INTO repo_artefacts(repo_id, artefact_type) VALUES (?, ?)", (id, r))
 
@@ -124,8 +132,8 @@ def process(db_root: str, crawler_root: str):
 
     print("Filtering pure EMF projects")
     conn.execute("""
-    CREATE TABLE regular_repo_info AS 
-    select *, (select count(*) from repo_artefacts r2 where r2.repo_id = r1.id) as ac from repo_info r1 where ac > 1 or id not in (select repo_id from repo_artefacts where artefact_type = 'emf-projects') 
+    CREATE TABLE regular_repo_info AS
+    select *, (select count(*) from repo_artefacts r2 where r2.repo_id = r1.id) as ac from repo_info r1 where ac > 1 or id not in (select repo_id from repo_artefacts where artefact_type = 'emf-projects')
     """)
     conn.commit()
 
