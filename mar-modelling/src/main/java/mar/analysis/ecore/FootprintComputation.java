@@ -79,7 +79,7 @@ public class FootprintComputation {
 		Set<Resource> externalResources = new HashSet<Resource>();
 		
 		//TreeIterator<EObject> it = resource.getAllContents();
-		TreeIterator<EObject> it = EcoreUtil.getAllContents(resource, true);
+		TreeIterator<EObject> it = EcoreUtil.getAllContents(resource, false);
 		while (it.hasNext()) {
 			EObject obj = it.next();
 			if (obj instanceof EClassifier) {
@@ -87,6 +87,7 @@ public class FootprintComputation {
 				if (accessCrossReferences && obj instanceof EClass) {
 					Map<EObject, Collection<Setting>> crossRefs = EcoreUtil.ProxyCrossReferencer.find(obj);
 					if (! crossRefs.isEmpty()) {
+						
 						for (EObject proxy : crossRefs.keySet()) {
 							if (proxy.eIsProxy()) {
 								EObject resolved = EcoreUtil.resolve(proxy, resource);
