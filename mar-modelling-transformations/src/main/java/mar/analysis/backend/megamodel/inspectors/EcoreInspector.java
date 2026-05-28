@@ -50,12 +50,24 @@ public class EcoreInspector extends ProjectInspector {
 		if (uris != null && ! uris.isBlank()) {
 			String[] externalURIs = uris.split(",");
 			for (String externalURI : externalURIs) {
+				externalURI = normalize(externalURI, repoPath);
 				Metamodel dep = tryFindURI(externalURI);
 				if (dep != null) {
 					mm.addDependent(mm);
 				}
 			}
 		}
+	}
+
+	private String normalize(String externalURI, Path repoPath) {
+		String path = repoPath.toString();
+		if (! path.endsWith("/")) 
+			path = path + "/";
+		int idx = externalURI.indexOf(path);
+		if (idx != -1) {
+			return externalURI.substring(idx + path.length());
+		}
+		return externalURI;
 	}	
 
 }
