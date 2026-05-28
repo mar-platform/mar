@@ -46,8 +46,9 @@ public class FootprintComputation {
 		Set<String> externalResourceURIs = new HashSet<String>();
 		for (Resource external : visited) {
 			String uri = external.getURI().toString();
-			if (! uri.equals(originalURI))
+			if (! uri.equals(originalURI)) {
 				externalResourceURIs.add(uri);
+			}
 		}
 		
 		return new Result(classNames, externalResourceURIs);

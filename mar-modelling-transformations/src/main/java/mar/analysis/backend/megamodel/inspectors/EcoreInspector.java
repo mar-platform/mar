@@ -51,16 +51,20 @@ public class EcoreInspector extends ProjectInspector {
 			String[] externalURIs = uris.split(",");
 			for (String externalURI : externalURIs) {
 				externalURI = normalize(externalURI, repoPath);
-				Metamodel dep = tryFindURI(externalURI);
+				// This is implicit, so we skip 
+				if ("http://www.eclipse.org/emf/2002/Ecore".equals(externalURI))
+					continue;
+				
+				Metamodel dep = toMetamodel(externalURI, repoPath);				
 				if (dep != null) {
-					mm.addDependent(mm);
-				}
+					mm.addDependent(dep);
+				}				
 			}
 		}
 	}
 
 	private String normalize(String externalURI, Path repoPath) {
-		String path = repoPath.toString();
+		String path = repoFolder.toString();
 		if (! path.endsWith("/")) 
 			path = path + "/";
 		int idx = externalURI.indexOf(path);
