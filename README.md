@@ -11,3 +11,4 @@ The relevant sub-projects for inspection are:
 * mar-analysis-frontend-kit
 * mining
 
+A manual analysis of the accuary of the method can be found [here](analysis.md).
