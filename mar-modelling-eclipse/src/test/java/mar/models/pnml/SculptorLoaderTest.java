@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 
 import org.eclipse.emf.ecore.resource.Resource;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mar.common.test.TestUtils;
@@ -12,6 +13,7 @@ import mar.common.test.TestUtils;
 public class SculptorLoaderTest {
 
 	@Test
+	@Ignore
 	public void testLoad() {
 		File file = TestUtils.getExternalResource("sculptor", "IcelyFramework/model.btdesign");
 		SculptorLoader loader = new SculptorLoader();

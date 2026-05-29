@@ -1,0 +1,28 @@
+filter-projects:
+  - name: dstrueber/multicda
+    cause: mutants
+  - name: dstrueber/bigtrafo
+    cause: mutants
+  - name: hub-se/MoFuzz
+    cause: mutants
+
+  - name: tue-mdse/ocl-dataset
+    cause: dataset
+
+  - name: se-sic/icse_model_completion
+    cause: paper-experiments
+  - name: chtinnes/icse_model_completion
+    cause: paper-experiments, fork
+
+  - name: MDEGroup/QMM
+    cause: paper-experiments
+  - name: MDEGroup/QMM-COMLAN-data
+    cause: paper-experiments, fork
+
+# TODO: Filter only those in /generated/
+
+# To identify projects with spureous artefacts
+# select p.id, count(*) as artefact_count from projects p, artefacts a where p.id = a.project_id group by p.id order by artefact_count;
+
+# slower:
+# select (select count(*) from artefacts where project_id = p.id) as artefact_count from projects p order by artefact_count;

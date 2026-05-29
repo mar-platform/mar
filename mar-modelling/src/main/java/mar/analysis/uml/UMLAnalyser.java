@@ -26,7 +26,6 @@ import org.eclipse.uml2.uml.StateMachine;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
-import mar.analysis.ecore.SingleEcoreFileAnalyser;
 import mar.indexer.common.configuration.ModelLoader;
 import mar.modelling.loader.ILoader;
 import mar.validation.IFileInfo;
@@ -36,8 +35,13 @@ import mar.validation.SingleEMFFileAnalyser;
 
 public class UMLAnalyser extends SingleEMFFileAnalyser {
 
+	private boolean computeFineGrainedStats = false;
+	
 	public static final String ID = "uml";
 
+	private ExtendedStatComputation computeExtendedStats = null;
+	private boolean tryValidateObjects = false;
+	
 	public static class Factory implements ResourceAnalyser.Factory {
 
 		@Override
@@ -62,6 +66,21 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 			return new UMLLoader();
 		}
 
+	}
+	
+	public static interface ExtendedStatComputation {
+		public void init(Map<String, Integer> types);
+		public void process(EObject obj, Map<String, Integer> types);
+	}
+	
+	public UMLAnalyser withExtendedStats(ExtendedStatComputation b) {
+		this.computeExtendedStats = b;
+		return this;
+	}
+	
+	public UMLAnalyser withValidateObjects(boolean b) {
+		this.tryValidateObjects = b;
+		return this;
 	}
 	
 	@Override
@@ -89,9 +108,11 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 	protected boolean checkResource(String modelId, Resource r) {
 		boolean hasModel = false;
 		for (EObject obj : r.getContents()) {					
-			Diagnostic d = Diagnostician.INSTANCE.validate(obj);
-			if (d.getSeverity() == Diagnostic.ERROR) {
-				return false;
+			if (tryValidateObjects) {
+				Diagnostic d = Diagnostician.INSTANCE.validate(obj);
+				if (d.getSeverity() == Diagnostic.ERROR) {
+					return false;
+				}
 			}
 			
 			if (obj instanceof Model) {
@@ -101,12 +122,19 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 		
 		return hasModel;
 	}
-
+	
 	@Override
 	protected AnalysisData getAdditionalAnalysis(Resource r) {
 		Map<String, Integer> types = new HashMap<>();
+
+
+		if (computeExtendedStats != null) {
+			computeExtendedStats.init(types);
+		}
+			
 		
-		int numElements = 0;
+		int numElements = 0;		
+		
 		TreeIterator<EObject> it = r.getAllContents();
 		while (it.hasNext()) {
 			EObject obj = it.next();
@@ -133,6 +161,11 @@ public class UMLAnalyser extends SingleEMFFileAnalyser {
 				types.putIfAbsent(key, 0);
 				types.compute(key, (k, v) -> v + 1);
 			}
+
+			if (computeExtendedStats != null) {
+				computeExtendedStats.process(obj, types);
+			}
+			
 		}
 			
 		types.put("elements", numElements);

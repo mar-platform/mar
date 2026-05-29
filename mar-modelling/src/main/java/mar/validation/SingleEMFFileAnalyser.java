@@ -25,7 +25,10 @@ public class SingleEMFFileAnalyser implements ISingleFileAnalyser {
 			}
 			
 			Resource r = loadModel(f);
-
+		
+			// This needs to be done before validation, to avoid resolving proxies
+			AnalysisData d = getAdditionalAnalysis(r);			
+			
 			Status status;
 			if (! checkResource(modelId, r)) {
 				status = Status.NO_VALIDATE;				
@@ -33,12 +36,12 @@ public class SingleEMFFileAnalyser implements ISingleFileAnalyser {
 				status = Status.VALID;
 			}
 						
-			AnalysisData d = getAdditionalAnalysis(r);			
 			return new AnalysisResult(modelId, status).
 					withStats(d.stats).
 					withMetadata(d.metadata).
 					withMetadataJSON(d.document);
 		} catch (Exception e) {
+			e.printStackTrace();
 			// LOG.error("Crashed " + relativeName, e);
 			// db.updateStatus(relativeName, Status.CRASHED);
 			return new AnalysisResult(modelId, Status.CRASHED);

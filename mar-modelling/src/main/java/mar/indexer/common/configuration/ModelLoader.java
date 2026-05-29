@@ -14,6 +14,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.uml2.uml.internal.resource.UMLResourceFactoryImpl;
 
+import mar.analysis.emfatic.EmfaticReader;
 import mar.analysis.rds.RdsLoader;
 import mar.analysis.uml.UMLLoader;
 import mar.models.archimate.ArchimateLoader;
@@ -103,7 +104,16 @@ public enum ModelLoader {
 			RdsLoader loader = new RdsLoader();			
 			return loader.toEMF(file);
 		}
-	};
+	},
+
+	EMFATIC {		
+		@Override
+		public Resource load(File file) throws IOException {
+			EmfaticReader loader = new EmfaticReader();			
+			return loader.toEMF(file);
+		}
+	}
+	;
 
 	public abstract Resource load(File file) throws IOException;
 

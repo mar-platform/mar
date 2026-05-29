@@ -25,7 +25,7 @@ public class IngestedModel implements IFileInfo, IngestedMetadata {
 
 	public IngestedModel(@Nonnull String id, @Nonnull File relativeFile, File fullPath, @Nonnull String url) {
 		this.id = id;
-		this.relativeFile = relativeFile;
+		this.relativeFile = relativeFile.toPath().normalize().toFile();
 		this.fullPath = fullPath;
 		this.url = url;
 	}

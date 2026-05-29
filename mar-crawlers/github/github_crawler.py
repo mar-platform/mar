@@ -78,10 +78,11 @@ def insert_file_contents(model_id, fname, c, f):
                f.size, f.license, repo.id))
     c.connection.commit()
 
-def save_file(f, c, output_folder, writer = None):
+def save_file(f, c, output_folder, writer = None, save_file_contents = False):
     """
     f : FileContents object
     c : A cursor
+    save_file_contents : indicates whether the file is made persistente on disk (otherwise, just the database is filled)
     """
     name = f.repository.full_name
     model_id = os.path.join(name, f.path)
@@ -89,20 +90,21 @@ def save_file(f, c, output_folder, writer = None):
     if common.model_already_exists(model_id, c):
         print("Model already exists ", model_id)
         return
-                    
-    path = Path(output_folder, "data", name, f.path);
-    path.parents[0].mkdir(parents=True, exist_ok=True)
-    text = base64.b64decode(f.content).decode('utf-8')
-    
+
     # print("   Writing to ", total, "...", path)
     
     try:
-        with path.open("w") as target:
-            target.write(text)
+        if save_file_contents:
+            path = Path(output_folder, "data", name, f.path);
+            path.parents[0].mkdir(parents=True, exist_ok=True)
+            text = base64.b64decode(f.content).decode('utf-8')
+
+            with path.open("w") as target:
+                target.write(text)
             
-            insert_file_contents(model_id, fname, c, f)
-            if not writer is None:
-                writer.writerow([model_id, f.name, f.download_url, f.size])
+        insert_file_contents(model_id, fname, c, f)
+        if not writer is None:
+            writer.writerow([model_id, f.name, f.download_url, f.size])
     except Exception as e:
         print("Error processing ", model_id, " with size = ", f.size)
         traceback.print_exc()
@@ -113,7 +115,7 @@ def open_db(output_folder):
     c = conn.cursor()
     return c
     
-def process(hint, extension, writer, output_folder, init = None, end = 1_000_000, step = 5):
+def process(hint, extension, writer, output_folder, init = None, end = 1_000_000, step = 5, save_file_contents=False):
     total = 0
     c = open_db(output_folder)
     
@@ -128,37 +130,70 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
 
     initial_step = step
     iterations_without_downloading = 0
+    passes_without_results = 0
     last_size = init
     for i in range(init, end, step):
         iterations_without_downloading = iterations_without_downloading + 1
         step = initial_step * iterations_without_downloading
-        finished_chunk = False        
+        finished_chunk = False
+        
         while not finished_chunk:
-            try:            
+            if passes_without_results >= 50:
+                size = 'size:' + str(i) + '..' + str(i + step - 1)
+                print("Finished because of no results with " + size)
+                return
+           
+            try:
+                passes_without_results = passes_without_results + 1
+
                 size = 'size:' + str(i) + '..' + str(i + step - 1)        
                 print("Processing with " + size)
                 files = g.search_code(query=hint + ' extension:' + extension + ' ' + size)
+                #files = g.search_code(query=hint + ' path:' + extension + ' ' + size)
                 print("   There are " , files.totalCount)
-            
+
+                file_count = 0
                 for f in files:
+                    file_count = file_count + 1
+                    passes_without_results = 0
                     # api_wait_search(g)
             
                     print("   Processing ", total, "... ", f.name)
 
                     # Wait a bit, as requested by GitHub best pratices
                     # https://docs.github.com/en/free-pro-team@latest/rest/guides/best-practices-for-integrators#dealing-with-abuse-rate-limits
-                    seconds = random.randint(1, 2)
-                    print("   Waiting ", seconds, " seconds")
-                    time.sleep(seconds)
+                    if save_file_contents:
+                        # We only wait between files when we are saving files
+                        seconds = random.randint(1, 2)
+                        print("   Waiting ", seconds, " seconds")
+                        time.sleep(seconds)
 
-                    print(f)
+                        print(f)
 
-                    save_file(f, c, output_folder, writer)
+                    save_file(f, c, output_folder, writer, save_file_contents)
                     
                     iterations_without_downloading = 0
                     last_size = f.size
                     total = total + 1
+
+                    # Chances are that we may miss some file
+                    if file_count > 1000:
+                        if step == 1:
+                            print("ERROR: Too many files, we are missing files. There are: ", file_count)
+                        else:
+                            print("WARNING: Halved step because of too many results", files.totalCount)
+                            passes_without_results = 0
+                            step = step // 2
+                            step = max(1, step)
+                            continue
+
                     
+                if not save_file_contents:
+                    # Wait between calls
+                    seconds = random.randint(1, 2)
+                    print("   Waiting ", seconds, " seconds")
+                    time.sleep(seconds)
+
                 finished_chunk = True
             #except github.GithubException.RateLimitExceededException:
             except github.GithubException as exception:
@@ -173,8 +208,9 @@ def process(hint, extension, writer, output_folder, init = None, end = 1_000_000
                     
             # This might be worth capturing as well, for internet errors
             # requests.exceptions.ConnectionError
-                
-    conn.close()
+        
+            
+    c.close()
 
 def process_single_files(file_list, output_folder):
     c = open_db(output_folder)
@@ -267,6 +303,9 @@ def parse_args():
     parser.add_argument('--step', dest='step', action='store', type=int,
                    default=5,
                    help='step')
+    parser.add_argument('--save_contents', dest='save_contents', action='store_true',
+                   default=False,
+                   help='save_contents')
 
     args = parser.parse_args()
 

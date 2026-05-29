@@ -26,7 +26,6 @@ public class CrawlerDB implements IngestionDB {
 
 	private final List<IngestedModel> models = new ArrayList<IngestedModel>();
 	
-	@Nonnull
 	public CrawlerDB(@Nonnull String modelType, @Nonnull String origin, @Nonnull String rootFolder, @Nonnull File file) {
 		String url = getConnectionString(file);
 		try (Connection connection = DriverManager.getConnection(url)){

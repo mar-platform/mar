@@ -10,4 +10,4 @@ if __name__ == "__main__":
     
     with open(os.path.join(args.output, 'uml_download.csv'), 'a+', newline='') as file:
         writer = csv.writer(file)
-        gc.process('extension:uml www.eclipse.org/uml2', 'uml', writer, args.output, args.init, 30_000_000, args.step)
+        gc.process('extension:uml www.eclipse.org/uml2', 'uml', writer, args.output, args.init, 30_000_000, args.step, args.save_contents)

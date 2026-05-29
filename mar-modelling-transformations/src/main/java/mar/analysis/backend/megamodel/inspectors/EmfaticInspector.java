@@ -1,0 +1,141 @@
+package mar.analysis.backend.megamodel.inspectors;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
+import org.apache.commons.io.IOUtils;
+
+import com.google.common.base.Preconditions;
+
+import mar.analysis.backend.megamodel.inspectors.InspectionErrorException.SyntaxError;
+import mar.analysis.duplicates.HashDuplicates;
+import mar.artefacts.FileProgram;
+import mar.artefacts.Metamodel;
+import mar.artefacts.MetamodelReference;
+import mar.artefacts.ProjectInspector;
+import mar.artefacts.RecoveredPath;
+import mar.artefacts.RecoveredPath.ExistingPath;
+import mar.artefacts.db.RepositoryDB;
+import mar.artefacts.graph.RecoveryGraph;
+import mar.validation.AnalysisDB;
+
+/**
+ * In .emf files we can find package URIs in lines like:
+ * 
+ * <pre>
+ *  @namespace(uri="http://my_uri", prefix="my_prefix")
+ * </pre>
+ * 
+ * @author jesus
+ *
+ */
+public class EmfaticInspector extends ProjectInspector {
+
+	public EmfaticInspector(Path repoFolder, Path projectSubPath, AnalysisDB analysisDb, RepositoryDB repoDb) {
+		super(repoFolder, projectSubPath, analysisDb, repoDb);
+	}
+	
+	protected String extractURI(@Nonnull String text, int startIndex, EmfaticProgram p) throws SyntaxError {
+		final String uriTag = "uri=";
+		final int uriNameStart = text.indexOf(uriTag, startIndex);
+		if (uriNameStart == -1) {
+			throw new InspectionErrorException.SyntaxError(p);
+		}
+		int idx = uriNameStart + uriTag.length();
+		
+		
+		int last = text.indexOf(",", idx);
+		Preconditions.checkState(last != -1);	
+		
+		String r = text.substring(idx, last);
+		if (r.startsWith("\"")) {
+			r = r.substring(1);
+		}
+		if (r.endsWith("\"")) {
+			r = r.substring(0, r.length() - 1);
+		}
+		return r;
+	}
+	
+	private List<String> getUris(File f, EmfaticProgram p) throws IOException, SyntaxError {
+		List<String> uris = new ArrayList<>();
+
+		String contents = IOUtils.toString(new FileInputStream(f), Charset.defaultCharset());
+		int index = 0;
+		while (true) {
+			final String NAMESPACE = "@namespace";
+			int namespaceStart = contents.indexOf(NAMESPACE, index);
+			if (namespaceStart == -1) 
+				break;
+			
+			int namespaceEnd = namespaceStart + NAMESPACE.length();
+			String uri = extractURI(contents, namespaceEnd, p);
+			uris.add(uri);
+			index = namespaceEnd + uri.length(); // an estimation
+		}
+		
+		return uris;
+	}
+
+	
+	@Override
+	public RecoveryGraph process(File f) throws Exception {
+		RecoveryGraph graph = new RecoveryGraph(getProject());
+		
+		EmfaticProgram p = new EmfaticProgram(RecoveredPath.newExistingPath(getRepositoryPath(f), repoFolder));		
+		p.setHash(HashDuplicates.toHash(f));
+
+		graph.addProgram(p);
+		
+		String filename = f.getName().replace(".emf", ".ecore");
+		File parent = f.getParentFile();
+
+		RecoveredPath rp = getFileSearcher().findPotentiallyGeneratedFile(parent.toPath(), filename);
+		if (rp instanceof ExistingPath) {
+			Metamodel mm = Metamodel.fromFile(filename, rp);
+			graph.addMetamodel(mm);
+			p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);				
+		} else {
+			// Assume that URIs between .ecore files match
+			// Assume that the root package URIs the main URI, and the rest are dependent meta-models			
+			List<String> uris = getUris(f, p);
+			String rootURI = uris.get(0);
+			Metamodel foundMetamodel = tryFindURI(rootURI);
+			if (foundMetamodel != null) {
+				p.addMetamodel(foundMetamodel, MetamodelReference.Kind.GENERATE);				
+			} else {
+				Metamodel mm = Metamodel.fromFile(filename, rp);
+				graph.addMetamodel(mm);
+				p.addMetamodel(mm, MetamodelReference.Kind.GENERATE);		
+			}			
+		}
+		
+		return graph;
+	}	
+	
+	public static class EmfaticProgram extends FileProgram {
+
+		public EmfaticProgram(RecoveredPath path) {
+			super(path);
+		}
+		
+		@Override
+		public String getKind() {
+			return "emfatic";
+		}
+		
+		@Override
+		public String getCategory() {
+			return "metamodel-syntax";
+		}
+		
+	}
+
+}
